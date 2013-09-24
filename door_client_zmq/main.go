@@ -80,9 +80,7 @@ func main() {
                     default:
                         ignore_next = true
                         cmd_chans.Out() <- input
-                        log.Print("input sent")
                         reply := <- cmd_chans.In()
-                        log.Print("reply received")
                         fmt.Println(ByteArrayToString(reply))
                 }
             } else {

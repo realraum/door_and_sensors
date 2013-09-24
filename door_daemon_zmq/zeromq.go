@@ -32,7 +32,7 @@ func ZmqsInit(cmd_port, pub_port string)  (ctx *zmq.Context, cmd_chans, pub_chan
 	    if err = cmd_sock.Bind(cmd_port); err != nil {
             panic(err)
         }
-    
+
         cmd_chans = cmd_sock.ChannelsBuffer(10)
         go zmqsHandleError(cmd_chans)
     } else {
@@ -62,6 +62,6 @@ func ZmqsInit(cmd_port, pub_port string)  (ctx *zmq.Context, cmd_chans, pub_chan
 func zmqsHandleError(chans *zmq.Channels) {
     for error := range(chans.Errors()) {
         chans.Close()
-        panic(error)    
+        panic(error)
     }
 }

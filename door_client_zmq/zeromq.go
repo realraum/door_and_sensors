@@ -10,7 +10,6 @@ import (
 // ---------- ZeroMQ Code -------------
 
 func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chans *zmq.Channels) {
-    var subfilter []byte
     var err error
     ctx, err = zmq.NewContext()
     if err != nil {
@@ -32,7 +31,7 @@ func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chan
         if err = cmd_sock.Connect(cmd_port); err != nil {
             panic(err)
         }
-    
+
         cmd_chans = cmd_sock.ChannelsBuffer(10)
         go zmqsHandleError(cmd_chans)
     } else {
@@ -46,7 +45,11 @@ func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chan
         }
         defer func() { if r:= recover(); r != nil { sub_sock.Close(); panic(r) } }()
 
-        sub_sock.Subscribe(subfilter)
+        sub_sock.Subscribe([]byte("close"))
+        sub_sock.Subscribe([]byte("toggle"))
+        sub_sock.Subscribe([]byte("Info"))
+        sub_sock.Subscribe([]byte("State"))
+        sub_sock.Subscribe([]byte("open"))
 
         if err = sub_sock.Connect(sub_port); err != nil {
             panic(err)
@@ -64,6 +67,6 @@ func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chan
 func zmqsHandleError(chans *zmq.Channels) {
     for error := range(chans.Errors()) {
         chans.Close()
-        panic(error)    
+        panic(error)
     }
 }

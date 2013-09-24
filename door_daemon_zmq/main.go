@@ -7,7 +7,6 @@ import (
     "os"
     "flag"
     "time"
-    //~ "log"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -81,18 +80,13 @@ func main() {
                 }
             case incoming_request, ic_notclosed := <- cmd_chans.In():
                 if ! ic_notclosed {os.Exit(2)}
-                //~ log.Print(incoming_request)
                  if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
-                    //~ log.Print(err)
                     out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
                     cmd_chans.Out() <- out_msg
-                    //~ log.Print("sent error")
                  } else {
-                    //~ log.Print(reply)
                     pub_chans.Out() <- incoming_request
                     next_incoming_serial_is_client_reply = true
                     go func(){time.Sleep(3*time.Second); timeout_chan <- true;}()
-                    //~ log.Print("sent reply")
                  }
         }
     }
