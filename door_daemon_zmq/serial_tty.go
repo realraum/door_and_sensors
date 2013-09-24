@@ -52,7 +52,7 @@ func OpenAndHandleSerial(filename string) (chan string, chan [][]byte, error) {
         return nil, nil, err
     }
     wr := make(chan string)
-	rd := make(chan [][]byte, 10)
+	rd := make(chan [][]byte, 20)
     go serialWriter(wr, serial)
     go serialReader(rd, serial)
     return wr, rd, nil

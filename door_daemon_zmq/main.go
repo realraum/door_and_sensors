@@ -6,6 +6,7 @@ import (
     "fmt"
     "os"
     "flag"
+    "time"
     //~ "log"
 )
 
@@ -59,6 +60,8 @@ func main() {
     //~ firmware_version := <- serial_rd
     //~ log.Print("Firmware version:", firmware_version)
     var next_incoming_serial_is_client_reply bool
+    timeout_chan := make(chan bool)
+    defer close(timeout_chan)
     for {
         select {
             case incoming_ser_line, is_notclosed := <- serial_rd:
@@ -70,6 +73,11 @@ func main() {
                     pub_chans.Out() <- incoming_ser_line
                 } else {
                     os.Exit(1)
+                }
+            case tv, timeout_notclosed := <- timeout_chan:
+                if timeout_notclosed && tv && next_incoming_serial_is_client_reply {
+                        next_incoming_serial_is_client_reply = false
+                        cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("No reply from firmware")}
                 }
             case incoming_request, ic_notclosed := <- cmd_chans.In():
                 if ! ic_notclosed {os.Exit(2)}
@@ -83,6 +91,7 @@ func main() {
                     //~ log.Print(reply)
                     pub_chans.Out() <- incoming_request
                     next_incoming_serial_is_client_reply = true
+                    go func(){time.Sleep(3*time.Second); timeout_chan <- true;}()
                     //~ log.Print("sent reply")
                  }
         }

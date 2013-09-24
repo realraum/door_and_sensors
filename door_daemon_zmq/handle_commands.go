@@ -57,8 +57,7 @@ func HandleCommand(tokens [][]byte, serial_wr chan string, serial_rd chan [][]by
     }
 
     if err := dch.Checker(tokens); err != nil {
-        //return error to sender
-        return nil
+        return err
     }
 
     serial_wr <- dch.FirmwareChar
