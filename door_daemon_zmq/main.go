@@ -19,15 +19,24 @@ import (
 
 // ---------- Main Code -------------
 
+var (
+    cmd_port_ string
+    pub_port_ string
+)
+
 func usage() {
     fmt.Fprintf(os.Stderr, "Usage: door_daemon_0mq <door tty device>\n")
     flag.PrintDefaults()
 }
 
-func main() {
+func init() {
+    flag.StringVar(&cmd_port_, "cmdport", "tcp://localhost:5555", "zmq command socket path")
+    flag.StringVar(&pub_port_, "pubport", "gmp://*:6666", "zmq public/listen socket path")
     flag.Usage = usage
     flag.Parse()
+}
 
+func main() {
     args := flag.Args()
     if len(args) < 1 {
         fmt.Fprintf(os.Stderr, "Input file is missing!\n");
@@ -35,7 +44,7 @@ func main() {
         os.Exit(1);
     }
     
-    cmd_chans, pub_chans := ZmqsInit("tcp://localhost:5555", "gmp://*:6666")   
+    cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)   
     
     serial_wr, serial_rd, err := OpenAndHandleSerial(args[0], pub_chans.Out())
     if err != nil {
