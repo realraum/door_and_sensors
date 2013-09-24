@@ -55,9 +55,10 @@ func ByteArrayToString(bb [][]byte) string {
 }
 
 func main() {
-    cmd_chans, sub_chans := ZmqsInit(cmd_port_, sub_port_)
+    zmqctx, cmd_chans, sub_chans := ZmqsInit(cmd_port_, sub_port_)
     defer cmd_chans.Close()
     defer sub_chans.Close()
+    defer zmqctx.Close()
     var listen bool
     var ignore_next bool
 

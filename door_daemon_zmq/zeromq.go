@@ -9,9 +9,10 @@ import (
 
 // ---------- ZeroMQ Code -------------
 
-func ZmqsInit(cmd_port, pub_port string)  (cmd_chans, pub_chans *zmq.Channels) {
+func ZmqsInit(cmd_port, pub_port string)  (ctx *zmq.Context, cmd_chans, pub_chans *zmq.Channels) {
 
-    ctx, err := zmq.NewContext()
+    var err error
+    ctx, err = zmq.NewContext()
     if err != nil {
         panic(err)
     }

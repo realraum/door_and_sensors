@@ -44,7 +44,10 @@ func main() {
         os.Exit(1);
     }
 
-    cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
+    zmqctx, cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
+    defer cmd_chans.Close()
+    defer pub_chans.Close()
+    defer zmqctx.Close()
 
     serial_wr, err := OpenAndHandleSerial(args[0], pub_chans.Out())
     defer close(serial_wr)

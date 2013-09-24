@@ -9,9 +9,10 @@ import (
 
 // ---------- ZeroMQ Code -------------
 
-func ZmqsInit(cmd_port, sub_port string)  (cmd_chans, sub_chans *zmq.Channels) {
-
-    ctx, err := zmq.NewContext()
+func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chans *zmq.Channels) {
+    var subfilter []byte
+    var err error
+    ctx, err = zmq.NewContext()
     if err != nil {
         panic(err)
     }
@@ -36,6 +37,8 @@ func ZmqsInit(cmd_port, sub_port string)  (cmd_chans, sub_chans *zmq.Channels) {
     if err = cmd_sock.Connect(cmd_port); err != nil {
         panic(err)
     }
+
+    sub_sock.Subscribe(subfilter)
 
     if err = sub_sock.Connect(sub_port); err != nil {
         panic(err)
