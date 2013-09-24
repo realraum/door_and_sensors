@@ -16,49 +16,52 @@ func ZmqsInit(cmd_port, pub_port string)  (ctx *zmq.Context, cmd_chans, pub_chan
     if err != nil {
         panic(err)
     }
-    //close only on panic, otherwise leave open:
+    //close only on later panic, otherwise leave open:
     defer func(){ if r:= recover(); r != nil { ctx.Close(); panic(r) } }()
 
-    cmd_sock, err := ctx.Socket(zmq.Rep)
-    if err != nil {
-        panic(err)
-    }
-    defer func() { if r:= recover(); r != nil { cmd_sock.Close(); panic(r) } }()
+    if len(cmd_port) > 0 {
+        cmd_sock, err := ctx.Socket(zmq.Rep)
+        if err != nil {
+            panic(err)
+        }
+        defer func() { if r:= recover(); r != nil { cmd_sock.Close(); panic(r) } }()
 
-    cmd_sock.SetRecvTimeout(2 * time.Second)
-    cmd_sock.SetSendTimeout(2 * time.Second)
+        cmd_sock.SetRecvTimeout(2 * time.Second)
+        cmd_sock.SetSendTimeout(2 * time.Second)
 
-    pub_sock, err := ctx.Socket(zmq.Pub)
-    if err != nil {
-        panic(err)
-    }
-    defer func() { if r:= recover(); r != nil { pub_sock.Close(); panic(r) } }()
-
-    if err = cmd_sock.Bind(cmd_port); err != nil { // "tcp://*:5555"
-        panic(err)
-    }
-
-    if err = pub_sock.Bind(pub_port); err != nil { // "tcp://*:5556"
-        panic(err)
+	    if err = cmd_sock.Bind(cmd_port); err != nil {
+            panic(err)
+        }
+    
+        cmd_chans = cmd_sock.ChannelsBuffer(10)
+        go zmqsHandleError(cmd_chans)
+    } else {
+        cmd_chans = nil
     }
 
-    cmd_chans = cmd_sock.ChannelsBuffer(10)
-    pub_chans = cmd_sock.ChannelsBuffer(10)
-    go zmqsHandleError(cmd_chans, pub_chans)
+    if len(pub_port) > 0 {
+        pub_sock, err := ctx.Socket(zmq.Pub)
+        if err != nil {
+            panic(err)
+        }
+        defer func() { if r:= recover(); r != nil { pub_sock.Close(); panic(r) } }()
+
+        if err = pub_sock.Bind(pub_port); err != nil {
+            panic(err)
+        }
+
+        pub_chans = pub_sock.ChannelsBuffer(10)
+        go zmqsHandleError(pub_chans)
+    } else {
+        pub_chans = nil
+    }
+
     return
 }
 
-func zmqsHandleError(cmd_chans, pub_chans *zmq.Channels) {
-    for {
-        select {
-            case cmd_error := <- cmd_chans.Errors():
-                cmd_chans.Close()
-                pub_chans.Close()
-                panic(cmd_error)
-            case pub_error := <- pub_chans.Errors():
-                cmd_chans.Close()
-                pub_chans.Close()
-                panic(pub_error)
-        }
+func zmqsHandleError(chans *zmq.Channels) {
+    for error := range(chans.Errors()) {
+        chans.Close()
+        panic(error)    
     }
 }
