@@ -46,7 +46,7 @@ func checkCmdStatus(tokens [][]byte) (error) {
     return nil
 }
 
-func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan string, serial_rd chan [][]byte) ([][]byte, error){
+func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan string) ([][]byte, error){
     if len(tokens) < 1 {
         return nil, errors.New("No Command to handle")
     }
@@ -63,6 +63,6 @@ func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan strin
 
     topub <- tokens
     serial_wr <- dch.FirmwareChar
-    fw_reply := <- serial_rd
+    fw_reply := GetLastSerialLine()
     return fw_reply, nil
 }

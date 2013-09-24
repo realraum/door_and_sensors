@@ -4,32 +4,30 @@ package main
 
 import (
     zmq "github.com/vaughan0/go-zmq"
+    "time"
  )
 
 // ---------- ZeroMQ Code -------------
 
 func ZmqsInit(cmd_port, pub_port string)  (cmd_chans, pub_chans *zmq.Channels) {
 
-    cmd_ctx, err := zmq.NewContext()
+    ctx, err := zmq.NewContext()
     if err != nil {
         panic(err)
     }
     //close only on panic, otherwise leave open:
-    defer func(){ if r:= recover(); r != nil { cmd_ctx.Close(); panic(r) } }()
+    defer func(){ if r:= recover(); r != nil { ctx.Close(); panic(r) } }()
 
-    pub_ctx, err := zmq.NewContext()
-    if err != nil {
-        panic(err)
-    }
-    defer func() { if r:= recover(); r != nil { pub_ctx.Close(); panic(r) } }()
-
-    cmd_sock, err := cmd_ctx.Socket(zmq.Rep)
+    cmd_sock, err := ctx.Socket(zmq.Rep)
     if err != nil {
         panic(err)
     }
     defer func() { if r:= recover(); r != nil { cmd_sock.Close(); panic(r) } }()
 
-    pub_sock, err := pub_ctx.Socket(zmq.Pub)
+    cmd_sock.SetRecvTimeout(2 * time.Second)
+    cmd_sock.SetSendTimeout(2 * time.Second)
+
+    pub_sock, err := ctx.Socket(zmq.Pub)
     if err != nil {
         panic(err)
     }
@@ -43,8 +41,8 @@ func ZmqsInit(cmd_port, pub_port string)  (cmd_chans, pub_chans *zmq.Channels) {
         panic(err)
     }
 
-    cmd_chans = cmd_sock.Channels()
-    pub_chans = cmd_sock.Channels()
+    cmd_chans = cmd_sock.ChannelsBuffer(10)
+    pub_chans = cmd_sock.ChannelsBuffer(10)
     go zmqsHandleError(cmd_chans, pub_chans)
     return
 }

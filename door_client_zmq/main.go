@@ -25,8 +25,8 @@ func usage() {
 }
 
 func init() {
-    flag.StringVar(&cmd_port_, "cmdport", "tcp://localhost:5555", "zmq command socket path")
-    flag.StringVar(&sub_port_, "pubport", "gmp://*:6666", "zmq subscribe/listen socket path")
+    flag.StringVar(&cmd_port_, "cmdport", "tcp://127.0.0.1:3232", "zmq command socket path")
+    flag.StringVar(&sub_port_, "pubport", "pgm://233.252.1.42:4242", "zmq subscribe/listen socket path")
     flag.Usage = usage
     flag.Parse()
 }
@@ -34,18 +34,24 @@ func init() {
 func LineReader(out chan <- [][]byte, stdin * os.File) {
     linescanner := bufio.NewScanner(stdin)
     linescanner.Split(bufio.ScanLines)
+    defer close(out)
     for linescanner.Scan() {
         if err := linescanner.Err(); err != nil {
             log.Print(err)
-            close(out)
             return
         }
-        text := bytes.Fields([]byte(linescanner.Text()))
+        //text := bytes.Fields(linescanner.Bytes()) //this returns a slice (aka pointer, no array deep-copy here)
+        text := bytes.Fields([]byte(linescanner.Text())) //this allocates a string and slices it -> no race-condition with overwriting any data
         if len(text) == 0 {
             continue
         }
         out <- text
     }
+}
+
+func ByteArrayToString(bb [][]byte) string {
+    b := bytes.Join(bb, []byte(" "))
+    return string(b)
 }
 
 func main() {
@@ -69,16 +75,21 @@ func main() {
                         listen = true
                         fmt.Println("Now listening")
                     case "quit":
-                        break
+                        os.Exit(0)
                     default:
                         ignore_next = true
                         cmd_chans.Out() <- input
-                        fmt.Println( <- cmd_chans.In())
+                        log.Print("input sent")
+                        reply := <- cmd_chans.In()
+                        log.Print("reply received")
+                        fmt.Println(ByteArrayToString(reply))
                 }
             } else {
-                break
+                os.Exit(0)
             }
         case pubsubstuff := <- sub_chans.In():
+            log.Print("pubsubstuff",pubsubstuff)
+            if len(pubsubstuff) == 0 { continue}
             if ignore_next {
                 ignore_next = false
                 continue

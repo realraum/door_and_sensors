@@ -6,7 +6,7 @@ import (
     "fmt"
     "os"
     "flag"
-    "log"
+    //~ "log"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -30,8 +30,8 @@ func usage() {
 }
 
 func init() {
-    flag.StringVar(&cmd_port_, "cmdport", "tcp://localhost:5555", "zmq command socket path")
-    flag.StringVar(&pub_port_, "pubport", "gmp://*:6666", "zmq public/listen socket path")
+    flag.StringVar(&cmd_port_, "cmdport", "tcp://127.0.01:3232", "zmq command socket path")
+    flag.StringVar(&pub_port_, "pubport", "pgm://233.252.1.42:4242", "zmq public/listen socket path")
     flag.Usage = usage
     flag.Parse()
 }
@@ -46,23 +46,28 @@ func main() {
 
     cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
 
-    serial_wr, serial_rd, err := OpenAndHandleSerial(args[0], pub_chans.Out())
+    serial_wr, err := OpenAndHandleSerial(args[0], pub_chans.Out())
+    defer close(serial_wr)
     if err != nil {
-        close(serial_wr)
         panic(err)
     }
 
-    serial_wr <- "f"
-    firmware_version := <- serial_rd
-    log.Print("Firmware version:", firmware_version)
+    //~ serial_wr <- "f"
+    //~ firmware_version := <- serial_rd
+    //~ log.Print("Firmware version:", firmware_version)
 
     for incoming_request := range cmd_chans.In() {
-        reply, err := HandleCommand(incoming_request, pub_chans.Out(), serial_wr, serial_rd)
+        //~ log.Print(incoming_request)
+        reply, err := HandleCommand(incoming_request, pub_chans.Out(), serial_wr)
          if err != nil {
-            cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte(err.Error())}
-            log.Print(err)
+            //~ log.Print(err)
+            out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
+            cmd_chans.Out() <- out_msg
+            //~ log.Print("sent error")
          } else {
+            //~ log.Print(reply)
             cmd_chans.Out() <- reply
+            //~ log.Print("sent reply")
          }
     }
 }
