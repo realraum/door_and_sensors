@@ -46,23 +46,21 @@ func checkCmdStatus(tokens [][]byte) (error) {
     return nil
 }
 
-func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan string) ([][]byte, error){
+func HandleCommand(tokens [][]byte, serial_wr chan string, serial_rd chan [][]byte) error {
     if len(tokens) < 1 {
-        return nil, errors.New("No Command to handle")
+        return errors.New("No Command to handle")
     }
 
     dch, present := cmdToDoorCmdHandler[string(tokens[0])]
     if ! present {
-        return nil, errors.New("Unknown Command")
+        return errors.New("Unknown Command")
     }
 
     if err := dch.Checker(tokens); err != nil {
         //return error to sender
-        return nil, err
+        return nil
     }
 
-    topub <- tokens
     serial_wr <- dch.FirmwareChar
-    fw_reply := GetLastSerialLine()
-    return fw_reply, nil
+    return nil
 }

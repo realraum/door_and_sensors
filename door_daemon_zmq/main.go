@@ -49,7 +49,7 @@ func main() {
     defer pub_chans.Close()
     defer zmqctx.Close()
 
-    serial_wr, err := OpenAndHandleSerial(args[0], pub_chans.Out())
+    serial_wr, serial_rd, err := OpenAndHandleSerial(args[0])
     defer close(serial_wr)
     if err != nil {
         panic(err)
@@ -58,19 +58,33 @@ func main() {
     //~ serial_wr <- "f"
     //~ firmware_version := <- serial_rd
     //~ log.Print("Firmware version:", firmware_version)
-
-    for incoming_request := range cmd_chans.In() {
-        //~ log.Print(incoming_request)
-        reply, err := HandleCommand(incoming_request, pub_chans.Out(), serial_wr)
-         if err != nil {
-            //~ log.Print(err)
-            out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
-            cmd_chans.Out() <- out_msg
-            //~ log.Print("sent error")
-         } else {
-            //~ log.Print(reply)
-            cmd_chans.Out() <- reply
-            //~ log.Print("sent reply")
-         }
+    var next_incoming_serial_is_client_reply bool
+    for {
+        select {
+            case incoming_ser_line, is_notclosed := <- serial_rd:
+                if is_notclosed {
+                    if next_incoming_serial_is_client_reply {
+                        next_incoming_serial_is_client_reply = false
+                        cmd_chans.Out() <- incoming_ser_line
+                    }
+                    pub_chans.Out() <- incoming_ser_line
+                } else {
+                    os.Exit(1)
+                }
+            case incoming_request, ic_notclosed := <- cmd_chans.In():
+                if ! ic_notclosed {os.Exit(2)}
+                //~ log.Print(incoming_request)
+                 if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
+                    //~ log.Print(err)
+                    out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
+                    cmd_chans.Out() <- out_msg
+                    //~ log.Print("sent error")
+                 } else {
+                    //~ log.Print(reply)
+                    pub_chans.Out() <- incoming_request
+                    next_incoming_serial_is_client_reply = true
+                    //~ log.Print("sent reply")
+                 }
+        }
     }
 }
