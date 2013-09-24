@@ -15,7 +15,7 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler {
   "open": DoorCmdHandler{ checkCmdDoorControl, "o"},
   "close": DoorCmdHandler{ checkCmdDoorControl, "c"},
   "toggle": DoorCmdHandler{ checkCmdDoorControl, "t"},
-  "status": DoorCmdHandler{ checkCmdDoorControl, "s"},
+  "status": DoorCmdHandler{ checkCmdStatus, "s"},
 }
 
 // ---------- Command Handling Code -------------
