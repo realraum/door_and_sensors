@@ -48,7 +48,7 @@ func LineReader(out chan <- [][]byte, stdin * os.File) {
     }
 }
 
-func main() { 
+func main() {
     cmd_chans, sub_chans := ZmqsInit(cmd_port_, sub_port_)
     defer cmd_chans.Close()
     defer sub_chans.Close()
@@ -58,7 +58,7 @@ func main() {
     user_input_chan := make(chan [][]byte, 1)
     go LineReader(user_input_chan, os.Stdin)
     defer os.Stdin.Close()
-    
+
     for {
         select {
         case input, input_open := (<- user_input_chan):

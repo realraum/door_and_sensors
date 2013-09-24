@@ -43,15 +43,15 @@ func main() {
         usage()
         os.Exit(1);
     }
-    
-    cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)   
-    
+
+    cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
+
     serial_wr, serial_rd, err := OpenAndHandleSerial(args[0], pub_chans.Out())
     if err != nil {
         close(serial_wr)
         panic(err)
     }
-    
+
     serial_wr <- "f"
     firmware_version := <- serial_rd
     log.Print("Firmware version:", firmware_version)
@@ -63,6 +63,6 @@ func main() {
             log.Print(err)
          } else {
             cmd_chans.Out() <- reply
-         }        
+         }
     }
 }

@@ -50,7 +50,7 @@ func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan strin
     if len(tokens) < 1 {
         return nil, errors.New("No Command to handle")
     }
-    
+
     dch, present := cmdToDoorCmdHandler[string(tokens[0])]
     if ! present {
         return nil, errors.New("Unknown Command")
@@ -60,7 +60,7 @@ func HandleCommand(tokens [][]byte, topub chan <- [][]byte, serial_wr chan strin
         //return error to sender
         return nil, err
     }
-    
+
     topub <- tokens
     serial_wr <- dch.FirmwareChar
     fw_reply := <- serial_rd

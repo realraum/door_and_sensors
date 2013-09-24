@@ -16,13 +16,13 @@ func ZmqsInit(cmd_port, sub_port string)  (cmd_chans, pub_chans *zmq.Channels) {
     }
     //close only on panic, otherwise leave open:
     defer func(){ if r:= recover(); r != nil { cmd_ctx.Close(); panic(r) } }()
-    
+
     pub_ctx, err := zmq.NewContext()
     if err != nil {
         panic(err)
     }
     defer func() { if r:= recover(); r != nil { pub_ctx.Close(); panic(r) } }()
-    
+
     cmd_sock, err := cmd_ctx.Socket(zmq.Req)
     if err != nil {
         panic(err)
@@ -42,7 +42,7 @@ func ZmqsInit(cmd_port, sub_port string)  (cmd_chans, pub_chans *zmq.Channels) {
     if err = pub_sock.Bind(sub_port); err != nil {
         panic(err)
     }
-    
+
     cmd_chans = cmd_sock.Channels()
     pub_chans = cmd_sock.Channels()
     go zmqsHandleError(cmd_chans, pub_chans)
