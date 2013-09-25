@@ -17,6 +17,8 @@ import (
 var (
     cmd_port_ string
     sub_port_ string
+    cmd_method_ string
+    cmd_user_ string
 )
 
 func usage() {
@@ -27,6 +29,8 @@ func usage() {
 func init() {
     flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
     flag.StringVar(&sub_port_, "pubport", "tcp://torwaechter.realraum.at:4242", "zmq subscribe/listen socket path")
+    flag.StringVar(&cmd_method_, "method", "", "zmq cmd method")
+    flag.StringVar(&cmd_user_, "usernick", "", "zmq cmd user identity")
     flag.Usage = usage
     flag.Parse()
 }
@@ -72,6 +76,8 @@ func main() {
             if input_open {
                 if len(input) == 0 { continue }
                  switch string(input[0]) {
+                    case "help", "?":
+                        fmt.Println("Available Commands: help, listen, quit. Everything else is passed through to door daemon")
                     case "listen":
                         listen = true
                         fmt.Println("Now listening")
