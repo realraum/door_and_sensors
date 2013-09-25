@@ -45,11 +45,7 @@ func ZmqsInit(cmd_port, sub_port string)  (ctx *zmq.Context, cmd_chans, sub_chan
         }
         defer func() { if r:= recover(); r != nil { sub_sock.Close(); panic(r) } }()
 
-        sub_sock.Subscribe([]byte("close"))
-        sub_sock.Subscribe([]byte("toggle"))
-        sub_sock.Subscribe([]byte("Info"))
-        sub_sock.Subscribe([]byte("State"))
-        sub_sock.Subscribe([]byte("open"))
+        sub_sock.Subscribe([]byte{}) //subscribe empty filter -> aka to all messages
 
         if err = sub_sock.Connect(sub_port); err != nil {
             panic(err)

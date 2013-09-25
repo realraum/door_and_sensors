@@ -25,8 +25,8 @@ func usage() {
 }
 
 func init() {
-    flag.StringVar(&cmd_port_, "cmdport", "tcp://127.0.0.1:3232", "zmq command socket path")
-    flag.StringVar(&sub_port_, "pubport", "pgm://233.252.1.42:4242", "zmq subscribe/listen socket path")
+    flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
+    flag.StringVar(&sub_port_, "pubport", "tcp://torwaechter.realraum.at:4242", "zmq subscribe/listen socket path")
     flag.Usage = usage
     flag.Parse()
 }
@@ -87,14 +87,13 @@ func main() {
                 os.Exit(0)
             }
         case pubsubstuff := <- sub_chans.In():
-            log.Print("pubsubstuff",pubsubstuff)
             if len(pubsubstuff) == 0 { continue}
             if ignore_next {
                 ignore_next = false
                 continue
             }
             if listen {
-                fmt.Println(pubsubstuff)
+                fmt.Println(ByteArrayToString(pubsubstuff))
             }
         }
     }
