@@ -7,6 +7,8 @@ import (
     "os"
     "flag"
     "time"
+    "log/syslog"
+    "log"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -22,6 +24,9 @@ import (
 var (
     cmd_port_ string
     pub_port_ string
+    door_tty_path_ string
+    use_syslog_ bool
+    syslog_ *log.Logger
 )
 
 func usage() {
@@ -30,29 +35,32 @@ func usage() {
 }
 
 func init() {
-    flag.StringVar(&cmd_port_, "cmdport", "tcp://127.0.01:3232", "zmq command socket path")
-    flag.StringVar(&pub_port_, "pubport", "pgm://233.252.1.42:4242", "zmq public/listen socket path")
+    flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
+    flag.StringVar(&pub_port_, "pubport", "tcp://*:4242", "zmq public/listen socket path")
+    flag.StringVar(&door_tty_path_, "device", "/dev/door", "door tty device path")
+    flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
     flag.Usage = usage
     flag.Parse()
 }
 
 func main() {
-    args := flag.Args()
-    if len(args) < 1 {
-        fmt.Fprintf(os.Stderr, "Input file is missing!\n");
-        usage()
-        os.Exit(1);
-    }
-
     zmqctx, cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
     defer cmd_chans.Close()
     defer pub_chans.Close()
     defer zmqctx.Close()
 
-    serial_wr, serial_rd, err := OpenAndHandleSerial(args[0])
+    serial_wr, serial_rd, err := OpenAndHandleSerial(door_tty_path_)
     defer close(serial_wr)
     if err != nil {
         panic(err)
+    }
+
+    if use_syslog_ {
+        var logerr error
+        syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL1, 0)
+        if logerr != nil { panic(logerr) }
+        syslog_.Print("started")
+        defer syslog_.Print("exiting")
     }
 
     //~ serial_wr <- "f"
@@ -65,12 +73,15 @@ func main() {
         select {
             case incoming_ser_line, is_notclosed := <- serial_rd:
                 if is_notclosed {
+                    //~ if syslog_ != nil { syslog_.Print(ByteArrayToString(incoming_ser_line)) }
+                    if syslog_ != nil { syslog_.Printf("%s",incoming_ser_line) }
                     if next_incoming_serial_is_client_reply {
                         next_incoming_serial_is_client_reply = false
                         cmd_chans.Out() <- incoming_ser_line
                     }
                     pub_chans.Out() <- incoming_ser_line
                 } else {
+                    syslog_.Print("serial device disappeared, exiting")
                     os.Exit(1)
                 }
             case tv, timeout_notclosed := <- timeout_chan:
@@ -79,7 +90,11 @@ func main() {
                         cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("No reply from firmware")}
                 }
             case incoming_request, ic_notclosed := <- cmd_chans.In():
-                if ! ic_notclosed {os.Exit(2)}
+                if ! ic_notclosed {
+                    syslog_.Print("zmq socket died, exiting")
+                    os.Exit(2)
+                }
+                if syslog_ != nil { syslog_.Printf("%s",incoming_request) }
                  if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
                     out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
                     cmd_chans.Out() <- out_msg
