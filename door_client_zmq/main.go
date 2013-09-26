@@ -64,7 +64,7 @@ func main() {
     defer sub_chans.Close()
     defer zmqctx.Close()
     var listen bool
-    var ignore_next bool
+    var ignore_next uint = 0
 
     user_input_chan := make(chan [][]byte, 1)
     go LineReader(user_input_chan, os.Stdin)
@@ -80,26 +80,26 @@ func main() {
                         fmt.Println("Available Commands: help, listen, quit. Everything else is passed through to door daemon")
                     case "listen":
                         listen = true
-                        fmt.Println("Now listening")
+                        fmt.Println("Now listening, @ are broadcasts")
                     case "quit":
                         os.Exit(0)
                     default:
-                        ignore_next = true
+                        ignore_next = 2
                         cmd_chans.Out() <- input
                         reply := <- cmd_chans.In()
-                        fmt.Println(ByteArrayToString(reply))
+                        fmt.Println(">",ByteArrayToString(reply))
                 }
             } else {
                 os.Exit(0)
             }
         case pubsubstuff := <- sub_chans.In():
             if len(pubsubstuff) == 0 { continue}
-            if ignore_next {
-                ignore_next = false
+            if ignore_next > 0 {
+                ignore_next--
                 continue
             }
             if listen {
-                fmt.Println(ByteArrayToString(pubsubstuff))
+                fmt.Println("@",ByteArrayToString(pubsubstuff))
             }
         }
     }
