@@ -1,0 +1,65 @@
+// (c) Bernhard Tittelbach, 2013
+
+package main
+
+import (
+    "fmt"
+    "os"
+    "flag"
+    "time"
+    "log/syslog"
+    "log"
+)
+
+//~ func StringArrayToByteArray(ss []string) [][]byte {
+    //~ bb := make([][]byte, len(ss))
+    //~ for index, s := range(ss) {
+        //~ bb[index] = []byte(s)
+    //~ }
+    //~ return bb
+//~ }
+
+// ---------- Main Code -------------
+
+var (
+    doorsub_addr_ string
+    sensorssub_port_ string
+    pub_port_ string
+    keylookup_addr_ string
+    use_syslog_ bool
+    Syslog_ *log.Logger
+)
+
+func usage() {
+    fmt.Fprintf(os.Stderr, "Usage: zmq_broker_event_transformer [options]\n")
+    flag.PrintDefaults()
+}
+
+func init() {
+    flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://wuzzler.realraum.at:4242", "zmq door event publish addr")
+    flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://:4243", "zmq public/listen socket addr for incoming sensor data")
+    flag.StringVar(&pub_port_, "pubport", "tcp://:4244", "zmq port publishing consodilated events")
+    flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
+    flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
+    flag.Usage = usage
+    flag.Parse()
+}
+
+func main() {
+    zmqctx, sub_in_chans, pub_out_socket, keylookup_socket := ZmqsInit(doorsub_addr_, sensorssub_port_, pub_port_, keylookup_addr_)
+    defer zmqctx.Close()
+    defer sub_in_chans.Close()
+    defer pub_out_socket.Close()
+    defer keylookup_socket.Close()
+    
+    if use_syslog_ {
+        var logerr error
+        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL2, 0)
+        if logerr != nil { panic(logerr) }
+        Syslog_.Print("started")
+        defer Syslog_.Print("exiting")
+    }
+
+    //~ nick, err := keylookup_socket.LookupCardIdNick(keyhexid)
+    
+}

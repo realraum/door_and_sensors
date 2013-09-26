@@ -1,0 +1,5 @@
+This daemon should furthermore be the only one ! to regexp parse door firmware string messages, door command string messages and sensor string notices from different sources.
+Thus this should be the only place we have to change code when regular expressions change or new sources are added or ip addresses change.
+The data is then exported as go-struct like events. Internally (to add i.e. presence) and externally via 0mq pub
+Thus the same events are usable in different services written in different languages
+(instead of just one language where we could import a common library for regexp parsing again and again)
