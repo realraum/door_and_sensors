@@ -1,3 +1,5 @@
+// (c) Bernhard Tittelbach, 2013
+
 package main
 
 import (
