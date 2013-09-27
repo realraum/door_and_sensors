@@ -3,22 +3,22 @@
 package main
 
 import (
-    pubsub "github.com/tuxychandru/pubsub"
     "regexp"
     "strconv"
-    "bufio"
     "time"
     //~ "./brain"
-    "net"
+    "encoding/json"
+    pubsub "github.com/tuxychandru/pubsub"
+    zmq "github.com/vaughan0/go-zmq"    
     )
 
 var (
 	re_presence_    *regexp.Regexp     = regexp.MustCompile("Presence: (yes|no)(?:, (opened|closed), (.+))?")
 	re_state_      *regexp.Regexp     = regexp.MustCompile("State: (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing).*")
 	re_status_      *regexp.Regexp     = regexp.MustCompile("Status: (closed|opened) (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing) (ajar|shut).*")
-	re_infocard_      *regexp.Regexp     = regexp.MustCompile("Info\(card\): card\(([a-fA-F0-9]+)\) (found|not found).*")
-	re_cardid_      *regexp.Regexp     = regexp.MustCompile("card\(([a-fA-F0-9]+)\)")
-	re_infoajar_      *regexp.Regexp     = regexp.MustCompile("Info\(ajar\): door is now (ajar|shut)")
+	re_infocard_      *regexp.Regexp     = regexp.MustCompile("Info\\(card\\): card\\(([a-fA-F0-9]+)\\) (found|not found).*")
+	re_cardid_      *regexp.Regexp     = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
+	re_infoajar_      *regexp.Regexp     = regexp.MustCompile("Info\\(ajar\\): door is now (ajar|shut)")
 	re_command_     *regexp.Regexp     = regexp.MustCompile("(open|close|toggle|reset)(?: +(Card|Phone|SSH|ssh))?(?: +(.+))?")
 	re_button_      *regexp.Regexp     = regexp.MustCompile("PanicButton|button\\d?")
 	re_temp_        *regexp.Regexp     = regexp.MustCompile("temp0: (\\d+\\.\\d+)")
@@ -30,6 +30,8 @@ type PresenceUpdate struct {
     Present bool
     Ts int64
 }
+func (s PresenceUpdate) Serialize() string
+
 
 type DoorLockUpdate struct {
     DoorID byte
@@ -76,7 +78,7 @@ type MovementSensorUpdate struct {
     Ts int64
 }
 
-func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts uint64) {
+func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
     switch string(lines[0]) {
         case "closed":
             ps.Pub(DoorLockUpdate{0, true, ts}, "door")
@@ -94,7 +96,7 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts uint64) {
 }
 
 
-func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Brain) {
+func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *zmq.Socket) { //, brn *brain.Brain) {
     var tidbit interface{}
     ts := time.Now().Unix()
     if len(lines) < 1 { return }
@@ -104,15 +106,15 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Br
             parseSocketInputLine_State(lines[1:], ps, ts)
         case "Status:":
             if len(lines) < 3 { continue }
-            tidbit = DoorLockUpdate{0, lines[1] == []byte("closed"), ts}
+            tidbit = DoorLockUpdate{0, string(lines[1]) == "closed", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")
-            tidbit = DoorAjarUpdate{0, lines[-1] == []byte("shut"), ts}
+            tidbit = DoorAjarUpdate{0, string(lines[len(lines)-2]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")            
         case "Info(card):":
             if len(lines) < 3 { continue }
-            if lines[2] != []byte("found") {
+            if string(lines[2]) != "found" {
                 continue
             }
             match_cardid := re_cardid_.FindSubmatch(lines[1])
@@ -128,13 +130,31 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Br
             }
         case "Info(ajar):":
             if len(lines) < 5 { continue }
-            DoorAjarUpdate{0, match_status[4] == []byte("shut"), ts}
+            tidbit = DoorAjarUpdate{0, string(lines[4]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")                    
         case "open", "close", "toggle", "reset":
             ps.Pub(DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
+        case "photo0":
+            newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
+            if err == nil {
+                // brn.Oboite("photo0", newphoto)
+                ps.Pub(IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
+            }
     }
+}
 
+func MakeTimeTick(ps *pubsub.PubSub) {
+    ps.Pub(TimeTick{time.Now().Unix()},"time")
+}
+
+func FormatEventForSocket(event_interface interface{}) (data [][]byte, err error) {
+	msg, err := json.Marshal(data)
+	if err != nil {
+		return
+	}
+    return [][]byte{msg}, nil
+}
 
     //~ match_presence := re_presence_.FindStringSubmatch(line)
     //~ match_status := re_status_.FindStringSubmatch(line)
@@ -161,4 +181,3 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Br
         //~ // brn.Oboite("movement", ts)
         //~ ps.Pub(MovementSensorUpdate{0, ts}, "movements")
 	//~ }
-}

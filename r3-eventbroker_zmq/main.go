@@ -9,6 +9,7 @@ import (
     "time"
     "log/syslog"
     "log"
+    pubsub "github.com/tuxychandru/pubsub"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -58,6 +59,29 @@ func main() {
         if logerr != nil { panic(logerr) }
         Syslog_.Print("started")
         defer Syslog_.Print("exiting")
+    }
+    
+    ps := pubsub.New(3)
+    ticker := time.NewTicker(time.Duration(5) * time.Minute)
+    publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
+    
+    
+    for {
+        select {
+            case subin := <- sub_in_chans.In():
+                ParseSocketInputLine(subin, ps, keylookup_socket)
+            case <- ticker.C:
+                MakeTimeTick(ps)
+            case event_interface := <- publish_these_events_chan:
+                data, err := FormatEventForSocket(event_interface)
+                if err != nil {
+                    Syslog_.Print(err)
+                    continue
+                }
+                if err := pub_out_socket.Send(data); err != nil {
+                    panic(err)
+                }
+        }
     }
 
     //~ nick, err := keylookup_socket.LookupCardIdNick(keyhexid)
