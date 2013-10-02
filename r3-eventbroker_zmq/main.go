@@ -6,7 +6,7 @@ import (
     "fmt"
     "os"
     "flag"
-    "time"
+    //~ "time"
     "log/syslog"
     "log"
     pubsub "github.com/tuxychandru/pubsub"
@@ -37,11 +37,11 @@ func usage() {
 }
 
 func init() {
-    flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://wuzzler.realraum.at:4242", "zmq door event publish addr")
-    flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://:4243", "zmq public/listen socket addr for incoming sensor data")
-    flag.StringVar(&pub_port_, "pubport", "tcp://:4244", "zmq port publishing consodilated events")
+    flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://torwaechter.realraum.at:4242", "zmq door event publish addr")
+    flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://*:4243", "zmq public/listen socket addr for incoming sensor data")
+    flag.StringVar(&pub_port_, "pubport", "tcp://*:4244", "zmq port publishing consodilated events")
     flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
-    flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
+    flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local2 facility")
     flag.Usage = usage
     flag.Parse()
 }
@@ -55,25 +55,30 @@ func main() {
     
     if use_syslog_ {
         var logerr error
-        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL2, 0)
+        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | (18<<3), 0)
+        //~ Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL2, 0)
         if logerr != nil { panic(logerr) }
         Syslog_.Print("started")
         defer Syslog_.Print("exiting")
     }
     
     ps := pubsub.New(3)
-    ticker := time.NewTicker(time.Duration(5) * time.Minute)
+    //~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
     publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
     
+    go MetaEventRoutine_Movement(ps, 10, 20, 10)
+    go MetaEventRoutine_Presence(ps)
     
     for {
+        log.Print("for loop")
         select {
             case subin := <- sub_in_chans.In():
                 ParseSocketInputLine(subin, ps, keylookup_socket)
-            case <- ticker.C:
-                MakeTimeTick(ps)
+            //~ case <- ticker.C:
+                //~ MakeTimeTick(ps)
             case event_interface := <- publish_these_events_chan:
                 data, err := FormatEventForSocket(event_interface)
+                log.Print("publishing", data)
                 if err != nil {
                     Syslog_.Print(err)
                     continue

@@ -10,6 +10,7 @@ import (
     "encoding/json"
     pubsub "github.com/tuxychandru/pubsub"
     zmq "github.com/vaughan0/go-zmq"    
+    "log"
     )
 
 var (
@@ -24,13 +25,6 @@ var (
 	re_temp_        *regexp.Regexp     = regexp.MustCompile("temp0: (\\d+\\.\\d+)")
 	re_photo_       *regexp.Regexp     = regexp.MustCompile("photo0: (\\d+)")
 )
-
-
-type PresenceUpdate struct {
-    Present bool
-    Ts int64
-}
-func (s PresenceUpdate) Serialize() string
 
 
 type DoorLockUpdate struct {
@@ -100,12 +94,13 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
     var tidbit interface{}
     ts := time.Now().Unix()
     if len(lines) < 1 { return }
+    log.Print("ParseSocketInputLine",string(lines[0]))
     switch string(lines[0]) {
         case "State:":
-            if len(lines) < 2 { continue }
+            if len(lines) < 2 { return }
             parseSocketInputLine_State(lines[1:], ps, ts)
         case "Status:":
-            if len(lines) < 3 { continue }
+            if len(lines) < 3 { return }
             tidbit = DoorLockUpdate{0, string(lines[1]) == "closed", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")
@@ -113,23 +108,21 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")            
         case "Info(card):":
-            if len(lines) < 3 { continue }
-            if string(lines[2]) != "found" {
-                continue
-            }
+            if len(lines) < 3 { return }
+            if string(lines[2]) != "found" { return }
             match_cardid := re_cardid_.FindSubmatch(lines[1])
             if len(match_cardid) > 1 {
                 // PreCondition: same thread/goroutinge as created keylookup_socket !!!!
-                nick, err := keylookup_socket.LookupCardIdNick(match_cardid[1])
+                nick, err := LookupCardIdNick(keylookup_socket, match_cardid[1])
                 if err != nil {
                     Syslog_.Print("CardID Lookup Error",err)
-                    nick := "Unresolvable KeyID"
+                    nick = "Unresolvable KeyID"
                 }
                 // new event: toggle by user nick using card
                 ps.Pub(DoorCommandEvent{"toggle", "Card", nick, ts},"doorcmd")
             }
         case "Info(ajar):":
-            if len(lines) < 5 { continue }
+            if len(lines) < 5 { return }
             tidbit = DoorAjarUpdate{0, string(lines[4]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")                    

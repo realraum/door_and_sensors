@@ -78,7 +78,7 @@ func zmqsHandleError(chans *zmq.Channels) {
     }
 }
 
-func (sock *zmq.Socket) ZmqsRequestAnswer(request [][]byte) (answer [][]byte) {
+func ZmqsRequestAnswer(sock *zmq.Socket, request [][]byte) (answer [][]byte) {
     if err := sock.Send(request); err != nil {
         panic(err)
     }
@@ -89,18 +89,18 @@ func (sock *zmq.Socket) ZmqsRequestAnswer(request [][]byte) (answer [][]byte) {
     return parts
 }
 
-func (s *zmq.Socket) LookupCardIdNick(hexbytes []byte) (nick string, error) {
-    answ := s.ZmqsRequestAnswer([][]byte{hexbytes})
+func LookupCardIdNick(s *zmq.Socket, hexbytes []byte) (string, error) {
+    answ := ZmqsRequestAnswer(s, [][]byte{hexbytes})
     if len(answ) == 0 {
         return "", errors.New("Empty reply received")
     }    
-    if answ[0] == []byte("ERROR") {
+    if bytes.Compare(answ[0], []byte("ERROR")) == 0 {
         return "", errors.New(string(bytes.Join(answ[1:],[]byte(" "))))
     }
-    if answ[0] !=  []byte("RESULT") || len(answ) != 3{
+    if bytes.Compare(answ[0], []byte("RESULT")) != 0 || len(answ) != 3{
         return "", errors.New("Unknown reply received")
     }
-    if answ[1] !=  hexbytes {
+    if bytes.Compare(answ[1], hexbytes) != 0 {
         return "", errors.New("Wrong reply received")
     }
     return string(answ[2]), nil
