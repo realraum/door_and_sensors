@@ -26,7 +26,7 @@ var (
     pub_port_ string
     door_tty_path_ string
     use_syslog_ bool
-    syslog_ *log.Logger
+    Syslog_ *log.Logger
 )
 
 func usage() {
@@ -57,10 +57,10 @@ func main() {
 
     if use_syslog_ {
         var logerr error
-        syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL1, 0)
+        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL1, 0)
         if logerr != nil { panic(logerr) }
-        syslog_.Print("started")
-        defer syslog_.Print("exiting")
+        Syslog_.Print("started")
+        defer Syslog_.Print("exiting")
     }
 
     //~ serial_wr <- "f"
@@ -73,15 +73,15 @@ func main() {
         select {
             case incoming_ser_line, is_notclosed := <- serial_rd:
                 if is_notclosed {
-                    //~ if syslog_ != nil { syslog_.Print(ByteArrayToString(incoming_ser_line)) }
-                    if syslog_ != nil { syslog_.Printf("%s",incoming_ser_line) }
+                    //~ if Syslog_ != nil { Syslog_.Print(ByteArrayToString(incoming_ser_line)) }
+                    if Syslog_ != nil { Syslog_.Printf("%s",incoming_ser_line) }
                     if next_incoming_serial_is_client_reply {
                         next_incoming_serial_is_client_reply = false
                         cmd_chans.Out() <- incoming_ser_line
                     }
                     pub_chans.Out() <- incoming_ser_line
                 } else {
-                    syslog_.Print("serial device disappeared, exiting")
+                    Syslog_.Print("serial device disappeared, exiting")
                     os.Exit(1)
                 }
             case tv, timeout_notclosed := <- timeout_chan:
@@ -91,10 +91,23 @@ func main() {
                 }
             case incoming_request, ic_notclosed := <- cmd_chans.In():
                 if ! ic_notclosed {
-                    syslog_.Print("zmq socket died, exiting")
+                    Syslog_.Print("zmq socket died, exiting")
                     os.Exit(2)
                 }
-                if syslog_ != nil { syslog_.Printf("%s",incoming_request) }
+                if string(incoming_request[0]) == "log" {
+                    if len(incoming_request) < 2 {
+                        cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("argument missing")}
+                        continue
+                    }
+                    if Syslog_ == nil {
+                        cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("syslog logging not enabled")}
+                        continue
+                    }
+                    Syslog_.Printf("Log: %s",incoming_request[1:])
+                    cmd_chans.Out() <- [][]byte{[]byte("Ok")}
+                    continue
+                }
+                if Syslog_ != nil { Syslog_.Printf("%s",incoming_request) }
                  if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
                     out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
                     cmd_chans.Out() <- out_msg

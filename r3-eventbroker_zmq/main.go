@@ -53,6 +53,10 @@ func main() {
     defer pub_out_socket.Close()
     defer keylookup_socket.Close()
     
+    if sub_in_chans == nil || pub_out_socket == nil || keylookup_socket == nil {
+        panic("zmq sockets must not be nil !!")
+    }
+    
     if use_syslog_ {
         var logerr error
         Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | (18<<3), 0)
@@ -68,6 +72,12 @@ func main() {
     
     go MetaEventRoutine_Movement(ps, 10, 20, 10)
     go MetaEventRoutine_Presence(ps)
+    
+    for xx := range(sub_in_chans.In()) {
+        log.Print(xx)
+        Syslog_.Print(xx)
+    }
+    
     
     for {
         log.Print("for loop")

@@ -15,7 +15,7 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler {
   "open": DoorCmdHandler{ checkCmdDoorControl, "o"},
   "close": DoorCmdHandler{ checkCmdDoorControl, "c"},
   "toggle": DoorCmdHandler{ checkCmdDoorControl, "t"},
-  "status": DoorCmdHandler{ checkCmdStatus, "s"},
+  "status": DoorCmdHandler{ checkCmdNoArgs, "s"},
 }
 
 // ---------- Command Handling Code -------------
@@ -39,9 +39,9 @@ func checkCmdDoorControl(tokens [][]byte) (error) {
     return nil
 }
 
-func checkCmdStatus(tokens [][]byte) (error) {
+func checkCmdNoArgs(tokens [][]byte) (error) {
     if len(tokens) != 1 {
-        return errors.New("status command does not accept arguments")
+        return errors.New("command does not accept arguments")
     }
     return nil
 }
