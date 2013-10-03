@@ -10,6 +10,7 @@ import (
 	"net/url"
     "log"
     "time"
+    r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
     )
 
 
@@ -73,23 +74,26 @@ func EventToWeb(ps *pubsub.PubSub) {
     events := ps.Sub("presence","door","sensors","buttons","updateinterval")
 
     for eventinterface := range(events) {
+        //log.Printf("EventToWeb: %s" , eventinterface)
         switch event := eventinterface.(type) {
-            case TimeTick:
+            case r3events.TimeTick:
                 publishStateToWeb()
-            case PresenceUpdate:
+            case r3events.PresenceUpdate:
                 statusstate.present = event.Present
                 publishStateToWeb()
-            case DoorStatusUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
+            case r3events.DoorAjarUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
                 publishStateToWeb()
-            case ButtonPressUpdate:
+            case r3events.DoorLockUpdate:
+                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
+                publishStateToWeb()
+            case r3events.ButtonPressUpdate:
                 statusstate.buttonpress_until = event.Ts + 3600
                 spaceapidata.AddSpaceEvent("PanicButton", "check-in", "The button has been pressed")
                 publishStateToWeb()
-            case TempSensorUpdate:
+            case r3events.TempSensorUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor("Temp0","Decke", event.Value))
-            case IlluminationSensorUpdate:
+            case r3events.IlluminationSensorUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","Decke","1024V/5V", event.Value))
         }
 	}

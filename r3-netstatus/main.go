@@ -9,6 +9,7 @@ import (
     "time"
     "fmt"
     //~ "./brain"
+    r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
 )
 
 type SpaceState struct {
@@ -19,11 +20,11 @@ type SpaceState struct {
 }
 
 var (
-    presence_socket_path_ string
     xmpp_presence_events_chan_     chan interface{}
     xmpp_login_ struct {jid string; pass string}
     xmpp_bot_authstring_ string
     xmpp_state_save_dir_ string
+    r3eventssub_port_ string
     button_press_timeout_ int64 = 3600
 )
 
@@ -33,8 +34,8 @@ func init() {
     flag.StringVar(&xmpp_login_.jid, "xjid", "realrauminfo@realraum.at/Tuer", "XMPP Bot Login JID")
     flag.StringVar(&xmpp_login_.pass, "xpass", "", "XMPP Bot Login Password")
     flag.StringVar(&xmpp_bot_authstring_, "xbotauth", "", "String that user use to authenticate themselves to the bot")
-    flag.StringVar(&presence_socket_path_,"presencesocket", "/var/run/tuer/presence.socket",  "Path to presence socket")
     flag.StringVar(&xmpp_state_save_dir_,"xstatedir","/flash/var/lib/r3netstatus/",  "Directory to save XMPP bot state in")
+    flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://wuzzler.realraum.at:4244", "zmq address to subscribe r3events")
     flag.Parse()
 }
 
@@ -71,35 +72,38 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
     present_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowOnline,"Somebody is present"}
     notpresent_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe,"Nobody is here"}
     button_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowFreeForChat, "The button has been pressed :-)"}
-    
+
     xmpp_presence_events_chan_ <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
-    
+
     for eventinterface := range(events) {
+        fmt.Println("event2xmpp", eventinterface)
         switch event := eventinterface.(type) {
-            case PresenceUpdate:
+            case r3events.PresenceUpdate:
                 present = event.Present
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeMessage(present, locked, shut, who, event.Ts), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: true}
                 if present {
                     xmpp_presence_events_chan_ <- present_status
                 } else {
                     xmpp_presence_events_chan_ <- notpresent_status
-                }           
-            case DoorCommandEvent:
+                }
+            case r3events.DoorCommandEvent:
                 if len(event.Who) > 0 && len(event.Using) > 0 {
                     who = fmt.Sprintf("%s (%s)",event.Who, event.Using)
                 } else {
                     who = event.Who
                 }
                 xmpp_presence_events_chan_ <- fmt.Sprintln("DoorCommand:",event.Command, "using", event.Using, "by", event.Who, time.Unix(event.Ts,0))
-            case DoorStatusUpdate:
+            case r3events.DoorLockUpdate:
                 locked = event.Locked
+                xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeMessage(present, locked, shut, who, event.Ts), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: true}
+           case r3events.DoorAjarUpdate:
                 shut = event.Shut
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeMessage(present, locked, shut, who, event.Ts), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: true}
-            case ButtonPressUpdate:
+            case r3events.ButtonPressUpdate:
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
                 xmpp_presence_events_chan_ <- button_status
                 last_buttonpress = event.Ts
-            case TimeTick:
+            case r3events.TimeTick:
                 if present && last_buttonpress > 0 && time.Now().Unix() - last_buttonpress > button_press_timeout_ {
                     xmpp_presence_events_chan_ <- present_status
                     last_buttonpress = 0
@@ -109,15 +113,19 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 }
 
 func main() {
+    zmqctx, zmqsub := ZmqsInit(r3eventssub_port_)
+    defer zmqctx.Close()
+    if zmqsub != nil {defer zmqsub.Close()}
+    if zmqsub == nil {
+        panic("zmq sockets must not be nil !!")
+    }
+
     var xmpperr error
     var bot *r3xmppbot.XmppBot
     bot, xmpp_presence_events_chan_, xmpperr = r3xmppbot.NewStartedBot(xmpp_login_.jid, xmpp_login_.pass, xmpp_bot_authstring_, xmpp_state_save_dir_, true)
-
-    newlinequeue := make(chan string, 1)
     ps := pubsub.New(1)
-    //~ brn := brain.New()
-    defer close(newlinequeue)
     defer ps.Shutdown()
+    //~ brn := brain.New()
     //~ defer brn.Shutdown()
 
     go EventToWeb(ps)
@@ -128,15 +136,15 @@ func main() {
         fmt.Println(xmpperr)
         fmt.Println("XMPP Bot disabled")
     }
-    go ReadFromUSocket(presence_socket_path_, newlinequeue)
+
     ticker := time.NewTicker(time.Duration(7) * time.Minute)
 
     for {
     select {
-        case e := <-newlinequeue:
-            ParseSocketInputLine(e, ps) //, brn)
+        case e := <-zmqsub.In():
+            ParseZMQr3Event(e, ps) //, brn)
         case <-ticker.C:
-            ps.Pub(TimeTick{time.Now().Unix()}, "updateinterval")
+            ps.Pub(r3events.TimeTick{time.Now().Unix()}, "updateinterval")
         }
     }
 }

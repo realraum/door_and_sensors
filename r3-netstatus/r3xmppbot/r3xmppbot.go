@@ -77,7 +77,7 @@ func (botdata *XmppBot) makeXMPPPresence(to, ptype, show, status string) *xmpp.P
         gen_status = nil
     } else {
         gen_status = &xmpp.Generic{Chardata: status}
-    }                                                            
+    }
     return &xmpp.Presence{Header: xmppmsgheader, Show: gen_show, Status: gen_status}
 }
 
@@ -202,10 +202,10 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
                             xmppout <-  botdata.makeXMPPMessage(to, pec, nil)
                         }
                     }
-                
+
                 case XMPPStatusEvent:
                     xmppout <- botdata.makeXMPPPresence("", "", pec.Show, pec.Status)
-                
+
                 case XMPPMsgEvent:
                     if pec.RememberAsStatus {
                         last_status_msg = &pec.Msg
@@ -333,7 +333,7 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
                 switch stanza.GetHeader().Type {
                     case "subscribe":
                         xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "subscribed", "", "")
-                        jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}                        
+                        jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}
                         xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "subscribe", "", "")
                     case "unsubscribe", "unsubscribed":
                         jabber_events <- JabberEvent{stanza.GetHeader().From, false, R3NeverInfo, false}

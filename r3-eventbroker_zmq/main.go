@@ -66,6 +66,7 @@ func main() {
     }
 
     ps := pubsub.New(3)
+    defer ps.Shutdown()
     //~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
     publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
 
