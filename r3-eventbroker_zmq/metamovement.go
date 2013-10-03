@@ -20,7 +20,7 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
     movement_window := ring.New(granularity+1)
     events_chan := ps.Sub("movement")
     myticker := time.NewTicker(time.Duration(gran_duration) * time.Second)
-    
+
     for { select {
         case event := <- events_chan:
             switch event.(type) {
@@ -37,7 +37,7 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
                 ps.Pub( SomethingReallyIsMoving{true,ts}, "movement")
                 last_movement = ts
             }
-            
+
             if last_movement > 0 && ts - last_movement < 3600*6 && ts - last_movement > 3600*3 {
                 last_movement = 0
                 ps.Pub( SomethingReallyIsMoving{false, ts}, "movement")

@@ -48,15 +48,13 @@ func init() {
 
 func main() {
     zmqctx, sub_in_chans, pub_out_socket, keylookup_socket := ZmqsInit(doorsub_addr_, sensorssub_port_, pub_port_, keylookup_addr_)
+    if sub_in_chans != nil {defer sub_in_chans.Close()}
     defer zmqctx.Close()
-    defer sub_in_chans.Close()
-    defer pub_out_socket.Close()
-    defer keylookup_socket.Close()
-    
+    if pub_out_socket != nil {defer pub_out_socket.Close()}
+    if keylookup_socket != nil {defer keylookup_socket.Close()}
     if sub_in_chans == nil || pub_out_socket == nil || keylookup_socket == nil {
         panic("zmq sockets must not be nil !!")
     }
-    
     if use_syslog_ {
         var logerr error
         Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | (18<<3), 0)
@@ -65,22 +63,15 @@ func main() {
         Syslog_.Print("started")
         defer Syslog_.Print("exiting")
     }
-    
+
     ps := pubsub.New(3)
     //~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
     publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
-    
+
     go MetaEventRoutine_Movement(ps, 10, 20, 10)
     go MetaEventRoutine_Presence(ps)
-    
-    for xx := range(sub_in_chans.In()) {
-        log.Print(xx)
-        Syslog_.Print(xx)
-    }
-    
-    
+
     for {
-        log.Print("for loop")
         select {
             case subin := <- sub_in_chans.In():
                 ParseSocketInputLine(subin, ps, keylookup_socket)
@@ -88,9 +79,9 @@ func main() {
                 //~ MakeTimeTick(ps)
             case event_interface := <- publish_these_events_chan:
                 data, err := FormatEventForSocket(event_interface)
-                log.Print("publishing", data)
+                log.Printf("publishing %s",data)
                 if err != nil {
-                    Syslog_.Print(err)
+                    if Syslog_ != nil {Syslog_.Print(err)}
                     continue
                 }
                 if err := pub_out_socket.Send(data); err != nil {
@@ -99,6 +90,4 @@ func main() {
         }
     }
 
-    //~ nick, err := keylookup_socket.LookupCardIdNick(keyhexid)
-    
 }

@@ -9,8 +9,9 @@ import (
     //~ "./brain"
     "encoding/json"
     pubsub "github.com/tuxychandru/pubsub"
-    zmq "github.com/vaughan0/go-zmq"    
+    zmq "github.com/vaughan0/go-zmq"
     "log"
+    "fmt"
     )
 
 var (
@@ -28,13 +29,13 @@ var (
 
 
 type DoorLockUpdate struct {
-    DoorID byte
+    DoorID int
     Locked bool
     Ts int64
 }
 
 type DoorAjarUpdate struct {
-    DoorID byte
+    DoorID int
     Shut bool
     Ts int64
 }
@@ -85,7 +86,7 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
         case "timeout":   //after open | after close
         case "opening":
         case "closing":
-        default:    
+        default:
     }
 }
 
@@ -94,7 +95,7 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
     var tidbit interface{}
     ts := time.Now().Unix()
     if len(lines) < 1 { return }
-    log.Print("ParseSocketInputLine",string(lines[0]))
+    log.Printf("ParseSocketInputLine: %s %s",string(lines[0]), lines[1:])
     switch string(lines[0]) {
         case "State:":
             if len(lines) < 2 { return }
@@ -106,7 +107,7 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             ps.Pub(tidbit, "door")
             tidbit = DoorAjarUpdate{0, string(lines[len(lines)-2]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
-            ps.Pub(tidbit, "door")            
+            ps.Pub(tidbit, "door")
         case "Info(card):":
             if len(lines) < 3 { return }
             if string(lines[2]) != "found" { return }
@@ -125,7 +126,7 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             if len(lines) < 5 { return }
             tidbit = DoorAjarUpdate{0, string(lines[4]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
-            ps.Pub(tidbit, "door")                    
+            ps.Pub(tidbit, "door")
         case "open", "close", "toggle", "reset":
             ps.Pub(DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
         case "photo0":
@@ -142,11 +143,15 @@ func MakeTimeTick(ps *pubsub.PubSub) {
 }
 
 func FormatEventForSocket(event_interface interface{}) (data [][]byte, err error) {
-	msg, err := json.Marshal(data)
+    var msg []byte
+    fmt.Printf("%T%+v\n", event_interface, event_interface)
+    etype := fmt.Sprintf("%T", event_interface)[5:]
+	msg, err = json.Marshal(map[string]interface{}{etype: event_interface})
 	if err != nil {
 		return
 	}
-    return [][]byte{msg}, nil
+    data = [][]byte{msg}
+    return
 }
 
     //~ match_presence := re_presence_.FindStringSubmatch(line)

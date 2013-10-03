@@ -26,6 +26,8 @@ func ZmqsInit(sub_connect_port, sub_listen_port, pub_port, keylookup_port string
         }
         defer func() { if r:= recover(); r != nil { sub_sock.Close(); panic(r) } }()
 
+        sub_sock.Subscribe([]byte{}) //subscribe empty filter -> aka to all messages
+
 	    if err = sub_sock.Bind(sub_listen_port); err != nil {
             panic(err)
         }
@@ -41,7 +43,7 @@ func ZmqsInit(sub_connect_port, sub_listen_port, pub_port, keylookup_port string
     }
 
     if len(pub_port) > 0 {
-        pub_sock, err := ctx.Socket(zmq.Pub)
+        pub_sock, err = ctx.Socket(zmq.Pub)
         if err != nil {
             panic(err)
         }
@@ -55,7 +57,7 @@ func ZmqsInit(sub_connect_port, sub_listen_port, pub_port, keylookup_port string
     }
 
     if len(keylookup_port) > 0 {
-        keylookup_sock, err := ctx.Socket(zmq.Req)
+        keylookup_sock, err = ctx.Socket(zmq.Req)
         if err != nil {
             panic(err)
         }
@@ -93,7 +95,7 @@ func LookupCardIdNick(s *zmq.Socket, hexbytes []byte) (string, error) {
     answ := ZmqsRequestAnswer(s, [][]byte{hexbytes})
     if len(answ) == 0 {
         return "", errors.New("Empty reply received")
-    }    
+    }
     if bytes.Compare(answ[0], []byte("ERROR")) == 0 {
         return "", errors.New(string(bytes.Join(answ[1:],[]byte(" "))))
     }
