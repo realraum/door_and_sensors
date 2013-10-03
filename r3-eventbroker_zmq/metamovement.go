@@ -15,6 +15,7 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
     var last_movement int64
     movement_window := ring.New(granularity+1)
     events_chan := ps.Sub("movement")
+    defer ps.Unsub(events_chan, "movement")
     myticker := time.NewTicker(time.Duration(gran_duration) * time.Second)
 
     for { select {

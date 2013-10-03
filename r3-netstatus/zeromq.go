@@ -45,3 +45,34 @@ func zmqsHandleError(chans *zmq.Channels) {
         panic(error)
     }
 }
+
+func ZmqsRequestAnswer(sock *zmq.Socket, request [][]byte) (answer [][]byte) {
+    if err := sock.Send(request); err != nil {
+        panic(err)
+    }
+    parts, err := sock.Recv()
+    if err != nil {
+        panic(err)
+    }
+    return parts
+}
+
+func ZmqsAskQuestionsAndClose(ctx *zmq.Context, addr string, questions [][][]byte) [][][]byte {
+    if len(addr) == 0 || ctx == nil { return nil }
+
+    req_sock, err := ctx.Socket(zmq.Req)
+    if err != nil {
+        return nil
+    }
+    defer req_sock.Close()
+
+    if err = req_sock.Connect(addr); err != nil {
+        return nil
+    }
+
+    rv := make([][][]byte, len(questions))
+    for index, q := range(questions) {
+        rv[index] = ZmqsRequestAnswer(req_sock, q)
+    }
+    return rv
+}

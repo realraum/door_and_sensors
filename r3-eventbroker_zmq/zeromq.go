@@ -80,6 +80,24 @@ func zmqsHandleError(chans *zmq.Channels) {
     }
 }
 
+func ZmqsBindNewReplySocket(ctx *zmq.Context, addr string) (chans *zmq.Channels, err error) {
+    if len(addr) == 0 {
+        return nil, errors.New("No listen address given")
+    }
+    sock, err := ctx.Socket(zmq.Rep)
+    if err != nil { return nil, err}
+
+    if err = sock.Bind(addr); err != nil {
+        sock.Close()
+        return nil, err
+    }
+
+    chans = sock.ChannelsBuffer(10)
+    go zmqsHandleError(chans)
+
+    return chans, nil
+}
+
 func ZmqsRequestAnswer(sock *zmq.Socket, request [][]byte) (answer [][]byte) {
     if err := sock.Send(request); err != nil {
         panic(err)

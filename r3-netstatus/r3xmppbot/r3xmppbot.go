@@ -12,16 +12,16 @@ import (
     "path"
 )
 
-//~ type StdLogger struct {
-//~ }
+type StdLogger struct {
+}
 
-//~ func (s *StdLogger) Log(v ...interface{}) {
-        //~ log.Println(v...)
-//~ }
+func (s *StdLogger) Log(v ...interface{}) {
+        log.Println(v...)
+}
 
-//~ func (s *StdLogger) Logf(fmt string, v ...interface{}) {
-        //~ log.Printf(fmt, v...)
-//~ }
+func (s *StdLogger) Logf(fmt string, v ...interface{}) {
+        log.Printf(fmt, v...)
+}
 
 
 func (botdata *XmppBot) makeXMPPMessage(to string, message interface{}, subject interface{}) *xmpp.Message {

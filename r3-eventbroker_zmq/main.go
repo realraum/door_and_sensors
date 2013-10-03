@@ -28,6 +28,7 @@ var (
     sensorssub_port_ string
     pub_port_ string
     keylookup_addr_ string
+    brain_listen_addr_ string
     use_syslog_ bool
     Syslog_ *log.Logger
 )
@@ -42,6 +43,7 @@ func init() {
     flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://*:4243", "zmq public/listen socket addr for incoming sensor data")
     flag.StringVar(&pub_port_, "pubport", "tcp://*:4244", "zmq port publishing consodilated events")
     flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
+    flag.StringVar(&brain_listen_addr_, "brainlisten", "tcp://*:4245", "address to listen for requests about latest stored event")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local2 facility")
     flag.Usage = usage
     flag.Parse()
@@ -56,6 +58,7 @@ func main() {
     if sub_in_chans == nil || pub_out_socket == nil || keylookup_socket == nil {
         panic("zmq sockets must not be nil !!")
     }
+
     if use_syslog_ {
         var logerr error
         Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | (18<<3), 0)
@@ -65,14 +68,17 @@ func main() {
         defer Syslog_.Print("exiting")
     }
 
-    ps := pubsub.New(3)
-    defer ps.Shutdown()
+    ps := pubsub.New(10)
+    defer ps.Shutdown() // ps.Shutdown should be called before zmq_ctx.Close(), since it will cause goroutines to shutdown and close zqm_sockets which is needed for zmq_ctx.Close() to return
     //~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
-    publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
+
+    store_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
+    go BrainCenter(zmqctx, brain_listen_addr_, store_these_events_chan)
 
     go MetaEventRoutine_Movement(ps, 10, 20, 10)
     go MetaEventRoutine_Presence(ps)
 
+    publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
     for {
         select {
             case subin := <- sub_in_chans.In():

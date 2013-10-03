@@ -9,17 +9,20 @@ import (
     "strings"
     )
 
+func NameOfStruct(evi interface{}) (name string) {
+    etype := fmt.Sprintf("%T", evi)
+    etype_lastsep := strings.LastIndex(etype,".")
+    return etype[etype_lastsep+1:] //works in all cases for etype_lastsep in range -1 to len(etype)-1
+}
 
 func MarshalEvent2ByteByte(event_interface interface{}) (data [][]byte, err error) {
     var msg []byte
-    fmt.Printf("%T%+v\n", event_interface, event_interface)
+    //~ fmt.Printf("%T%+v\n", event_interface, event_interface)
 	msg, err = json.Marshal(event_interface)
 	if err != nil {
 		return
 	}
-    etype := fmt.Sprintf("%T", event_interface)
-    etype_lastsep := strings.LastIndex(etype,".")
-    data = [][]byte{[]byte(etype[etype_lastsep+1:]), msg} //works in all cases for etype_lastsep in range -1 to len(etype)-1
+    data = [][]byte{[]byte(NameOfStruct(event_interface)), msg} //works in all cases for etype_lastsep in range -1 to len(etype)-1
     return
 }
 

@@ -26,6 +26,7 @@ var (
     xmpp_state_save_dir_ string
     r3eventssub_port_ string
     button_press_timeout_ int64 = 3600
+    brain_connect_addr_ string
 )
 
 //-------
@@ -36,6 +37,7 @@ func init() {
     flag.StringVar(&xmpp_bot_authstring_, "xbotauth", "", "String that user use to authenticate themselves to the bot")
     flag.StringVar(&xmpp_state_save_dir_,"xstatedir","/flash/var/lib/r3netstatus/",  "Directory to save XMPP bot state in")
     flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://wuzzler.realraum.at:4244", "zmq address to subscribe r3events")
+    flag.StringVar(&brain_connect_addr_, "brainconnect", "tcp://wuzzler.realraum.at:4245", "address to ask about most recent stored events")
     flag.Parse()
 }
 
@@ -123,6 +125,7 @@ func main() {
     var xmpperr error
     var bot *r3xmppbot.XmppBot
     bot, xmpp_presence_events_chan_, xmpperr = r3xmppbot.NewStartedBot(xmpp_login_.jid, xmpp_login_.pass, xmpp_bot_authstring_, xmpp_state_save_dir_, true)
+
     ps := pubsub.New(1)
     defer ps.Shutdown()
     //~ brn := brain.New()
@@ -137,8 +140,15 @@ func main() {
         fmt.Println("XMPP Bot disabled")
     }
 
-    ticker := time.NewTicker(time.Duration(7) * time.Minute)
+    // --- get update on most recent events ---
+    answ := ZmqsAskQuestionsAndClose(zmqctx, brain_connect_addr_, [][][]byte{[][]byte{[]byte("DoorLockUpdate")}, [][]byte{[]byte("DoorAjarUpdate")}, [][]byte{[]byte("DoorCommandEvent")}, [][]byte{[]byte("PresenceUpdate")}, [][]byte{[]byte("IlluminationSensorUpdate")}, [][]byte{[]byte("TempSensorUpdate")}})
+    for _, a := range(answ) {
+        //~ fmt.Println("recent event:", a)
+        ParseZMQr3Event(a, ps)
+    }
 
+    // --- receive and distribute events ---
+    ticker := time.NewTicker(time.Duration(7) * time.Minute)
     for {
     select {
         case e := <-zmqsub.In():

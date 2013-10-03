@@ -7,6 +7,7 @@ import (
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     "./r3events"
+    //~ "log"
     )
 
 type doorstate struct {
@@ -21,8 +22,10 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
     doorstatemap := make(map[int]doorstate,1)
 
     events_chan := ps.Sub("door", "doorcmd", "buttons", "movement")
+    defer ps.Unsub(events_chan, "door", "doorcmd", "buttons", "movement")
 
     for event := range(events_chan) {
+        //~ log.Printf("Presence: %s - %s", event, doorstatemap)
         new_presence := last_presence
         ts := time.Now().Unix()
         switch evnt := event.(type) {
@@ -59,7 +62,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
         } else {
             new_presence = false
         }
-
+        //~ log.Printf("Presence: new: %s , last:%s", new_presence, last_presence)
         if new_presence != last_presence {
             last_presence = new_presence
             ps.Pub(r3events.PresenceUpdate{new_presence, ts} , "presence")
