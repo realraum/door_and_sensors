@@ -78,7 +78,7 @@ func main() {
             //~ case <- ticker.C:
                 //~ MakeTimeTick(ps)
             case event_interface := <- publish_these_events_chan:
-                data, err := FormatEventForSocket(event_interface)
+                data, err := MarshalEvent(event_interface)
                 log.Printf("publishing %s",data)
                 if err != nil {
                     if Syslog_ != nil {Syslog_.Print(err)}

@@ -7,11 +7,9 @@ import (
     "strconv"
     "time"
     //~ "./brain"
-    "encoding/json"
     pubsub "github.com/tuxychandru/pubsub"
     zmq "github.com/vaughan0/go-zmq"
     "log"
-    "fmt"
     )
 
 var (
@@ -140,18 +138,6 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
 
 func MakeTimeTick(ps *pubsub.PubSub) {
     ps.Pub(TimeTick{time.Now().Unix()},"time")
-}
-
-func FormatEventForSocket(event_interface interface{}) (data [][]byte, err error) {
-    var msg []byte
-    fmt.Printf("%T%+v\n", event_interface, event_interface)
-	msg, err = json.Marshal(event_interface)
-	if err != nil {
-		return
-	}
-    etype := []byte(fmt.Sprintf("%T", event_interface)[5:])
-    data = [][]byte{etype, msg}
-    return
 }
 
     //~ match_presence := re_presence_.FindStringSubmatch(line)
