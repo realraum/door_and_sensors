@@ -89,6 +89,18 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
                 // brn.Oboite("photo0", newphoto)
                 ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
             }
+        case "IlluminationSensorUpdate","TempSensorUpdate":
+            //try decode r3event
+            evnt, err := r3events.UnmarshalByteByte2Event(lines)
+            if err == nil {ps.Pub(evnt, "sensors")}
+        case "MovementSensorUpdate" :
+            //try decode r3event
+            evnt, err := r3events.UnmarshalByteByte2Event(lines)
+            if err == nil {ps.Pub(evnt, "movement")}
+        case "ButtonPressUpdate" :
+            //try decode r3event
+            evnt, err := r3events.UnmarshalByteByte2Event(lines)
+            if err == nil {ps.Pub(evnt, "buttons")}
     }
 }
 
