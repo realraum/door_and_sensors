@@ -7,12 +7,8 @@ import (
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     "container/ring"
+    "./r3events"
     )
-
-type SomethingReallyIsMoving struct {
-    Movement bool
-    Ts int64
-}
 
 
 func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int , threshold uint32) {
@@ -24,7 +20,7 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
     for { select {
         case event := <- events_chan:
             switch event.(type) {
-                case MovementSensorUpdate:
+                case r3events.MovementSensorUpdate:
                     movement_window.Value =  (uint32) (movement_window.Value.(uint32)  + 1)
             }
         case <- myticker.C:
@@ -34,13 +30,13 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
             movement_window.Do(func(v interface{}){if v != nil {movsum += v.(uint32)}})
             ts :=  time.Now().Unix()
             if movsum > threshold {
-                ps.Pub( SomethingReallyIsMoving{true,ts}, "movement")
+                ps.Pub( r3events.SomethingReallyIsMoving{true,ts}, "movement")
                 last_movement = ts
             }
 
             if last_movement > 0 && ts - last_movement < 3600*6 && ts - last_movement > 3600*3 {
                 last_movement = 0
-                ps.Pub( SomethingReallyIsMoving{false, ts}, "movement")
+                ps.Pub( r3events.SomethingReallyIsMoving{false, ts}, "movement")
             }
     } }
 }

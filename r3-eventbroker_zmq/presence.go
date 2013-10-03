@@ -6,12 +6,8 @@ import (
     "time"
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
+    "./r3events"
     )
-
-type PresenceUpdate struct {
-    Present bool
-    Ts int64
-}
 
 type doorstate struct {
     locked bool
@@ -30,20 +26,20 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
         new_presence := last_presence
         ts := time.Now().Unix()
         switch evnt := event.(type) {
-            case SomethingReallyIsMoving:
+            case r3events.SomethingReallyIsMoving:
                 if evnt.Movement {
                     last_movement = evnt.Ts
                 } else {
                     last_movement = 0
                 }
-            case ButtonPressUpdate:
+            case r3events.ButtonPressUpdate:
                 last_buttonpress = evnt.Ts
                 new_presence = true
             //~ case DoorCommandEvent:
                 //~ last_door_cmd = &evnt
-            case DoorLockUpdate:
+            case r3events.DoorLockUpdate:
                 doorstatemap[evnt.DoorID]=doorstate{locked:evnt.Locked, shut:doorstatemap[evnt.DoorID].shut}
-            case DoorAjarUpdate:
+            case r3events.DoorAjarUpdate:
                 doorstatemap[evnt.DoorID]=doorstate{locked:doorstatemap[evnt.DoorID].locked, shut:evnt.Shut}
         }
 
@@ -66,7 +62,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
 
         if new_presence != last_presence {
             last_presence = new_presence
-            ps.Pub(PresenceUpdate{new_presence, ts} , "presence")
+            ps.Pub(r3events.PresenceUpdate{new_presence, ts} , "presence")
         }
     }
 }

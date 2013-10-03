@@ -10,6 +10,7 @@ import (
     "log/syslog"
     "log"
     pubsub "github.com/tuxychandru/pubsub"
+    "./r3events"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -78,7 +79,7 @@ func main() {
             //~ case <- ticker.C:
                 //~ MakeTimeTick(ps)
             case event_interface := <- publish_these_events_chan:
-                data, err := MarshalEvent(event_interface)
+                data, err := r3events.MarshalEvent2ByteByte(event_interface)
                 log.Printf("publishing %s",data)
                 if err != nil {
                     if Syslog_ != nil {Syslog_.Print(err)}

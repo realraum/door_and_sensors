@@ -10,6 +10,7 @@ import (
     pubsub "github.com/tuxychandru/pubsub"
     zmq "github.com/vaughan0/go-zmq"
     "log"
+    "./r3events"
     )
 
 var (
@@ -26,61 +27,16 @@ var (
 )
 
 
-type DoorLockUpdate struct {
-    DoorID int
-    Locked bool
-    Ts int64
-}
-
-type DoorAjarUpdate struct {
-    DoorID int
-    Shut bool
-    Ts int64
-}
-
-type DoorCommandEvent struct {
-    Command string
-    Using string
-    Who string
-    Ts int64
-}
-
-type ButtonPressUpdate struct {
-    Buttonindex int
-    Ts int64
-}
-
-type TempSensorUpdate struct {
-    Sensorindex int
-    Value float64
-    Ts int64
-}
-
-type IlluminationSensorUpdate struct {
-    Sensorindex int
-    Value int64
-    Ts int64
-}
-
-type TimeTick struct {
-    Ts int64
-}
-
-type MovementSensorUpdate struct {
-    Sensorindex int
-    Ts int64
-}
-
 func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
     switch string(lines[0]) {
         case "closed":
-            ps.Pub(DoorLockUpdate{0, true, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
         case "opened":
-            ps.Pub(DoorLockUpdate{0, false, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{0, false, ts}, "door")
         case "manual":   //movement
         case "error":
         case "reset":
-            ps.Pub(DoorLockUpdate{0, true, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
         case "timeout":   //after open | after close
         case "opening":
         case "closing":
@@ -100,10 +56,10 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             parseSocketInputLine_State(lines[1:], ps, ts)
         case "Status:":
             if len(lines) < 3 { return }
-            tidbit = DoorLockUpdate{0, string(lines[1]) == "closed", ts}
+            tidbit = r3events.DoorLockUpdate{0, string(lines[1]) == "closed", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")
-            tidbit = DoorAjarUpdate{0, string(lines[len(lines)-2]) == "shut", ts}
+            tidbit = r3events.DoorAjarUpdate{0, string(lines[len(lines)-2]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")
         case "Info(card):":
@@ -118,26 +74,26 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
                     nick = "Unresolvable KeyID"
                 }
                 // new event: toggle by user nick using card
-                ps.Pub(DoorCommandEvent{"toggle", "Card", nick, ts},"doorcmd")
+                ps.Pub(r3events.DoorCommandEvent{"toggle", "Card", nick, ts},"doorcmd")
             }
         case "Info(ajar):":
             if len(lines) < 5 { return }
-            tidbit = DoorAjarUpdate{0, string(lines[4]) == "shut", ts}
+            tidbit = r3events.DoorAjarUpdate{0, string(lines[4]) == "shut", ts}
             //~ brn.Oboite("door", tidbit)
             ps.Pub(tidbit, "door")
         case "open", "close", "toggle", "reset":
-            ps.Pub(DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
+            ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
         case "photo0":
             newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
             if err == nil {
                 // brn.Oboite("photo0", newphoto)
-                ps.Pub(IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
+                ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
             }
     }
 }
 
 func MakeTimeTick(ps *pubsub.PubSub) {
-    ps.Pub(TimeTick{time.Now().Unix()},"time")
+    ps.Pub(r3events.TimeTick{time.Now().Unix()},"time")
 }
 
     //~ match_presence := re_presence_.FindStringSubmatch(line)
