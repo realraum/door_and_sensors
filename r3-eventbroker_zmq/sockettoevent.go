@@ -145,12 +145,12 @@ func MakeTimeTick(ps *pubsub.PubSub) {
 func FormatEventForSocket(event_interface interface{}) (data [][]byte, err error) {
     var msg []byte
     fmt.Printf("%T%+v\n", event_interface, event_interface)
-    etype := fmt.Sprintf("%T", event_interface)[5:]
-	msg, err = json.Marshal(map[string]interface{}{etype: event_interface})
+	msg, err = json.Marshal(event_interface)
 	if err != nil {
 		return
 	}
-    data = [][]byte{msg}
+    etype := []byte(fmt.Sprintf("%T", event_interface)[5:])
+    data = [][]byte{etype, msg}
     return
 }
 
