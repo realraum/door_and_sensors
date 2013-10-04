@@ -10,16 +10,11 @@ import (
     //~ "log"
     )
 
-type doorstate struct {
-    locked bool
-    shut bool
-}
-
 func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
     //~ var last_door_cmd *DoorCommandEvent
     var last_presence bool
     var last_movement, last_buttonpress int64
-    doorstatemap := make(map[int]doorstate,1)
+    var front_locked, front_shut, back_shut bool = true, true, true
 
     events_chan := ps.Sub("door", "doorcmd", "buttons", "movement")
     defer ps.Unsub(events_chan, "door", "doorcmd", "buttons", "movement")
@@ -35,23 +30,21 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
                 } else {
                     last_movement = 0
                 }
-            case r3events.ButtonPressUpdate:
+            case r3events.BoreDoomButtonPressEvent:
                 last_buttonpress = evnt.Ts
                 new_presence = true
             //~ case DoorCommandEvent:
                 //~ last_door_cmd = &evnt
             case r3events.DoorLockUpdate:
-                doorstatemap[evnt.DoorID]=doorstate{locked:evnt.Locked, shut:doorstatemap[evnt.DoorID].shut}
+                front_locked = evnt.Locked
             case r3events.DoorAjarUpdate:
-                doorstatemap[evnt.DoorID]=doorstate{locked:doorstatemap[evnt.DoorID].locked, shut:evnt.Shut}
+                front_shut = evnt.Shut
+            case r3events.BackdoorAjarUpdate:
+                back_shut = evnt.Shut
         }
 
-        any_door_unlocked := false
-        any_door_ajar := false
-        for _, ds := range(doorstatemap) {
-            if ds.locked == false {any_door_unlocked = true }
-            if ds.shut == false {any_door_ajar = true }
-        }
+        any_door_unlocked := ! front_locked
+        any_door_ajar := ! (front_shut && back_shut)
 
         if new_presence != last_presence {
             //... skip state check .. we had a definite presence event

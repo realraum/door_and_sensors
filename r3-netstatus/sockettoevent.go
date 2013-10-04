@@ -35,8 +35,8 @@ func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Brain) 
             evnt := new(r3events.MovementSensorUpdate)
             err := json.Unmarshal(lines[1],evnt)
             if err == nil {ps.Pub(*evnt, "movement")}
-        case "ButtonPressUpdate" :
-            evnt := new(r3events.ButtonPressUpdate)
+        case "BoreDoomButtonPressEvent" :
+            evnt := new(r3events.BoreDoomButtonPressEvent)
             err := json.Unmarshal(lines[1],evnt)
             if err == nil {ps.Pub(*evnt, "buttons")}
         case "DoorLockUpdate" :

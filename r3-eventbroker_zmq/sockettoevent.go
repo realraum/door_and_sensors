@@ -30,13 +30,13 @@ var (
 func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
     switch string(lines[0]) {
         case "closed":
-            ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "opened":
-            ps.Pub(r3events.DoorLockUpdate{0, false, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
         case "manual":   //movement
         case "error":
         case "reset":
-            ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "timeout":   //after open | after close
         case "opening":
         case "closing":
@@ -56,8 +56,8 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             parseSocketInputLine_State(lines[1:], ps, ts)
         case "Status:":
             if len(lines) < 3 { return }
-            ps.Pub(r3events.DoorLockUpdate{0, string(lines[1]) == "closed,", ts}, "door")
-            ps.Pub(r3events.DoorAjarUpdate{0, string(lines[len(lines)-1]) == "shut", ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{string(lines[1]) == "closed,", ts}, "door")
+            ps.Pub(r3events.DoorAjarUpdate{string(lines[len(lines)-1]) == "shut", ts}, "door")
         case "Info(card):":
             if len(lines) < 3 { return }
             if string(lines[2]) != "found" { return }
@@ -74,7 +74,7 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             }
         case "Info(ajar):":
             if len(lines) < 5 { return }
-            ps.Pub(r3events.DoorAjarUpdate{0, string(lines[4]) == "shut", ts}, "door")
+            ps.Pub(r3events.DoorAjarUpdate{string(lines[4]) == "shut", ts}, "door")
         case "open", "close", "toggle", "reset":
             ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
         case "photo0":
@@ -91,7 +91,7 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             //try decode r3event
             evnt, err := r3events.UnmarshalByteByte2Event(lines)
             if err == nil {ps.Pub(evnt, "movement")}
-        case "ButtonPressUpdate" :
+        case "BoreDoomButtonPressEvent" :
             //try decode r3event
             evnt, err := r3events.UnmarshalByteByte2Event(lines)
             if err == nil {ps.Pub(evnt, "buttons")}
@@ -110,7 +110,7 @@ func MakeTimeTick(ps *pubsub.PubSub) {
     //~ match_photo := re_photo_.FindStringSubmatch(line)
 	//~ if match_button != nil {
         //~ // brn.Oboite("button0", ts)
-        //~ ps.Pub(ButtonPressUpdate{0, ts}, "buttons")
+        //~ ps.Pub(BoreDoomButtonPressEvent{0, ts}, "buttons")
 	//~ } else if match_temp != nil {
 		//~ newtemp, err := strconv.ParseFloat((match_temp[1]), 32)
 		//~ if err == nil {

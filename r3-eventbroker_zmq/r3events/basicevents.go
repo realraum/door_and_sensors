@@ -4,13 +4,16 @@ package r3events
 
 
 type DoorLockUpdate struct {
-    DoorID int
     Locked bool
     Ts int64
 }
 
 type DoorAjarUpdate struct {
-    DoorID int
+    Shut bool
+    Ts int64
+}
+
+type BackdoorAjarUpdate struct {
     Shut bool
     Ts int64
 }
@@ -22,8 +25,7 @@ type DoorCommandEvent struct {
     Ts int64
 }
 
-type ButtonPressUpdate struct {
-    Buttonindex int
+type BoreDoomButtonPressEvent struct {
     Ts int64
 }
 

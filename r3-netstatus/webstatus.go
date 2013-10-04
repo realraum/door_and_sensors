@@ -87,9 +87,9 @@ func EventToWeb(ps *pubsub.PubSub) {
             case r3events.DoorLockUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
                 publishStateToWeb()
-            case r3events.ButtonPressUpdate:
+            case r3events.BoreDoomButtonPressEvent:
                 statusstate.buttonpress_until = event.Ts + 3600
-                spaceapidata.AddSpaceEvent("PanicButton", "check-in", "The button has been pressed")
+                spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
                 publishStateToWeb()
             case r3events.TempSensorUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor("Temp0","Decke", event.Value))

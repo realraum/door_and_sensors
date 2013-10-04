@@ -70,7 +70,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
     var present, locked, shut bool = false, true, true
     var last_buttonpress int64 = 0
     var who string
-    button_msg := "The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
+    button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
     present_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowOnline,"Somebody is present"}
     notpresent_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe,"Nobody is here"}
     button_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowFreeForChat, "The button has been pressed :-)"}
@@ -101,7 +101,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
            case r3events.DoorAjarUpdate:
                 shut = event.Shut
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeMessage(present, locked, shut, who, event.Ts), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: true}
-            case r3events.ButtonPressUpdate:
+            case r3events.BoreDoomButtonPressEvent:
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
                 xmpp_presence_events_chan_ <- button_status
                 last_buttonpress = event.Ts
