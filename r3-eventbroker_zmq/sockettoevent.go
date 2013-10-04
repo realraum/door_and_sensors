@@ -29,19 +29,19 @@ var (
 
 func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
     switch string(lines[0]) {
-        case "closed,":
+        case "closed":
             ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
-        case "opened,":
+        case "opened":
             ps.Pub(r3events.DoorLockUpdate{0, false, ts}, "door")
         case "manual":   //movement
-        case "error,":
-        case "reset,":
+        case "error":
+        case "reset":
             ps.Pub(r3events.DoorLockUpdate{0, true, ts}, "door")
         case "timeout":   //after open | after close
-        case "opening,":
-        case "closing,":
+        case "opening":
+        case "closing":
         default:
-            log.Print("parseSocketInputLine_State: Unexpected State:", lines)
+            if Syslog_ != nil {Syslog_.Print("parseSocketInputLine_State: Unexpected State:", lines)}
     }
 }
 
