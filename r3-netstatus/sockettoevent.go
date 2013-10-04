@@ -9,12 +9,11 @@ import (
     //~ "./brain"
     //~ "net"
     "encoding/json"
-    "log"
     r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
     )
 
 func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Brain) {
-    //log.Printf("ParseZMQr3Event: len: %d lines: %s", len(lines), lines)
+    //Debug_.Printf("ParseZMQr3Event: len: %d lines: %s", len(lines), lines)
     if len(lines) != 2 {
         return
     }
@@ -40,7 +39,6 @@ func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) { //, brn *brain.Brain) 
             err := json.Unmarshal(lines[1],evnt)
             if err == nil {ps.Pub(*evnt, "buttons")}
         case "DoorLockUpdate" :
-            log.Print("DoorLockUpdate received")
             evnt := new(r3events.DoorLockUpdate)
             err := json.Unmarshal(lines[1],evnt)
             if err == nil {ps.Pub(*evnt, "door")}

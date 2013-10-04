@@ -4,7 +4,6 @@ package r3xmppbot
 
 import (
 	xmpp "code.google.com/p/goexmpp"
-    "log"
     "crypto/tls"
     "os"
     "time"
@@ -12,16 +11,16 @@ import (
     "path"
 )
 
-type StdLogger struct {
-}
+//~ type StdLogger struct {
+//~ }
 
-func (s *StdLogger) Log(v ...interface{}) {
-        log.Println(v...)
-}
+//~ func (s *StdLogger) Log(v ...interface{}) {
+        //~ log.Println(v...)
+//~ }
 
-func (s *StdLogger) Logf(fmt string, v ...interface{}) {
-        log.Printf(fmt, v...)
-}
+//~ func (s *StdLogger) Logf(fmt string, v ...interface{}) {
+        //~ log.Printf(fmt, v...)
+//~ }
 
 
 func (botdata *XmppBot) makeXMPPMessage(to string, message interface{}, subject interface{}) *xmpp.Message {
@@ -143,13 +142,13 @@ type XmppBot struct {
 func (data RealraumXmppNotifierConfig) saveTo(filepath string) () {
     fh, err := os.Create(filepath)
     if err != nil {
-        log.Println(err)
+        Syslog_.Println(err)
         return
     }
     defer fh.Close()
     enc := json.NewEncoder(fh)
     if err = enc.Encode(&data); err != nil {
-        log.Println(err)
+        Syslog_.Println(err)
         return
     }
 }
@@ -157,13 +156,13 @@ func (data RealraumXmppNotifierConfig) saveTo(filepath string) () {
 func (data RealraumXmppNotifierConfig) loadFrom(filepath string) () {
     fh, err := os.Open(filepath)
     if err != nil {
-        log.Println(err)
+        Syslog_.Println(err)
         return
     }
     defer fh.Close()
     dec := json.NewDecoder(fh)
     if err = dec.Decode(&data); err != nil {
-        log.Println(err)
+        Syslog_.Println(err)
         return
     }
     for to, jiddata := range data  {
@@ -185,7 +184,7 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
 
     defer func() {
         if x := recover(); x != nil {
-            log.Printf("handleEventsforXMPP: run time panic: %v", x)
+            Syslog_.Printf("handleEventsforXMPP: run time panic: %v", x)
         }
     }()
 
@@ -249,7 +248,6 @@ func removeJIDResource(jid string) string {
 
 func (botdata *XmppBot) isAuthenticated(jid string) bool {
     authtime, in_map := botdata.jid_lastauthtime_[jid]
-    //~ log.Println("isAuthenticated", in_map, authtime, time.Now().Unix(), auth_timeout_, time.Now().Unix() - authtime > auth_timeout_)
     return in_map && time.Now().Unix() - authtime < botdata.auth_timeout_
 }
 
@@ -263,7 +261,6 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
         return
     }
     bodytext :=inmsg.Body.Chardata
-    //~ log.Println("Message Body:", bodytext)
     if botdata.isAuthenticated(inmsg.GetHeader().From) {
         switch bodytext {
             case "on", "*on*":
@@ -316,7 +313,7 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
 
     defer func() {
         if x := recover(); x != nil {
-            log.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
+            Syslog_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
             close(jabber_events)
         }
     }()
@@ -367,8 +364,6 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 
     botdata.config_file_ = path.Join(state_save_dir, "r3xmpp."+removeJIDResource(loginjid)+".json")
 
-    //~ log.Println(botdata.config_file_)
-
     //~ logger := &StdLogger{}
     //~ xmpp.Debug = logger
     //~ xmpp.Info = logger
@@ -381,13 +376,13 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
     client_jid.Set(botdata.my_jid_)
     botdata.xmppclient_, err = xmpp.NewClient(client_jid, botdata.my_login_password_, nil)
     if err != nil {
-        log.Println("Error connecting to xmpp server", err)
+        Syslog_.Println("Error connecting to xmpp server", err)
         return nil, nil, err
     }
 
     err = botdata.xmppclient_.StartSession(true, &xmpp.Presence{})
     if err != nil {
-        log.Println("'Error StartSession:", err)
+        Syslog_.Println("'Error StartSession:", err)
         return nil, nil, err
     }
 

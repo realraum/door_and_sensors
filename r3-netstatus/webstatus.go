@@ -8,7 +8,6 @@ import (
     "regexp"
 	"net/http"
 	"net/url"
-    "log"
     "time"
     r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
     )
@@ -52,7 +51,7 @@ func publishStateToWeb() {
 	updateStatusString()
 	jsondata_b, err := spaceapidata.MakeJSON()
 	if err != nil {
-		log.Println("Error:", err)
+		Syslog_.Println("Error:", err)
 		return
 	}
 	//jsondata_b := re_querystresc_.ReplaceAllFunc(jsondata_b, func(in []byte) []byte {
@@ -64,7 +63,7 @@ func publishStateToWeb() {
 	jsondata := url.QueryEscape(string(jsondata_b))
 	resp, err := http.Get("http://www.realraum.at/cgi/status.cgi?pass=jako16&set=" + jsondata)
 	if err != nil {
-		log.Println("Error publishing realraum info", err)
+		Syslog_.Println("Error publishing realraum info", err)
 		return
 	}
 	resp.Body.Close()
@@ -74,7 +73,7 @@ func EventToWeb(ps *pubsub.PubSub) {
     events := ps.Sub("presence","door","sensors","buttons","updateinterval")
 
     for eventinterface := range(events) {
-        //log.Printf("EventToWeb: %s" , eventinterface)
+        //Debug_.Printf("EventToWeb: %s" , eventinterface)
         switch event := eventinterface.(type) {
             case r3events.TimeTick:
                 publishStateToWeb()

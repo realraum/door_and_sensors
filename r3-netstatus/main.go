@@ -27,6 +27,7 @@ var (
     r3eventssub_port_ string
     button_press_timeout_ int64 = 3600
     brain_connect_addr_ string
+    enable_syslog_, enable_debug_ bool
 )
 
 //-------
@@ -38,7 +39,11 @@ func init() {
     flag.StringVar(&xmpp_state_save_dir_,"xstatedir","/flash/var/lib/r3netstatus/",  "Directory to save XMPP bot state in")
     flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://wuzzler.realraum.at:4244", "zmq address to subscribe r3events")
     flag.StringVar(&brain_connect_addr_, "brainconnect", "tcp://wuzzler.realraum.at:4245", "address to ask about most recent stored events")
+    flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
+    flag.BoolVar(&enable_debug_, "debug", false, "enable debug logging")
     flag.Parse()
+    if enable_syslog_ { LogEnableSyslog(); r3xmppbot.LogEnableSyslog() }
+    if enable_debug_ { LogEnableDebuglog(); r3xmppbot.LogEnableDebuglog() }
 }
 
 //-------
@@ -61,7 +66,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 
     defer func() {
         if x := recover(); x != nil {
-            fmt.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
+            Debug_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
             ps.Unsub(events, "presence","door","buttons","updateinterval")
             close(xmpp_presence_events_chan_)
         }
@@ -78,7 +83,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
     xmpp_presence_events_chan_ <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
 
     for eventinterface := range(events) {
-        fmt.Println("event2xmpp", eventinterface)
+        Debug_.Println("event2xmpp", eventinterface)
         switch event := eventinterface.(type) {
             case r3events.PresenceUpdate:
                 present = event.Present
@@ -138,12 +143,12 @@ func main() {
     } else {
         fmt.Println(xmpperr)
         fmt.Println("XMPP Bot disabled")
+        Syslog_.Printf("XMPP Bot disabled due to error: %s", xmpperr)
     }
 
     // --- get update on most recent events ---
     answ := ZmqsAskQuestionsAndClose(zmqctx, brain_connect_addr_, [][][]byte{[][]byte{[]byte("DoorLockUpdate")}, [][]byte{[]byte("DoorAjarUpdate")}, [][]byte{[]byte("DoorCommandEvent")}, [][]byte{[]byte("PresenceUpdate")}, [][]byte{[]byte("IlluminationSensorUpdate")}, [][]byte{[]byte("TempSensorUpdate")}})
     for _, a := range(answ) {
-        //~ fmt.Println("recent event:", a)
         ParseZMQr3Event(a, ps)
     }
 
