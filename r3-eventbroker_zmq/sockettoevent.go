@@ -9,7 +9,6 @@ import (
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     zmq "github.com/vaughan0/go-zmq"
-    "log"
     "./r3events"
     )
 
@@ -41,7 +40,7 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
         case "opening":
         case "closing":
         default:
-            if Syslog_ != nil {Syslog_.Print("parseSocketInputLine_State: Unexpected State:", lines)}
+            Syslog_.Print("parseSocketInputLine_State: Unexpected State:", lines)
     }
 }
 
@@ -49,7 +48,7 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
 func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *zmq.Socket) { //, brn *brain.Brain) {
     ts := time.Now().Unix()
     if len(lines) < 1 { return }
-    log.Printf("ParseSocketInputLine: %s %s",string(lines[0]), lines[1:])
+    Debug_.Printf("ParseSocketInputLine: %s %s",string(lines[0]), lines[1:])
     switch string(lines[0]) {
         case "State:":
             if len(lines) < 2 { return }

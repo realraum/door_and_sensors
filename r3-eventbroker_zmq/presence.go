@@ -7,7 +7,6 @@ import (
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     "./r3events"
-    //~ "log"
     )
 
 func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
@@ -20,7 +19,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
     defer ps.Unsub(events_chan, "door", "doorcmd", "buttons", "movement")
 
     for event := range(events_chan) {
-        //~ log.Printf("Presence: %s - %s", event, doorstatemap)
+        //~ Debug_.Printf("Presence: %s - %s", event, doorstatemap)
         new_presence := last_presence
         ts := time.Now().Unix()
         switch evnt := event.(type) {
@@ -55,7 +54,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
         } else {
             new_presence = false
         }
-        //~ log.Printf("Presence: new: %s , last:%s", new_presence, last_presence)
+        //~ Debug_.Printf("Presence: new: %s , last:%s", new_presence, last_presence)
         if new_presence != last_presence {
             last_presence = new_presence
             ps.Pub(r3events.PresenceUpdate{new_presence, ts} , "presence")

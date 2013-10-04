@@ -7,8 +7,6 @@ import (
     "os"
     "flag"
     //~ "time"
-    "log/syslog"
-    "log"
     pubsub "github.com/tuxychandru/pubsub"
     "./r3events"
 )
@@ -30,7 +28,7 @@ var (
     keylookup_addr_ string
     brain_listen_addr_ string
     use_syslog_ bool
-    Syslog_ *log.Logger
+    enable_debuglog_ bool
 )
 
 func usage() {
@@ -45,11 +43,19 @@ func init() {
     flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
     flag.StringVar(&brain_listen_addr_, "brainlisten", "tcp://*:4245", "address to listen for requests about latest stored event")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local2 facility")
+    flag.BoolVar(&enable_debuglog_, "debug", false, "enable debug logging")
     flag.Usage = usage
     flag.Parse()
 }
 
 func main() {
+    if enable_debuglog_ { LogEnableDebuglog() }
+    if use_syslog_ {
+        LogEnableSyslog()
+        Syslog_.Print("started")
+        defer Syslog_.Print("exiting")
+    }
+
     zmqctx, sub_in_chans, pub_out_socket, keylookup_socket := ZmqsInit(doorsub_addr_, sensorssub_port_, pub_port_, keylookup_addr_)
     if sub_in_chans != nil {defer sub_in_chans.Close()}
     defer zmqctx.Close()
@@ -57,15 +63,6 @@ func main() {
     if keylookup_socket != nil {defer keylookup_socket.Close()}
     if sub_in_chans == nil || pub_out_socket == nil || keylookup_socket == nil {
         panic("zmq sockets must not be nil !!")
-    }
-
-    if use_syslog_ {
-        var logerr error
-        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | (18<<3), 0)
-        //~ Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL2, 0)
-        if logerr != nil { panic(logerr) }
-        Syslog_.Print("started")
-        defer Syslog_.Print("exiting")
     }
 
     ps := pubsub.New(10)
@@ -87,9 +84,9 @@ func main() {
                 //~ MakeTimeTick(ps)
             case event_interface := <- publish_these_events_chan:
                 data, err := r3events.MarshalEvent2ByteByte(event_interface)
-                log.Printf("publishing %s",data)
+                Debug_.Printf("publishing %s",data)
                 if err != nil {
-                    if Syslog_ != nil {Syslog_.Print(err)}
+                    Syslog_.Print(err)
                     continue
                 }
                 if err := pub_out_socket.Send(data); err != nil {
