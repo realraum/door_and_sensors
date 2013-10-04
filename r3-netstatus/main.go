@@ -42,8 +42,6 @@ func init() {
     flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
     flag.BoolVar(&enable_debug_, "debug", false, "enable debug logging")
     flag.Parse()
-    if enable_syslog_ { LogEnableSyslog(); r3xmppbot.LogEnableSyslog() }
-    if enable_debug_ { LogEnableDebuglog(); r3xmppbot.LogEnableDebuglog() }
 }
 
 //-------
@@ -120,6 +118,10 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 }
 
 func main() {
+    if enable_syslog_ { LogEnableSyslog(); r3xmppbot.LogEnableSyslog() }
+    if enable_debug_ { LogEnableDebuglog(); r3xmppbot.LogEnableDebuglog() }
+    Syslog_.Print("started")
+    defer Syslog_.Print("exiting")
     zmqctx, zmqsub := ZmqsInit(r3eventssub_port_)
     defer zmqctx.Close()
     if zmqsub != nil {defer zmqsub.Close()}
@@ -143,7 +145,7 @@ func main() {
     } else {
         fmt.Println(xmpperr)
         fmt.Println("XMPP Bot disabled")
-        Syslog_.Printf("XMPP Bot disabled due to error: %s", xmpperr)
+        Syslog_.Printf("XMPP Bot disabled due to error: %s", xmpperr.Error())
     }
 
     // --- get update on most recent events ---
