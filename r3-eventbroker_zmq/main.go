@@ -8,7 +8,7 @@ import (
     "flag"
     //~ "time"
     pubsub "github.com/tuxychandru/pubsub"
-    "./r3events"
+    r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {

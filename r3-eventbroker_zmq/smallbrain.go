@@ -4,7 +4,7 @@ package main
 
 import (
     zmq "github.com/vaughan0/go-zmq"
-    "./r3events"
+    r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
 )
 
 type hippocampus map[string]interface{}
