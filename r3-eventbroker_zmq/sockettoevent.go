@@ -34,9 +34,11 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
             ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
         case "manual":   //movement
         case "error":
+            ps.Pub(r3events.DoorProblemEvent{100, ts}, "door")
         case "reset":
             ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "timeout":   //after open | after close
+            ps.Pub(r3events.DoorProblemEvent{10, ts}, "door")
         case "opening":
         case "closing":
         default:
@@ -81,18 +83,11 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             //~ if err == nil {
                 //~ ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
             //~ }
-        case "IlluminationSensorUpdate","TempSensorUpdate":
-            //try decode r3event
-            evnt, err := r3events.UnmarshalByteByte2Event(lines)
-            if err == nil {ps.Pub(evnt, "sensors")}
-        case "MovementSensorUpdate" :
-            //try decode r3event
-            evnt, err := r3events.UnmarshalByteByte2Event(lines)
-            if err == nil {ps.Pub(evnt, "movement")}
-        case "BoreDoomButtonPressEvent" :
-            //try decode r3event
-            evnt, err := r3events.UnmarshalByteByte2Event(lines)
-            if err == nil {ps.Pub(evnt, "buttons")}
+        default:
+            evnt, pubsubcat, err := r3events.UnmarshalByteByte2Event(lines)
+            if err == nil {
+                ps.Pub(evnt, pubsubcat)
+            }
     }
 }
 

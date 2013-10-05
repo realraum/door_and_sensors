@@ -26,47 +26,63 @@ func MarshalEvent2ByteByte(event_interface interface{}) (data [][]byte, err erro
     return
 }
 
-func UnmarshalByteByte2Event(data [][]byte) (event interface{}, err error) {
+func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string, err error) {
     if len(data) != 2 {
-        return nil, errors.New("not a r3event message")
+        return nil, "", errors.New("not a r3event message")
     }
     switch string(data[0]) {
         case "DoorLockUpdate":
-            event = new(DoorLockUpdate)
-            err = json.Unmarshal(data[1],event)
+            event = DoorLockUpdate{}
+            err = json.Unmarshal(data[1],&event)
+            category = "door"
         case "DoorAjarUpdate":
-            event := new(DoorAjarUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := DoorAjarUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "door"
         case "BackdoorAjarUpdate":
-            event := new(DoorAjarUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := DoorAjarUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "door"
         case "DoorCommandEvent":
-            event := new(DoorCommandEvent)
-            err = json.Unmarshal(data[1], event)
+            event := DoorCommandEvent{}
+            err = json.Unmarshal(data[1], &event)
+            category = "door"
+        case "DoorProblemEvent":
+            event := DoorProblemEvent{}
+            err = json.Unmarshal(data[1], &event)
+            category = "door"
         case "BoreDoomButtonPressEvent":
-            event := new(BoreDoomButtonPressEvent)
-            err = json.Unmarshal(data[1], event)
+            event := BoreDoomButtonPressEvent{}
+            err = json.Unmarshal(data[1], &event)
+            category = "buttons"
         case "TempSensorUpdate":
-            event := new(TempSensorUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := TempSensorUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "sensors"
         case "IlluminationSensorUpdate":
-            event := new(IlluminationSensorUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := IlluminationSensorUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "sensors"
         case "TimeTick":
-            event := new(TimeTick)
-            err = json.Unmarshal(data[1], event)
+            event := TimeTick{}
+            err = json.Unmarshal(data[1], &event)
+            category = "time"
         case "MovementSensorUpdate":
-            event := new(MovementSensorUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := MovementSensorUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "movement"
         case "PresenceUpdate":
-            event := new(PresenceUpdate)
-            err = json.Unmarshal(data[1], event)
+            event := PresenceUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "presence"
         case "SomethingReallyIsMoving":
-            event := new(SomethingReallyIsMoving)
-            err = json.Unmarshal(data[1], event)
+            event := SomethingReallyIsMoving{}
+            err = json.Unmarshal(data[1], &event)
+            category = "movement"
         default:
             event = nil
             err = errors.New("cannot unmarshal unknown type")
+            category = ""
     }
     return
 }
