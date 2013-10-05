@@ -4,7 +4,7 @@ package main
 
 import (
     "regexp"
-    "strconv"
+    //~ "strconv"
     "time"
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
@@ -13,16 +13,16 @@ import (
     )
 
 var (
-	re_presence_    *regexp.Regexp     = regexp.MustCompile("Presence: (yes|no)(?:, (opened|closed), (.+))?")
-	re_state_      *regexp.Regexp     = regexp.MustCompile("State: (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing).*")
-	re_status_      *regexp.Regexp     = regexp.MustCompile("Status: (closed|opened), (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing), (ajar|shut).*")
-	re_infocard_      *regexp.Regexp     = regexp.MustCompile("Info\\(card\\): card\\(([a-fA-F0-9]+)\\) (found|not found).*")
+	//~ re_presence_    *regexp.Regexp     = regexp.MustCompile("Presence: (yes|no)(?:, (opened|closed), (.+))?")
+	//~ re_state_      *regexp.Regexp     = regexp.MustCompile("State: (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing).*")
+	//~ re_status_      *regexp.Regexp     = regexp.MustCompile("Status: (closed|opened), (closed|opened|manual movement|error|reset|timeout after open|timeout after close|opening|closing), (ajar|shut).*")
+	//~ re_infocard_      *regexp.Regexp     = regexp.MustCompile("Info\\(card\\): card\\(([a-fA-F0-9]+)\\) (found|not found).*")
 	re_cardid_      *regexp.Regexp     = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
-	re_infoajar_      *regexp.Regexp     = regexp.MustCompile("Info\\(ajar\\): door is now (ajar|shut)")
-	re_command_     *regexp.Regexp     = regexp.MustCompile("(open|close|toggle|reset)(?: +(Card|Phone|SSH|ssh))?(?: +(.+))?")
-	re_button_      *regexp.Regexp     = regexp.MustCompile("PanicButton|button\\d?")
-	re_temp_        *regexp.Regexp     = regexp.MustCompile("temp0: (\\d+\\.\\d+)")
-	re_photo_       *regexp.Regexp     = regexp.MustCompile("photo0: (\\d+)")
+	//~ re_infoajar_      *regexp.Regexp     = regexp.MustCompile("Info\\(ajar\\): door is now (ajar|shut)")
+	//~ re_command_     *regexp.Regexp     = regexp.MustCompile("(open|close|toggle|reset)(?: +(Card|Phone|SSH|ssh))?(?: +(.+))?")
+	//~ re_button_      *regexp.Regexp     = regexp.MustCompile("PanicButton|button\\d?")
+	//~ re_temp_        *regexp.Regexp     = regexp.MustCompile("temp0: (\\d+\\.\\d+)")
+	//~ re_photo_       *regexp.Regexp     = regexp.MustCompile("photo0: (\\d+)")
 )
 
 
@@ -76,12 +76,11 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             ps.Pub(r3events.DoorAjarUpdate{string(lines[4]) == "shut", ts}, "door")
         case "open", "close", "toggle", "reset":
             ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
-        case "photo0":
-            newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
-            if err == nil {
-                // brn.Oboite("photo0", newphoto)
-                ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
-            }
+        //~ case "photo0:":
+            //~ newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
+            //~ if err == nil {
+                //~ ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
+            //~ }
         case "IlluminationSensorUpdate","TempSensorUpdate":
             //try decode r3event
             evnt, err := r3events.UnmarshalByteByte2Event(lines)
