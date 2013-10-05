@@ -10,7 +10,7 @@ import (
     )
 
 func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
-    //~ var last_door_cmd *DoorCommandEvent
+    //~ var last_door_cmd *r3events.DoorCommandEvent
     var last_presence bool
     var last_movement, last_buttonpress int64
     var front_locked, front_shut, back_shut bool = true, true, true
@@ -19,7 +19,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
     defer ps.Unsub(events_chan, "door", "doorcmd", "buttons", "movement")
 
     for event := range(events_chan) {
-        //~ Debug_.Printf("Presence: %s - %s", event, doorstatemap)
+        Debug_.Printf("Presence prior: %t : %T %+v", last_presence, event, event)
         new_presence := last_presence
         ts := time.Now().Unix()
         switch evnt := event.(type) {
@@ -32,7 +32,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
             case r3events.BoreDoomButtonPressEvent:
                 last_buttonpress = evnt.Ts
                 new_presence = true
-            //~ case DoorCommandEvent:
+            case r3events.DoorCommandEvent:
                 //~ last_door_cmd = &evnt
             case r3events.DoorLockUpdate:
                 front_locked = evnt.Locked
@@ -42,7 +42,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub) {
                 back_shut = evnt.Shut
         }
 
-        any_door_unlocked := ! front_locked
+        any_door_unlocked := (front_locked == false)
         any_door_ajar := ! (front_shut && back_shut)
 
         if new_presence != last_presence {

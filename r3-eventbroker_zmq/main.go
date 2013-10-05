@@ -27,6 +27,7 @@ var (
     pub_port_ string
     keylookup_addr_ string
     brain_listen_addr_ string
+    door_cmd_addr_ string
     use_syslog_ bool
     enable_debuglog_ bool
 )
@@ -37,6 +38,7 @@ func usage() {
 }
 
 func init() {
+    flag.StringVar(&door_cmd_addr_, "doorcmdaddr", "ipc:///run/tuer/door_cmd.ipc", "zmq door event publish addr")
     flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://torwaechter.realraum.at:4242", "zmq door event publish addr")
     flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://*:4243", "zmq public/listen socket addr for incoming sensor data")
     flag.StringVar(&pub_port_, "pubport", "tcp://*:4244", "zmq port publishing consodilated events")
@@ -74,6 +76,12 @@ func main() {
 
     go MetaEventRoutine_Movement(ps, 10, 20, 10)
     go MetaEventRoutine_Presence(ps)
+
+    // --- get update on most recent status ---
+    answ := ZmqsAskQuestionsAndClose(zmqctx, door_cmd_addr_, [][][]byte{[][]byte{[]byte("status")}})
+    for _, a := range(answ) {
+        ParseSocketInputLine(a, ps, keylookup_socket)
+    }
 
     publish_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
     for {
