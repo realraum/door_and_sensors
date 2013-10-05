@@ -59,9 +59,9 @@ type RelativeHumiditySensorUpdate struct {
 }
 
 type NetDHCPACK struct {
-    Mac String
-    IP String
-    Name String
+    Mac string
+    IP string
+    Name string
     Ts int64
 }
 
