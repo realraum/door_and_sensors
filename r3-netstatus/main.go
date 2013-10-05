@@ -117,6 +117,12 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 	}
 }
 
+func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) {
+    evnt, pubsubcat, err := r3events.UnmarshalByteByte2Event(lines)
+    if err != nil { return }
+    ps.Pub(evnt, pubsubcat)
+}
+
 func main() {
     if enable_syslog_ { LogEnableSyslog(); r3xmppbot.LogEnableSyslog() }
     if enable_debug_ { LogEnableDebuglog(); r3xmppbot.LogEnableDebuglog() }
