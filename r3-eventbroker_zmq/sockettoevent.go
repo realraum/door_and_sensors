@@ -32,12 +32,12 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
             ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "opened":
             ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
-        case "manual":   //movement
+        case "manual", "manual_movement":   //movement
         case "error":
             ps.Pub(r3events.DoorProblemEvent{100, ts}, "door")
         case "reset":
             ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
-        case "timeout":   //after open | after close
+        case "timeout", "timeout_after_open", "timeout_after_close":
             ps.Pub(r3events.DoorProblemEvent{10, ts}, "door")
         case "opening":
         case "closing":
@@ -57,7 +57,8 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             parseSocketInputLine_State(lines[1:], ps, ts)
         case "Status:":
             if len(lines) < 3 { return }
-            ps.Pub(r3events.DoorLockUpdate{string(lines[1]) == "closed,", ts}, "door")
+            if len(lines[1]) < 4 { return }
+            ps.Pub(r3events.DoorLockUpdate{string(lines[1])[0:4] != "open", ts}, "door")
             ps.Pub(r3events.DoorAjarUpdate{string(lines[len(lines)-1]) == "shut", ts}, "door")
         case "Info(card):":
             if len(lines) < 3 { return }
