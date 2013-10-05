@@ -191,6 +191,7 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
 	for {
 		select {
 		case pe := <-presence_events:
+            Debug_.Printf("handleEventsforXMPP<-presence_events: %T %+v", pe, pe)
             switch pec := pe.(type) {
                 case xmpp.Stanza:
                     xmppout <- pec
@@ -219,10 +220,18 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
                 }
 
 		case je := <-jabber_events:
+            Debug_.Printf("handleEventsforXMPP<-jabber_events: %T %+v", je, je)
             simple_jid := removeJIDResource(je.JID)
             jid_data, jid_in_map := botdata.realraum_jids_[simple_jid]
+            
+            //send status if requested, even if user never changed any settings and thus is not in map
+            if last_status_msg != nil && je.StatusNow {
+                xmppout <-  botdata.makeXMPPMessage(je.JID, last_status_msg, nil)
+            }
+            
             if jid_in_map {
-                if last_status_msg != nil && (je.StatusNow || (! jid_data.Online && je.Online && jid_data.Wants == R3OnlineOnlyWithRecapInfo) ) {
+                //if R3OnlineOnlyWithRecapInfo, we want a status update when coming online
+                if last_status_msg != nil && ! jid_data.Online && je.Online && jid_data.Wants == R3OnlineOnlyWithRecapInfo {
                     xmppout <-  botdata.makeXMPPMessage(je.JID, last_status_msg, nil)
                 }
                 jid_data.Online = je.Online
@@ -388,6 +397,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 
     roster := xmpp.Roster(botdata.xmppclient_)
     for _, entry := range roster {
+        Debug_.Print(entry)
         if entry.Subscription == "from" {
             botdata.xmppclient_.Out <- botdata.makeXMPPPresence(entry.Jid, "subscribe", "","")
         }

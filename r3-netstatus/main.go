@@ -81,7 +81,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
     xmpp_presence_events_chan_ <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
 
     for eventinterface := range(events) {
-        Debug_.Println("event2xmpp", eventinterface)
+        Debug_.Printf("event2xmpp: %T %+v", eventinterface, eventinterface)
         switch event := eventinterface.(type) {
             case r3events.PresenceUpdate:
                 present = event.Present
@@ -119,6 +119,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 
 func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) {
     evnt, pubsubcat, err := r3events.UnmarshalByteByte2Event(lines)
+    Debug_.Printf("ParseZMQr3Event: %s %s %s", evnt, pubsubcat, err)
     if err != nil { return }
     ps.Pub(evnt, pubsubcat)
 }

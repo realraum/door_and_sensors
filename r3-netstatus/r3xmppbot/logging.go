@@ -27,5 +27,5 @@ func LogEnableSyslog() {
 
 func LogEnableDebuglog() {
     Syslog_ = log.New(os.Stdout, "", log.LstdFlags)
-    Debug_ = log.New(os.Stderr, "DEBUG", log.LstdFlags)
+    Debug_ = log.New(os.Stderr, "DEBUG ", log.LstdFlags)
 }
