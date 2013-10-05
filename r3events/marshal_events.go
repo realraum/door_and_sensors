@@ -63,6 +63,14 @@ func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string,
             event := IlluminationSensorUpdate{}
             err = json.Unmarshal(data[1], &event)
             category = "sensors"
+        case "DustSensorUpdate":
+            event := DustSensorUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "sensors"
+        case "RelativeHumiditySensorUpdate":
+            event := RelativeHumiditySensorUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "sensors"
         case "TimeTick":
             event := TimeTick{}
             err = json.Unmarshal(data[1], &event)
@@ -79,6 +87,14 @@ func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string,
             event := SomethingReallyIsMoving{}
             err = json.Unmarshal(data[1], &event)
             category = "movement"
+        case "NetDHCPACK":
+            event := NetDHCPACK{}
+            err = json.Unmarshal(data[1], &event)
+            category = "network"
+        case "NetGWStatUpdate":
+            event := NetGWStatUpdate{}
+            err = json.Unmarshal(data[1], &event)
+            category = "network"
         default:
             event = nil
             err = errors.New("cannot unmarshal unknown type")

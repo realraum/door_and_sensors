@@ -46,6 +46,36 @@ type IlluminationSensorUpdate struct {
     Ts int64
 }
 
+type DustSensorUpdate struct {
+    Sensorindex int
+    Value int64
+    Ts int64
+}
+
+type RelativeHumiditySensorUpdate struct {
+    Sensorindex int
+    Percent int
+    Ts int64
+}
+
+type NetDHCPACK struct {
+    Mac String
+    IP String
+    Name String
+    Ts int64
+}
+
+type NetGWStatUpdate struct {
+    WifiRX int32
+    WifiTX int32
+    EthernetRX int32
+    EthernetTX int32
+    InternetRX int32
+    InternetTX int32
+    NumNeigh int32
+    Ts int64
+}
+
 type TimeTick struct {
     Ts int64
 }
