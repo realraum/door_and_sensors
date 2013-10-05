@@ -17,7 +17,7 @@ var (
 
 func init() {
     flag.StringVar(&pub_addr, "brokeraddr", "tcp://torwaechter.realraum.at:4244", "zmq address to send stuff to")
-    flag.StringVar(&tty_dev_, "ttydev", "", "path do tty uc device")
+    flag.StringVar(&tty_dev_, "ttydev", "/dev/ttyACM0", "path do tty uc device")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")    
     //~ flag.Usage = flag.PrintDefaults
     flag.Parse()
