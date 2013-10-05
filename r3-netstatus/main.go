@@ -9,7 +9,7 @@ import (
     "time"
     "fmt"
     //~ "./brain"
-    r3events "svn.spreadspace.org/realraum/go.svn/r3-eventbroker_zmq/r3events"
+    r3events "svn.spreadspace.org/realraum/go.svn/r3events"
 )
 
 type SpaceState struct {
