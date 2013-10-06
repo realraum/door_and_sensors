@@ -3,12 +3,9 @@
 package main
 
 import (
-    "fmt"
     "os"
     "flag"
     "time"
-    "log/syslog"
-    "log"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
@@ -25,19 +22,25 @@ var (
     cmd_port_ string
     pub_port_ string
     door_tty_path_ string
-    use_syslog_ bool
-    Syslog_ *log.Logger
+    enable_syslog_ bool
+    enable_debug_ bool
 )
 
 func init() {
     flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
     flag.StringVar(&pub_port_, "pubport", "tcp://*:4242", "zmq public/listen socket path")
     flag.StringVar(&door_tty_path_, "device", "/dev/door", "door tty device path")
-    flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
+    flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
+    flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
     flag.Parse()
 }
 
 func main() {
+    if enable_syslog_ { LogEnableSyslog()}
+    if enable_debug_ { LogEnableDebuglog()}
+    Syslog_.Print("started")
+    defer Syslog_.Print("exiting")
+
     zmqctx, cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
     defer cmd_chans.Close()
     defer pub_chans.Close()
@@ -49,17 +52,6 @@ func main() {
         panic(err)
     }
 
-    if use_syslog_ {
-        var logerr error
-        Syslog_, logerr = syslog.NewLogger(syslog.LOG_INFO | syslog.LOG_LOCAL1, 0)
-        if logerr != nil { panic(logerr) }
-        Syslog_.Print("started")
-        defer Syslog_.Print("exiting")
-    }
-
-    //~ serial_wr <- "f"
-    //~ firmware_version := <- serial_rd
-    //~ log.Print("Firmware version:", firmware_version)
     var next_incoming_serial_is_client_reply bool
     timeout_chan := make(chan bool)
     defer close(timeout_chan)
@@ -93,15 +85,11 @@ func main() {
                         cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("argument missing")}
                         continue
                     }
-                    if Syslog_ == nil {
-                        cmd_chans.Out() <- [][]byte{[]byte("ERROR"), []byte("syslog logging not enabled")}
-                        continue
-                    }
                     Syslog_.Printf("Log: %s",incoming_request[1:])
                     cmd_chans.Out() <- [][]byte{[]byte("Ok")}
                     continue
                 }
-                if Syslog_ != nil { Syslog_.Printf("%s",incoming_request) }
+                Syslog_.Printf("%s",incoming_request)
                  if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
                     out_msg := [][]byte{[]byte("ERROR"), []byte(err.Error())}
                     cmd_chans.Out() <- out_msg

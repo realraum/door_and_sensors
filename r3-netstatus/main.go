@@ -40,7 +40,7 @@ func init() {
     flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://wuzzler.realraum.at:4244", "zmq address to subscribe r3events")
     flag.StringVar(&brain_connect_addr_, "brainconnect", "tcp://wuzzler.realraum.at:4245", "address to ask about most recent stored events")
     flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
-    flag.BoolVar(&enable_debug_, "debug", false, "enable debug logging")
+    flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
     flag.Parse()
 }
 

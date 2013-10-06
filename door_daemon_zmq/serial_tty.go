@@ -3,12 +3,10 @@
 package main
 
 import (
-    "fmt"
     "bufio"
     "bytes"
     "os"
     "svn.spreadspace.org/realraum/go.svn/termios"
-    "log"
 )
 
 
@@ -17,7 +15,7 @@ import (
 func openTTY(name string) (*os.File, error) {
     file, err := os.OpenFile(name,os.O_RDWR, 0600) // For read access.
     if err != nil {
-        log.Println(err.Error())
+        Syslog_.Println(err.Error())
         return nil, err
     }
     termios.Ttyfd(file.Fd())
@@ -30,7 +28,7 @@ func serialWriter(in <- chan string, serial * os.File) {
         serial.WriteString(totty)
         serial.Sync()
     }
-    close(serial)
+    serial.Close()
 }
 
 func serialReader(out chan <- [][]byte, serial * os.File) {
@@ -38,7 +36,7 @@ func serialReader(out chan <- [][]byte, serial * os.File) {
     linescanner.Split(bufio.ScanLines)
     for linescanner.Scan() {
         if err := linescanner.Err(); err != nil {
-            panic(fmt.Sprintf("Error in read from serial: %v\n",err.Error()))
+            panic(err.Error())
         }
         text := bytes.Fields([]byte(linescanner.Text()))
         if len(text) == 0 {
