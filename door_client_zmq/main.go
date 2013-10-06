@@ -21,17 +21,11 @@ var (
     cmd_user_ string
 )
 
-func usage() {
-    fmt.Fprintf(os.Stderr, "Usage: door_client_zmq\n")
-    flag.PrintDefaults()
-}
-
 func init() {
     flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
     flag.StringVar(&sub_port_, "pubport", "tcp://torwaechter.realraum.at:4242", "zmq subscribe/listen socket path")
     flag.StringVar(&cmd_method_, "method", "", "zmq cmd method")
     flag.StringVar(&cmd_user_, "usernick", "", "zmq cmd user identity")
-    flag.Usage = usage
     flag.Parse()
 }
 

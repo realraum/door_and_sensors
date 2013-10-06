@@ -29,17 +29,11 @@ var (
     Syslog_ *log.Logger
 )
 
-func usage() {
-    fmt.Fprintf(os.Stderr, "Usage: door_daemon_0mq <door tty device>\n")
-    flag.PrintDefaults()
-}
-
 func init() {
     flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
     flag.StringVar(&pub_port_, "pubport", "tcp://*:4242", "zmq public/listen socket path")
     flag.StringVar(&door_tty_path_, "device", "/dev/door", "door tty device path")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
-    flag.Usage = usage
     flag.Parse()
 }
 

@@ -32,11 +32,6 @@ var (
     enable_debuglog_ bool
 )
 
-func usage() {
-    fmt.Fprintf(os.Stderr, "Usage: zmq_broker_event_transformer [options]\n")
-    flag.PrintDefaults()
-}
-
 func init() {
     flag.StringVar(&door_cmd_addr_, "doorcmdaddr", "ipc:///run/tuer/door_cmd.ipc", "zmq door event publish addr")
     flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://torwaechter.realraum.at:4242", "zmq door event publish addr")
@@ -46,7 +41,6 @@ func init() {
     flag.StringVar(&brain_listen_addr_, "brainlisten", "tcp://*:4245", "address to listen for requests about latest stored event")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local2 facility")
     flag.BoolVar(&enable_debuglog_, "debug", false, "enable debug logging")
-    flag.Usage = usage
     flag.Parse()
 }
 
