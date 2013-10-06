@@ -3,8 +3,6 @@
 package main
 
 import (
-    "fmt"
-    "os"
     "flag"
     //~ "time"
     pubsub "github.com/tuxychandru/pubsub"

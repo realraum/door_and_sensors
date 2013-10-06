@@ -79,6 +79,8 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             ps.Pub(r3events.DoorAjarUpdate{string(lines[4]) == "shut", ts}, "door")
         case "open", "close", "toggle", "reset":
             ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
+        case "BackdoorInfo(ajar):":
+            ps.Pub(r3events.BackdoorAjarUpdate{string(lines[len(lines)-1]) == "shut", ts},"door")
         //~ case "photo0:":
             //~ newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
             //~ if err == nil {
