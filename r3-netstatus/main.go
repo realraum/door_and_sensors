@@ -64,7 +64,7 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
 
     defer func() {
         if x := recover(); x != nil {
-            Debug_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
+            Syslog_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
             ps.Unsub(events, "presence","door","buttons","updateinterval")
             close(xmpp_presence_events_chan_)
         }
