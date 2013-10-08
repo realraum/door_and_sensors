@@ -12,6 +12,7 @@ Presence Meta Event Injector:
     events indicating somebody left:
     - door closed with card, phone, ssh (while backdor and frontdoor shut)
     - no movement within 3 hours and movement within the last 6 hours (disable trigger if sensor is broken)
+    
 
     events indicating "alarm state" / special message:
     - Panic Button pressend
@@ -27,3 +28,16 @@ Sensor Spike Event Injector:
     monitors sensor values and calculates running average mean, stddev over last hours,
     raises Event is value spikes, aka rised beyond mean +- stddev within 2 min (enables after 1 hour of collecting data)
   
+
+
+Use Cases to detect:
+* someone walks by the movement sensor towards the door. Closes it from outside with the Card and leaves -> nobody in room anymore
+* somone still works in the OLGA room while the last person in the main room leaves and closes the door behind him with the card
+
+-> best idea so far:
+ -> all doors closed and shut -> no movement for ~30 seconds after closing doors -> assume everybody left
+                                               -> movement within next ~30 seconds -> assume somebody is still here until SomthingReallyIsMoving{false} fires
+                                               
+
+possible better Solution:
+  close door "differently" from outside if people are still inside (e.g. with buttonpress prior to closing with card from outside... or install a "CLOSE ONLY" event sending device which can be triggered through the glass)
