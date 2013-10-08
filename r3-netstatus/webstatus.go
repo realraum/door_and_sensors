@@ -80,6 +80,9 @@ func EventToWeb(ps *pubsub.PubSub) {
             case r3events.PresenceUpdate:
                 statusstate.present = event.Present
                 publishStateToWeb()
+            case r3events.BackdoorAjarUpdate:
+                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
+                publishStateToWeb()
             case r3events.DoorAjarUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
                 publishStateToWeb()
