@@ -19,7 +19,8 @@ import (
 
 
 func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int , threshold uint32) {
-    var last_movement int64
+    var last_movement,last_movement1,last_movement2,last_movement3 int64
+    var confidence uint8
     movement_window := ring.New(granularity+1)
     events_chan := ps.Sub("movement")
     defer ps.Unsub(events_chan, "movement")
@@ -31,20 +32,36 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
                 case r3events.MovementSensorUpdate:
                     movement_window.Value =  (uint32) (movement_window.Value.(uint32)  + 1)
             }
-        case <- myticker.C:
+        case gots := <- myticker.C:
+            ts := gots.Unix()
             movement_window.Prev().Value = (uint32) (0)
             movement_window = movement_window.Next()
             var movsum uint32 = 0
             movement_window.Do(func(v interface{}){if v != nil {movsum += v.(uint32)}})
-            ts :=  time.Now().Unix()
             if movsum > threshold {
-                ps.Pub( r3events.SomethingReallyIsMoving{true,ts}, "movement")
+                confidence = uint8(movsum)
+                ps.Pub( r3events.SomethingReallyIsMoving{true, confidence ,ts}, "movement")
                 last_movement = ts
+                last_movement1 = ts
+                last_movement2 = ts
+                last_movement3 = ts
             }
 
             if last_movement > 0 && ts - last_movement < 3600*6 && ts - last_movement > 3600*3 {
                 last_movement = 0
-                ps.Pub( r3events.SomethingReallyIsMoving{false, ts}, "movement")
+                ps.Pub( r3events.SomethingReallyIsMoving{false,99,ts}, "movement")
+            }
+            if last_movement1 > 0 && ts - last_movement < 3600*6 && ts - last_movement1 > 120 {
+                last_movement1 = 0
+                ps.Pub( r3events.SomethingReallyIsMoving{false,10,ts}, "movement")
+            }
+            if last_movement2 > 0 && ts - last_movement < 3600*6 && ts - last_movement2 > 1800 {
+                last_movement2 = 0
+                ps.Pub( r3events.SomethingReallyIsMoving{false,25,ts}, "movement")
+            }
+            if last_movement3 > 0 && ts - last_movement < 3600*6 && ts - last_movement3 > 3600 {
+                last_movement3 = 0
+                ps.Pub( r3events.SomethingReallyIsMoving{false,50,ts}, "movement")
             }
     } }
 }

@@ -23,6 +23,11 @@ Presence Meta Event Injector:
 Movement Meta Event Injector:
     movement sensor (maybe threshold number movements within 5 minutes) -> Movement Passed Threshold
     no movement within 3 hours and movement within the last 6 hours -> Movement Absence Passed Threshold
+    asign confidence to metaevent
+    -> if few movement was detected before door closed -> lower timeout until no presence !
+    -> if a lot of movement was detected -> longer timeout until no presence
+    (e.g. confidence of SomethingReallyIsMoving{false} must reach level of SomethingReallyIsMoving{true} before presence switch is triggered
+
 
 Sensor Spike Event Injector:
     monitors sensor values and calculates running average mean, stddev over last hours,
