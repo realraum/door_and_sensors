@@ -101,6 +101,16 @@ func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string,
             err = json.Unmarshal(data[1], newevent)
             category = "movement"
             event = *newevent
+        case "TempSensorSpike":
+            newevent := new(TempSensorSpike)
+            err = json.Unmarshal(data[1], newevent)
+            category = "sensors"
+            event = *newevent
+        case "DustSensorSpike":
+            newevent := new(DustSensorSpike)
+            err = json.Unmarshal(data[1], newevent)
+            category = "sensors"
+            event = *newevent
         case "NetDHCPACK":
             newevent := new(NetDHCPACK)
             err = json.Unmarshal(data[1], newevent)

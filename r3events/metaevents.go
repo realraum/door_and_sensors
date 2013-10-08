@@ -9,5 +9,18 @@ type PresenceUpdate struct {
 
 type SomethingReallyIsMoving struct {
     Movement bool
+    Confidence uint8
+    Ts int64
+}
+
+type TempSensorSpike struct {
+    Sensorindex int
+    Value float64    
+    Ts int64
+}
+
+type DustSensorSpike struct {
+    Sensorindex int
+    Value int64
     Ts int64
 }
