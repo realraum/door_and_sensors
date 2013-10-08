@@ -30,7 +30,11 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
         case event := <- events_chan:
             switch event.(type) {
                 case r3events.MovementSensorUpdate:
-                    movement_window.Value =  (uint32) (movement_window.Value.(uint32)  + 1)
+                    if movement_window.Value == nil {
+                        movement_window.Value = uint32(1)
+                    } else {
+                        movement_window.Value = uint32(movement_window.Value.(uint32)  + 1)
+                    }
             }
         case gots := <- myticker.C:
             ts := gots.Unix()
