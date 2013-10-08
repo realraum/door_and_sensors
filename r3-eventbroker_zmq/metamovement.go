@@ -4,11 +4,18 @@ package main
 
 import (
     "time"
-    //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     "container/ring"
     r3events "svn.spreadspace.org/realraum/go.svn/r3events"
     )
+
+
+/// Movement Meta Event Injector:
+///     threshold number of movements within gran_duration*granularity seconds -> SomethingReallyIsMoving{True}
+///     No movement within 3 hours but movement within the last 6 hours -> SomethingReallyIsMoving{False}
+///
+/// Thus SomethingReallyIsMoving{True} fires regularly, but at most every gran_duration seconds
+/// While SomethingReallyIsMoving{False} fires only once to assure us that everybody might really be gone
 
 
 func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int , threshold uint32) {

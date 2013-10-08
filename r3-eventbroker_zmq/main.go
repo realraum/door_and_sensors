@@ -67,7 +67,7 @@ func main() {
     go BrainCenter(zmqctx, brain_listen_addr_, store_these_events_chan)
 
     go MetaEventRoutine_Movement(ps, 10, 20, 10)
-    go MetaEventRoutine_Presence(ps)
+    go MetaEventRoutine_Presence(ps, 21, 200)
 
     // --- get update on most recent status ---
     answ := ZmqsAskQuestionsAndClose(zmqctx, door_cmd_addr_, [][][]byte{[][]byte{[]byte("status")}})
