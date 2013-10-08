@@ -46,22 +46,21 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, granularity, gran_duration int
                 last_movement2 = ts
                 last_movement3 = ts
             }
-
-            if last_movement > 0 && ts - last_movement < 3600*6 && ts - last_movement > 3600*3 {
-                last_movement = 0
-                ps.Pub( r3events.SomethingReallyIsMoving{false,99,ts}, "movement")
-            }
-            if last_movement1 > 0 && ts - last_movement < 3600*6 && ts - last_movement1 > 120 {
-                last_movement1 = 0
-                ps.Pub( r3events.SomethingReallyIsMoving{false,10,ts}, "movement")
-            }
-            if last_movement2 > 0 && ts - last_movement < 3600*6 && ts - last_movement2 > 1800 {
-                last_movement2 = 0
-                ps.Pub( r3events.SomethingReallyIsMoving{false,25,ts}, "movement")
-            }
-            if last_movement3 > 0 && ts - last_movement < 3600*6 && ts - last_movement3 > 3600 {
-                last_movement3 = 0
-                ps.Pub( r3events.SomethingReallyIsMoving{false,50,ts}, "movement")
+            // this sucks.....
+            if last_movement > 0 && ts - last_movement < 3600*6 {
+                if ts - last_movement > 3600*3 {
+                    last_movement = 0
+                    ps.Pub( r3events.SomethingReallyIsMoving{false,99,ts}, "movement")
+                } else if ts - last_movement > 3600 && last_movement3 > 0 {
+                    last_movement3 = 0
+                    ps.Pub( r3events.SomethingReallyIsMoving{false,50,ts}, "movement")
+                } else if ts - last_movement > 1800 && last_movement2 > 0 {
+                    last_movement2 = 0
+                    ps.Pub( r3events.SomethingReallyIsMoving{false,20,ts}, "movement")
+                } else if ts - last_movement > 120 && last_movement1 > 0 {
+                    last_movement1 = 0
+                    ps.Pub( r3events.SomethingReallyIsMoving{false,5,ts}, "movement")
+                }
             }
     } }
 }
