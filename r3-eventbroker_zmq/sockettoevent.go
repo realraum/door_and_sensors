@@ -4,7 +4,7 @@ package main
 
 import (
     "regexp"
-    //~ "strconv"
+    "strconv"
     "time"
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
@@ -81,11 +81,30 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
         case "BackdoorInfo(ajar):":
             ps.Pub(r3events.BackdoorAjarUpdate{string(lines[len(lines)-1]) == "shut", ts},"door")
-        //~ case "photo0:":
-            //~ newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
-            //~ if err == nil {
-                //~ ps.Pub(r3events.IlluminationSensorUpdate{0, newphoto, ts}, "sensors")
-            //~ }
+        case "temp0:","temp1:", "temp2:", "temp3:":
+            sensorid, err := strconv.ParseInt(string(lines[0][4]), 10, 32)
+            if err != nil {return }
+            newtemp, err := strconv.ParseFloat(string(lines[1]), 10)
+            if err != nil {return }
+            ps.Pub(r3events.TempSensorUpdate{int(sensorid), newtemp, ts}, "sensors")
+        case "photo0:","photo1:", "photo2:", "photo3:":
+            sensorid, err := strconv.ParseInt(string(lines[0][5]), 10, 32)
+            if err != nil {return }
+            newphoto, err := strconv.ParseInt(string(lines[1]), 10, 32)
+            if err != nil {return }
+            ps.Pub(r3events.IlluminationSensorUpdate{int(sensorid), newphoto, ts}, "sensors")
+        case "rh0:":
+            //~ sensorid, err := strconv.ParseInt(string(lines[0][4]), 10, 32)
+            //~ if err != nil {return }
+            relhumid, err := strconv.ParseInt(string(lines[1]), 10, 32)
+            if err != nil {return }
+            ps.Pub(r3events.RelativeHumiditySensorUpdate{0, int(relhumid), ts}, "sensors")
+        case "dust0:","dust1:","dust2:":
+            sensorid, err := strconv.ParseInt(string(lines[0][4]), 10, 32)
+            if err != nil {return }
+            dustlvl, err := strconv.ParseInt(string(lines[1]), 10, 32)
+            if err != nil {return }
+            ps.Pub(r3events.DustSensorUpdate{int(sensorid), dustlvl, ts}, "sensors")
         default:
             evnt, pubsubcat, err := r3events.UnmarshalByteByte2Event(lines)
             if err == nil {
