@@ -106,7 +106,7 @@ func EventToWeb(ps *pubsub.PubSub) {
                 }
                spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d",event.Sensorindex),tempsensorlocation, event.Value))
             case r3events.IlluminationSensorUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","MHR","1024V/5V", event.Value))
+                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","HHL","1024V/5V", event.Value))
         }
 	}
 }
