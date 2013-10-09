@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
     "time"
+    "fmt"
     r3events "svn.spreadspace.org/realraum/go.svn/r3events"
     )
 
@@ -94,9 +95,18 @@ func EventToWeb(ps *pubsub.PubSub) {
                 spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
                 publishStateToWeb()
             case r3events.TempSensorUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor("Temp0","Decke", event.Value))
+                var tempsensorlocation string
+                switch event.Sensorindex {
+                    case 0:
+                        tempsensorlocation = "HHL"
+                    case 1:
+                        tempsensorlocation = "Gang"
+                    default:
+                        tempsensorlocation = "Sonstwo"
+                }
+               spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d",event.Sensorindex),tempsensorlocation, event.Value))
             case r3events.IlluminationSensorUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","Decke","1024V/5V", event.Value))
+                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","MHR","1024V/5V", event.Value))
         }
 	}
 }
