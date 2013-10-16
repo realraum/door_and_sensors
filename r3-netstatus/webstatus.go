@@ -98,15 +98,15 @@ func EventToWeb(ps *pubsub.PubSub) {
                 var tempsensorlocation string
                 switch event.Sensorindex {
                     case 0:
-                        tempsensorlocation = "HHL"
+                        tempsensorlocation = "LoTHR"
                     case 1:
-                        tempsensorlocation = "Gang"
+                        tempsensorlocation = "CX"
                     default:
                         tempsensorlocation = "Sonstwo"
                 }
                spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d",event.Sensorindex),tempsensorlocation, event.Value))
             case r3events.IlluminationSensorUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","HHL","1024V/5V", event.Value))
+                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","LoTHR","1024V/5V", event.Value))
         }
 	}
 }
