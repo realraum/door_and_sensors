@@ -33,6 +33,7 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
         case "opened":
             ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
         case "manual", "manual_movement":   //movement
+            ps.Pub(r3events.DoorManualMovementEvent{ts}, "door")
         case "error":
             ps.Pub(r3events.DoorProblemEvent{100, ts}, "door")
         case "reset":
