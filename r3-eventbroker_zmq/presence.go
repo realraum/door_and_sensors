@@ -12,7 +12,7 @@ import (
 func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeout int64) {
     var last_door_cmd *r3events.DoorCommandEvent
     var last_presence bool
-    var last_event_indicating_presence, last_frontlock_use int64
+    var last_event_indicating_presence, last_frontlock_use, last_manual_lockhandling int64
     var front_locked, front_shut, back_shut bool = true, true, true
 
     events_chan := ps.Sub("door", "doorcmd", "buttons", "movement")
@@ -41,6 +41,8 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
                 last_event_indicating_presence = evnt.Ts
             case r3events.DoorCommandEvent:
                 last_door_cmd = &evnt
+            case r3events.DoorManualMovementEvent:
+                last_manual_lockhandling = evnt.Ts
             case r3events.DoorLockUpdate:
                 front_locked = evnt.Locked
                 last_frontlock_use = evnt.Ts
@@ -64,7 +66,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
             //... skip state check .. we had a definite presence event
         } else if any_door_unlocked || any_door_ajar {
             new_presence = true
-        } else if last_door_cmd.Using == "Button" {
+        } else if last_door_cmd.Using == "Button"  || last_door_cmd.Ts < last_manual_lockhandling {
             new_presence = true
         } else {
             new_presence = false
