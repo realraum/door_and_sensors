@@ -25,6 +25,10 @@ type DoorCommandEvent struct {
     Ts int64
 }
 
+type DoorManualMovementEvent struct {
+    Ts int64
+}
+
 type DoorProblemEvent struct {
     Severity int
     Ts int64
