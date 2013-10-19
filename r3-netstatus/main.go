@@ -50,9 +50,9 @@ func IfThenElseStr(c bool, strue, sfalse string) string {
     if c {return strue} else {return sfalse}
 }
 
-func composeDoorLockMessage(locked, frontshut bool, doorcmd r3events.DoorCommandEvent, ts int64) string {
+func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, doorcmd r3events.DoorCommandEvent, ts int64) string {
     var ajarstring string = "";
-    if ! frontshut {
+    if frontshut.Shut == false && frontshut.Ts < doorcmd.Ts {
         ajarstring = " (still ajar)"
     }
     if ts - doorcmd.Ts < 30 {
@@ -77,9 +77,10 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
         }
     }()
 
-    var present, frontlock, frontshut bool = false, true, true
+    var present, frontlock bool = false, true
     var last_buttonpress int64 = 0
     var last_door_cmd r3events.DoorCommandEvent;
+    var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0};
     button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
     present_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowOnline,"Somebody is present"}
     notpresent_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe,"Nobody is here"}
@@ -102,14 +103,14 @@ func EventToXMPP(ps *pubsub.PubSub, xmpp_presence_events_chan_ chan <- interface
                 xmpp_presence_events_chan_ <- fmt.Sprintln("DoorCommand:",event.Command, "using", event.Using, "by", event.Who, time.Unix(event.Ts,0))
             case r3events.DoorLockUpdate:
                 if frontlock != event.Locked {
-                    xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeDoorLockMessage(event.Locked, frontshut, last_door_cmd, event.Ts), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: true}
+                    xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: composeDoorLockMessage(event.Locked, last_frontdoor_ajar, last_door_cmd, event.Ts), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: true}
                 }
                 frontlock = event.Locked
            case r3events.DoorAjarUpdate:
-                if frontshut != event.Shut {
+                if last_frontdoor_ajar.Shut != event.Shut {
                     xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Frontdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar."),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: false}
                 }
-                frontshut = event.Shut
+		last_frontdoor_ajar = event
            case r3events.BackdoorAjarUpdate:
                 xmpp_presence_events_chan_ <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
             case r3events.BoreDoomButtonPressEvent:
