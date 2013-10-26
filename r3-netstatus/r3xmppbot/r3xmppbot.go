@@ -185,12 +185,14 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
     defer func() {
         if x := recover(); x != nil {
             Syslog_.Printf("handleEventsforXMPP: run time panic: %v", x)
+            //FIXME: signal that xmpp bot has crashed
         }
     }()
 
 	for {
 		select {
-		case pe := <-presence_events:
+		case pe, pe_still_open := <-presence_events:
+            if ! pe_still_open { break }
             Debug_.Printf("handleEventsforXMPP<-presence_events: %T %+v", pe, pe)
             switch pec := pe.(type) {
                 case xmpp.Stanza:
@@ -219,7 +221,8 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
                     break
                 }
 
-		case je := <-jabber_events:
+		case je, je_still_open := <-jabber_events:
+            if ! je_still_open { break }
             Debug_.Printf("handleEventsforXMPP<-jabber_events: %T %+v", je, je)
             simple_jid := removeJIDResource(je.JID)
             jid_data, jid_in_map := botdata.realraum_jids_[simple_jid]
