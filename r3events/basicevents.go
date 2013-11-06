@@ -31,6 +31,7 @@ type DoorManualMovementEvent struct {
 
 type DoorProblemEvent struct {
     Severity int
+    Problem string
     Ts int64
 }
 

@@ -38,8 +38,13 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
             ps.Pub(r3events.DoorProblemEvent{100, ts}, "door")
         case "reset":
             ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
-        case "timeout", "timeout_after_open", "timeout_after_close":
+        case "timeout_after_open":
             ps.Pub(r3events.DoorProblemEvent{10, ts}, "door")
+            ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
+        case "timeout_after_close":
+            ps.Pub(r3events.DoorProblemEvent{20, ts}, "door")
+            // can't say for sure that door is locked if we ran into timeout while closing
+            //~ ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "opening":
         case "closing":
         default:
