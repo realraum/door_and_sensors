@@ -32,7 +32,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
                     last_event_indicating_presence = evnt.Ts
                 } else {
                     if last_presence { Syslog_.Printf("Presence: Mhh, SomethingReallyIsMoving{%+v} received but presence still true. Quite still a bunch we have here.", evnt) }
-                    if front_locked && front_shut && back_shut && evnt.Confidence >= 20 && last_event_indicating_presence > 1800 {
+                    if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 {
                         new_presence = false
                     }
                 }
