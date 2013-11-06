@@ -108,7 +108,7 @@ func EventToXMPP(events <- chan interface{}, xmpp_presence_events_chan chan <- i
                 if last_frontdoor_ajar.Shut != event.Shut {
                     xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Frontdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar."),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: false}
                 }
-		last_frontdoor_ajar = event
+                last_frontdoor_ajar = event
            case r3events.BackdoorAjarUpdate:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
             case r3events.BoreDoomButtonPressEvent:
@@ -120,6 +120,8 @@ func EventToXMPP(events <- chan interface{}, xmpp_presence_events_chan chan <- i
                     xmpp_presence_events_chan <- present_status
                     last_buttonpress = 0
                 }
+            case r3events.DoorProblemEvent:
+                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)",event.Problem, event.Severity, time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
         }
 	}
 }
@@ -151,12 +153,12 @@ func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) {
 
 func QueryLatestEventsAndInjectThem(ps *pubsub.PubSub, zmqctx *zmq.Context) {
     answ := ZmqsAskQuestionsAndClose(zmqctx, brain_connect_addr_, [][][]byte{
-        [][]byte{[]byte("DoorCommandEvent")}, 
-        [][]byte{[]byte("DoorLockUpdate")}, 
-        [][]byte{[]byte("DoorAjarUpdate")}, 
-        [][]byte{[]byte("BackdoorAjarUpdate")}, 
+        [][]byte{[]byte("BackdoorAjarUpdate")},
+        [][]byte{[]byte("DoorCommandEvent")},
+        [][]byte{[]byte("DoorLockUpdate")},
+        [][]byte{[]byte("DoorAjarUpdate")},
         [][]byte{[]byte("PresenceUpdate")},
-        [][]byte{[]byte("IlluminationSensorUpdate")}, 
+        [][]byte{[]byte("IlluminationSensorUpdate")},
         [][]byte{[]byte("TempSensorUpdate")}})
     for _, a := range(answ) {
         ParseZMQr3Event(a, ps)
@@ -183,7 +185,7 @@ func main() {
     go EventToWeb(ps)
     // --- get update on most recent events ---
     QueryLatestEventsAndInjectThem(ps, zmqctx)
-    go RunXMPPBot(ps, zmqctx) 
+    go RunXMPPBot(ps, zmqctx)
 
     // --- receive and distribute events ---
     ticker := time.NewTicker(time.Duration(7) * time.Minute)

@@ -6,6 +6,7 @@ import (
     "regexp"
     "strconv"
     "time"
+    "bytes"
     //~ "./brain"
     pubsub "github.com/tuxychandru/pubsub"
     zmq "github.com/vaughan0/go-zmq"
@@ -35,14 +36,14 @@ func parseSocketInputLine_State(lines [][]byte, ps *pubsub.PubSub, ts int64) {
         case "manual", "manual_movement":   //movement
             ps.Pub(r3events.DoorManualMovementEvent{ts}, "door")
         case "error":
-            ps.Pub(r3events.DoorProblemEvent{100, ts}, "door")
+            ps.Pub(r3events.DoorProblemEvent{100, string(bytes.Join(lines,[]byte(" "))),  ts}, "door")
         case "reset":
             ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "timeout_after_open":
-            ps.Pub(r3events.DoorProblemEvent{10, ts}, "door")
+            ps.Pub(r3events.DoorProblemEvent{10, string(lines[0]), ts}, "door")
             ps.Pub(r3events.DoorLockUpdate{false, ts}, "door")
         case "timeout_after_close":
-            ps.Pub(r3events.DoorProblemEvent{20, ts}, "door")
+            ps.Pub(r3events.DoorProblemEvent{20, string(lines[0]), ts}, "door")
             // can't say for sure that door is locked if we ran into timeout while closing
             //~ ps.Pub(r3events.DoorLockUpdate{true, ts}, "door")
         case "opening":
