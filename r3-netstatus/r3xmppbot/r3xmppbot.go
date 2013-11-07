@@ -136,6 +136,7 @@ type XmppBot struct {
     my_login_password_ string
     xmppclient_ *xmpp.Client
     presence_events_ *chan interface{}
+    ping_reply_ chan bool
 }
 
 
@@ -272,6 +273,9 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
     if inmsg.Body == nil || inmsg.GetHeader() == nil {
         return
     }
+    if inmsg.GetHeader().Error != nil {
+        Syslog_.Printf("XMPP Message Error: %s", inmsg.GetHeader().Error.Error())
+    }
     bodytext :=inmsg.Body.Chardata
     if botdata.isAuthenticated(inmsg.GetHeader().From) {
         switch bodytext {
@@ -336,8 +340,9 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
             case *xmpp.Message:
                 botdata.handleIncomingMessageDialog(*stanza, xmppout, jabber_events)
             case *xmpp.Presence:
-                if stanza.GetHeader() == nil {
-                    continue
+                if stanza.GetHeader() == nil { continue }
+                if stanza.GetHeader().Error != nil {
+                    Syslog_.Printf("XMPP Presence Error: %s", stanza.GetHeader().Error.Error())
                 }
                 switch stanza.GetHeader().Type {
                     case "subscribe":
@@ -355,8 +360,9 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
                         jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}
                 }
             case *xmpp.Iq:
-                if stanza.GetHeader() == nil {
-                    continue
+                if stanza.GetHeader() == nil { continue }
+                if stanza.GetHeader().Error != nil {
+                    Syslog_.Printf("XMPP Iq Error: %s", stanza.GetHeader().Error.Error())
                 }
         }
     }
@@ -373,6 +379,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
     botdata.my_jid_ = loginjid
     botdata.my_login_password_ = loginpwd
     botdata.auth_timeout_ = 3600*2
+    botdata.ping_reply_ = make(chan bool)
 
     botdata.config_file_ = path.Join(state_save_dir, "r3xmpp."+removeJIDResource(loginjid)+".json")
 

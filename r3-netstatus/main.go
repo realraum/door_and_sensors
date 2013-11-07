@@ -66,7 +66,7 @@ func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, door
     }
 }
 
-func EventToXMPP(events <- chan interface{}, xmpp_presence_events_chan chan <- interface{}) {
+func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presence_events_chan chan <- interface{}) {
 
     defer func() {
         if x := recover(); x != nil {
@@ -120,6 +120,7 @@ func EventToXMPP(events <- chan interface{}, xmpp_presence_events_chan chan <- i
                     xmpp_presence_events_chan <- present_status
                     last_buttonpress = 0
                 }
+                
             case r3events.DoorProblemEvent:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)",event.Problem, event.Severity, time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
         }
@@ -130,12 +131,16 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
     var xmpperr error
     var bot *r3xmppbot.XmppBot
     var xmpp_presence_events_chan chan interface{}
-    psevents := ps.Sub("presence","door","buttons","updateinterval")
     for {
         bot, xmpp_presence_events_chan, xmpperr = r3xmppbot.NewStartedBot(xmpp_login_.jid, xmpp_login_.pass, xmpp_bot_authstring_, xmpp_state_save_dir_, true)
         if xmpperr == nil {
+            Syslog_.Printf("Successfully (re)started XMPP Bot")
+            // subscribe before QueryLatestEventsAndInjectThem and EventToXMPP
+            psevents := ps.Sub("presence","door","buttons","updateinterval")
             QueryLatestEventsAndInjectThem(ps, zmqctx)
-            EventToXMPP(psevents, xmpp_presence_events_chan)
+            EventToXMPP(bot, psevents, xmpp_presence_events_chan)
+            // unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
+            ps.Unsub(psevents, "presence","door","buttons","updateinterval")
             bot.StopBot()
         } else {
             Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
