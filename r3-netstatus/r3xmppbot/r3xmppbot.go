@@ -11,18 +11,6 @@ import (
     "path"
 )
 
-//~ type StdLogger struct {
-//~ }
-
-//~ func (s *StdLogger) Log(v ...interface{}) {
-        //~ log.Println(v...)
-//~ }
-
-//~ func (s *StdLogger) Logf(fmt string, v ...interface{}) {
-        //~ log.Printf(fmt, v...)
-//~ }
-
-
 func (botdata *XmppBot) makeXMPPMessage(to string, message interface{}, subject interface{}) *xmpp.Message {
     xmppmsgheader := xmpp.Header{To: to,
                                                             From: botdata.my_jid_,
@@ -136,7 +124,6 @@ type XmppBot struct {
     my_login_password_ string
     xmppclient_ *xmpp.Client
     presence_events_ *chan interface{}
-    ping_reply_ chan bool
 }
 
 
@@ -172,14 +159,6 @@ func (data RealraumXmppNotifierConfig) loadFrom(filepath string) () {
     }
 }
 
-
-func init() {
-        //~ logger := &StdLogger{}
-        //~ xmpp.Debug = logger
-        //~ xmpp.Info = logger
-        //~ xmpp.Warn = logger
-}
-
 func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presence_events <- chan interface{}, jabber_events <- chan JabberEvent) {
     var last_status_msg *string
 
@@ -188,12 +167,13 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
             Syslog_.Printf("handleEventsforXMPP: run time panic: %v", x)
             //FIXME: signal that xmpp bot has crashed
         }
+        for _ = range(jabber_events) {}    //cleanout jabber_events queue
     }()
 
 	for {
 		select {
 		case pe, pe_still_open := <-presence_events:
-            if ! pe_still_open { break }
+            if ! pe_still_open { return }
             Debug_.Printf("handleEventsforXMPP<-presence_events: %T %+v", pe, pe)
             switch pec := pe.(type) {
                 case xmpp.Stanza:
@@ -219,11 +199,12 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan <- xmpp.Stanza, presenc
                         }
                     }
                 default:
-                    break
+                    Debug_.Println("handleEventsforXMPP<-presence_events: unknown type received: quitting")
+                    return
                 }
 
 		case je, je_still_open := <-jabber_events:
-            if ! je_still_open { break }
+            if ! je_still_open { return }
             Debug_.Printf("handleEventsforXMPP<-jabber_events: %T %+v", je, je)
             simple_jid := removeJIDResource(je.JID)
             jid_data, jid_in_map := botdata.realraum_jids_[simple_jid]
@@ -273,8 +254,8 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
     if inmsg.Body == nil || inmsg.GetHeader() == nil {
         return
     }
-    if inmsg.GetHeader().Error != nil {
-        Syslog_.Printf("XMPP Message Error: %s", inmsg.GetHeader().Error.Error())
+    if inmsg.Type == "error" || inmsg.Error != nil {
+        Syslog_.Printf("XMPP Message Error: %s", inmsg.Error.Error())
     }
     bodytext :=inmsg.Body.Chardata
     if botdata.isAuthenticated(inmsg.GetHeader().From) {
@@ -330,8 +311,8 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
     defer func() {
         if x := recover(); x != nil {
             Syslog_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
-            close(jabber_events)
         }
+        close(jabber_events)
     }()
 
     var incoming_stanza interface{}
@@ -341,8 +322,8 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
                 botdata.handleIncomingMessageDialog(*stanza, xmppout, jabber_events)
             case *xmpp.Presence:
                 if stanza.GetHeader() == nil { continue }
-                if stanza.GetHeader().Error != nil {
-                    Syslog_.Printf("XMPP Presence Error: %s", stanza.GetHeader().Error.Error())
+                if stanza.Type == "error" || stanza.Error != nil {
+                    Syslog_.Printf("XMPP Presence Error: %s", stanza.Error.Error())
                 }
                 switch stanza.GetHeader().Type {
                     case "subscribe":
@@ -361,11 +342,19 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
                 }
             case *xmpp.Iq:
                 if stanza.GetHeader() == nil { continue }
-                if stanza.GetHeader().Error != nil {
-                    Syslog_.Printf("XMPP Iq Error: %s", stanza.GetHeader().Error.Error())
+                if stanza.Type == "error" || stanza.Error != nil {
+                    Syslog_.Printf("XMPP Iq Error: %s", stanza.Error.Error())
                 }
+                if HandleServerToClientPing(stanza, xmppout) {continue} //if true then routine handled it and we can continue
+                Debug_.Printf("Unhandled Iq: %s", stanza)
         }
     }
+}
+
+func init() {
+    //~ xmpp.Debug = &XMPPDebugLogger{}
+    xmpp.Info = &XMPPDebugLogger{}
+    xmpp.Warn = &XMPPLogger{}
 }
 
 func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecuretls bool) (*XmppBot, chan interface{}, error) {
@@ -379,14 +368,8 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
     botdata.my_jid_ = loginjid
     botdata.my_login_password_ = loginpwd
     botdata.auth_timeout_ = 3600*2
-    botdata.ping_reply_ = make(chan bool)
 
     botdata.config_file_ = path.Join(state_save_dir, "r3xmpp."+removeJIDResource(loginjid)+".json")
-
-    //~ logger := &StdLogger{}
-    //~ xmpp.Debug = logger
-    //~ xmpp.Info = logger
-    //~ xmpp.Warn = logger
 
     xmpp.TlsConfig = tls.Config{InsecureSkipVerify: insecuretls}
     botdata.realraum_jids_.loadFrom(botdata.config_file_)
@@ -428,6 +411,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 }
 
 func (botdata *XmppBot) StopBot() {
+    Syslog_.Println("Stopping XMPP Bot")
     if botdata.xmppclient_ != nil {
         close(botdata.xmppclient_.Out)
     }
@@ -435,4 +419,7 @@ func (botdata *XmppBot) StopBot() {
         *botdata.presence_events_ <- false
         close(*botdata.presence_events_)
     }
+    botdata.config_file_ = ""
+    botdata.realraum_jids_ = nil
+    botdata.xmppclient_ = nil
 }
