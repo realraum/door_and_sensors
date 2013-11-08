@@ -254,9 +254,6 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
     if inmsg.Body == nil || inmsg.GetHeader() == nil {
         return
     }
-    if inmsg.Type == "error" || inmsg.Error != nil {
-        Syslog_.Printf("XMPP Message Error: %s", inmsg.Error.Error())
-    }
     bodytext :=inmsg.Body.Chardata
     if botdata.isAuthenticated(inmsg.GetHeader().From) {
         switch bodytext {
@@ -315,16 +312,36 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
         close(jabber_events)
     }()
 
+    var error_count int = 0
     var incoming_stanza interface{}
+
+    handleStanzaError := func() bool {
+        error_count++
+        if error_count > 15 {
+            Syslog_.Println("handleIncomingXMPPStanzas: too many errors in series.. bailing out")
+            botdata.StopBot()
+            return true
+        }
+        return false
+    }
+
     for incoming_stanza = range xmppin {
         switch stanza := incoming_stanza.(type) {
             case *xmpp.Message:
+                if stanza.GetHeader() == nil { continue }
                 botdata.handleIncomingMessageDialog(*stanza, xmppout, jabber_events)
+                if stanza.Type == "error" || stanza.Error != nil {
+                    Syslog_.Printf("XMPP %T Error: %s", stanza, stanza)
+                    if handleStanzaError() { return }
+                    continue
+                } else { error_count = 0 }
             case *xmpp.Presence:
                 if stanza.GetHeader() == nil { continue }
                 if stanza.Type == "error" || stanza.Error != nil {
-                    Syslog_.Printf("XMPP Presence Error: %s", stanza.Error.Error())
-                }
+                    Syslog_.Printf("XMPP %T Error: %s", stanza, stanza)
+                    if handleStanzaError() { return }
+                    continue
+                } else { error_count = 0 }
                 switch stanza.GetHeader().Type {
                     case "subscribe":
                         xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "subscribed", "", "")
@@ -340,11 +357,15 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
                     default:
                         jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}
                 }
+
             case *xmpp.Iq:
                 if stanza.GetHeader() == nil { continue }
                 if stanza.Type == "error" || stanza.Error != nil {
-                    Syslog_.Printf("XMPP Iq Error: %s", stanza.Error.Error())
-                }
+                    Syslog_.Printf("XMPP %T Error: %s", stanza, stanza)
+                    if handleStanzaError() { return }
+                    continue
+                } else { error_count = 0 }
+
                 if HandleServerToClientPing(stanza, xmppout) {continue} //if true then routine handled it and we can continue
                 Debug_.Printf("Unhandled Iq: %s", stanza)
         }

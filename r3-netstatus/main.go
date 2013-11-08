@@ -121,7 +121,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                     last_buttonpress = 0
                 }
                 // Try to XMPP Ping the server and if that fails, quit XMPPBot
-                if bot.PingServer(2000) == false { return }
+                if bot.PingServer(3500) == false { return }
             case r3events.DoorProblemEvent:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)",event.Problem, event.Severity, time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
         }
@@ -146,7 +146,7 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
         } else {
             Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
         }
-        time.Sleep(5 * time.Second)
+        time.Sleep(10 * time.Second)
     }
 }
 
@@ -194,7 +194,7 @@ func main() {
     go RunXMPPBot(ps, zmqctx)
 
     // --- receive and distribute events ---
-    ticker := time.NewTicker(time.Duration(5) * time.Minute)
+    ticker := time.NewTicker(time.Duration(6) * time.Minute)
     for {
     select {
         case e := <-zmqsub.In():
