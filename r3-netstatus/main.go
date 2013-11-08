@@ -121,7 +121,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                     last_buttonpress = 0
                 }
                 // Try to XMPP Ping the server and if that fails, quit XMPPBot
-                if bot.PingServer(3500) == false { return }
+                if bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false{ return }
             case r3events.DoorProblemEvent:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)",event.Problem, event.Severity, time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
         }
