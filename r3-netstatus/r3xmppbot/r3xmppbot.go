@@ -329,12 +329,18 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <- chan xmpp.Stanza, xm
         switch stanza := incoming_stanza.(type) {
             case *xmpp.Message:
                 if stanza.GetHeader() == nil { continue }
-                botdata.handleIncomingMessageDialog(*stanza, xmppout, jabber_events)
                 if stanza.Type == "error" || stanza.Error != nil {
                     Syslog_.Printf("XMPP %T Error: %s", stanza, stanza)
+                    if stanza.Error.Type == "cancel" {
+                        // asume receipient not reachable -> disable
+                        Syslog_.Printf("Error reaching %s. Disabling user, please reenable manually", stanza.From)
+                        jabber_events <- JabberEvent{stanza.From, false, R3NeverInfo, false}
+                        continue
+                    }
                     if handleStanzaError() { return }
                     continue
                 } else { error_count = 0 }
+                botdata.handleIncomingMessageDialog(*stanza, xmppout, jabber_events)
             case *xmpp.Presence:
                 if stanza.GetHeader() == nil { continue }
                 if stanza.Type == "error" || stanza.Error != nil {
