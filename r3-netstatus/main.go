@@ -111,6 +111,8 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                 last_frontdoor_ajar = event
            case r3events.BackdoorAjarUpdate:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
+           case r3events.GasLeakAlert:
+                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg:  fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
             case r3events.BoreDoomButtonPressEvent:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
                 xmpp_presence_events_chan <- button_status

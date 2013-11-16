@@ -107,6 +107,9 @@ func EventToWeb(ps *pubsub.PubSub) {
                spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d",event.Sensorindex),tempsensorlocation, event.Value))
             case r3events.IlluminationSensorUpdate:
                 spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","LoTHR","1024V/5V", event.Value))
+            case r3events.GasLeakAlert:
+                spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
+                publishStateToWeb()                
         }
 	}
 }
