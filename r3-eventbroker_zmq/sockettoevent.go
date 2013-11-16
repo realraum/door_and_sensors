@@ -88,6 +88,8 @@ func ParseSocketInputLine(lines [][]byte, ps *pubsub.PubSub, keylookup_socket *z
             ps.Pub(r3events.DoorCommandEvent{string(lines[0]), string(lines[1]), string(lines[2]), ts},"doorcmd")
         case "BackdoorInfo(ajar):":
             ps.Pub(r3events.BackdoorAjarUpdate{string(lines[len(lines)-1]) == "shut", ts},"door")
+        case "GasLeakAlert":
+            ps.Pub(r3events.GasLeakAlert{ts},"sensors")
         case "temp0:","temp1:", "temp2:", "temp3:":
             sensorid, err := strconv.ParseInt(string(lines[0][4]), 10, 32)
             if err != nil {return }
