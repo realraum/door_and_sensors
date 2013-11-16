@@ -81,6 +81,10 @@ type NetGWStatUpdate struct {
     Ts int64
 }
 
+type GasLeakAlert struct {
+    Ts int64
+}
+
 type TimeTick struct {
     Ts int64
 }

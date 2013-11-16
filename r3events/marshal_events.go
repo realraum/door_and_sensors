@@ -91,6 +91,11 @@ func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string,
             err = json.Unmarshal(data[1], newevent)
             category = "time"
             event = *newevent
+        case "GasLeakAlert":
+            newevent := new(GasLeakAlert)
+            err = json.Unmarshal(data[1], newevent)
+            category = "sensors"
+            event = *newevent
         case "MovementSensorUpdate":
             newevent := new(MovementSensorUpdate)
             err = json.Unmarshal(data[1], newevent)
