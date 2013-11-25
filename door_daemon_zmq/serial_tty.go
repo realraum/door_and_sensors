@@ -6,21 +6,33 @@ import (
     "bufio"
     "bytes"
     "os"
+    "errors"
     "svn.spreadspace.org/realraum/go.svn/termios"
 )
 
 
 // ---------- Serial TTY Code -------------
 
-func openTTY(name string) (*os.File, error) {
-    file, err := os.OpenFile(name,os.O_RDWR, 0600) // For read access.
-    if err != nil {
-        Syslog_.Println(err.Error())
-        return nil, err
+func openTTY(name string, speed uint) (file *os.File, err error) {
+    file, err = os.OpenFile(name,os.O_RDWR, 0666)
+    if err != nil { return }
+    if err = termios.SetRawFile(file); err != nil { return }
+    switch speed {
+        case 0: // set no baudrate
+        case 1200: err = termios.SetSpeedFile(file, termios.B1200)
+        case 2400: err = termios.SetSpeedFile(file, termios.B2400)
+        case 4800: err = termios.SetSpeedFile(file, termios.B4800)
+        case 9600: err = termios.SetSpeedFile(file, termios.B9600)
+        case 19200: err = termios.SetSpeedFile(file, termios.B19200)
+        case 38400: err = termios.SetSpeedFile(file, termios.B38400)
+        case 57600: err = termios.SetSpeedFile(file, termios.B57600)
+        case 115200: err = termios.SetSpeedFile(file, termios.B115200)
+        case 230400: err = termios.SetSpeedFile(file, termios.B230400)
+        default:
+            file.Close()
+            err = errors.New("Unsupported Baudrate, use 0 to disable setting a baudrate")
     }
-    termios.Ttyfd(file.Fd())
-    termios.SetRaw()
-    return file, nil
+    return
 }
 
 func serialWriter(in <- chan string, serial * os.File) {
@@ -46,8 +58,8 @@ func serialReader(out chan <- [][]byte, serial * os.File) {
     }
 }
 
-func OpenAndHandleSerial(filename string) (chan string, chan [][]byte, error) {
-    serial, err :=openTTY(filename)
+func OpenAndHandleSerial(filename string, serspeed uint) (chan string, chan [][]byte, error) {
+    serial, err :=openTTY(filename, serspeed)
     if err != nil {
         return nil, nil, err
     }

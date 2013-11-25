@@ -46,7 +46,7 @@ func main() {
     defer pub_chans.Close()
     defer zmqctx.Close()
 
-    serial_wr, serial_rd, err := OpenAndHandleSerial(door_tty_path_)
+    serial_wr, serial_rd, err := OpenAndHandleSerial(door_tty_path_, 0)
     defer close(serial_wr)
     if err != nil {
         panic(err)

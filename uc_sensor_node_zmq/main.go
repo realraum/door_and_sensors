@@ -14,8 +14,9 @@ import (
 var (
     tty_dev_ string
     pub_addr string
-    use_syslog_ bool    
-    enable_debug_ bool    
+    use_syslog_ bool
+    enable_debug_ bool
+    serial_speed_ uint
 )
 
 const exponential_backof_activation_threshold int64 = 4
@@ -23,6 +24,7 @@ const exponential_backof_activation_threshold int64 = 4
 func init() {
     flag.StringVar(&pub_addr, "brokeraddr", "tcp://torwaechter.realraum.at:4243", "zmq address to send stuff to")
     flag.StringVar(&tty_dev_, "ttydev", "/dev/ttyACM0", "path do tty uc device")
+    flag.UintVar(&serial_speed_, "serspeed", 0, "tty baudrate (0 to disable setting a baudrate e.g. in case of ttyACM)")
     flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")    
     flag.BoolVar(&enable_debug_, "debug", false, "debugging messages on")    
     flag.Parse()
@@ -33,7 +35,7 @@ func ConnectSerialToZMQ(pub_sock *zmq.Socket) {
         if x:= recover(); x != nil { Syslog_.Println(x) }
     }()
 
-    serial_wr, serial_rd, err := OpenAndHandleSerial(tty_dev_)
+    serial_wr, serial_rd, err := OpenAndHandleSerial(tty_dev_, serial_speed_)
     if err != nil { panic(err) }
     defer close(serial_wr)
 
