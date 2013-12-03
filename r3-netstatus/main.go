@@ -30,6 +30,8 @@ var (
     enable_syslog_, enable_debug_ bool
 )
 
+type EventToXMPPStartupFinished struct{}
+
 //-------
 
 func init() {
@@ -95,14 +97,18 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
     var present, frontlock bool = false, true
     var last_buttonpress, light_lothr int64 = 0, 0
     var temp_cx float64 = 0.0
-    var last_door_cmd r3events.DoorCommandEvent;
-    var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0};
-    
+    var last_door_cmd r3events.DoorCommandEvent
+    var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0}
+    var standard_distribute_level r3xmppbot.R3JIDDesire = r3xmppbot.R3DebugInfo // initial state, changed after startup finished event recieved
+
     xmpp_presence_events_chan <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
 
     for eventinterface := range(events) {
         Debug_.Printf("event2xmpp: %T %+v", eventinterface, eventinterface)
         switch event := eventinterface.(type) {
+            case EventToXMPPStartupFinished:
+                //after we received all events from QueryLatestEventsAndInjectThem, we get this event and start sending new events normally
+                standard_distribute_level = r3xmppbot.R3OnlineOnlyInfo
             case r3events.PresenceUpdate:
                 present = event.Present
                 if ! present { last_buttonpress = 0 }
@@ -112,7 +118,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                 xmpp_presence_events_chan <- fmt.Sprintln("DoorCommand:",event.Command, "using", event.Using, "by", event.Who, time.Unix(event.Ts,0))
             case r3events.DoorLockUpdate:
                 if frontlock != event.Locked {
-                    xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: composeDoorLockMessage(event.Locked, last_frontdoor_ajar, last_door_cmd, event.Ts), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: true}
+                    xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: composeDoorLockMessage(event.Locked, last_frontdoor_ajar, last_door_cmd, event.Ts), DistributeLevel:standard_distribute_level, RememberAsStatus: true}
                 }
                 frontlock = event.Locked
            case r3events.DoorAjarUpdate:
@@ -121,7 +127,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                 }
                 last_frontdoor_ajar = event
            case r3events.BackdoorAjarUpdate:
-                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
+                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: standard_distribute_level, RememberAsStatus: false}
            case r3events.GasLeakAlert:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg:  fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
             case r3events.IlluminationSensorUpdate:
@@ -133,12 +139,12 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
             case r3events.BoreDoomButtonPressEvent:
                 last_buttonpress = event.Ts
                 xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
-                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
+                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: standard_distribute_level}
             case r3events.TimeTick:
                 // update presence text with sensor and button info
                 xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
                 // Try to XMPP Ping the server and if that fails, quit XMPPBot
-                if bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false{ return }
+                if bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false { return }
             case r3events.DoorProblemEvent:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)",event.Problem, event.Severity, time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
         }
@@ -154,11 +160,12 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
         if xmpperr == nil {
             Syslog_.Printf("Successfully (re)started XMPP Bot")
             // subscribe before QueryLatestEventsAndInjectThem and EventToXMPP
-            psevents := ps.Sub("presence","door","buttons","updateinterval","sensors")
+            psevents := ps.Sub("presence","door","buttons","updateinterval","sensors","xmppmeta")
             QueryLatestEventsAndInjectThem(ps, zmqctx)
+            ps.Pub(EventToXMPPStartupFinished{}, "xmppmeta")
             EventToXMPP(bot, psevents, xmpp_presence_events_chan)
             // unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
-            ps.Unsub(psevents, "presence","door","buttons","updateinterval","sensors")
+            ps.Unsub(psevents, "presence","door","buttons","updateinterval","sensors","xmppmeta")
             bot.StopBot()
         } else {
             Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
