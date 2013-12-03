@@ -66,8 +66,25 @@ func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, door
     }
 }
 
-func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presence_events_chan chan <- interface{}) {
+func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpress int64) r3xmppbot.XMPPStatusEvent {
+    present_msg := "Somebody is present"
+    notpresent_msg := "Nobody is here"
+    button_msg := "The button has been pressed :-)"
+    msg := "%s (CX: %.2f°C, LoTHR light: %d)"
+    
+    if present {
+        if last_buttonpress > 0 && time.Now().Unix() - last_buttonpress < button_press_timeout_ {
+            return r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowFreeForChat, fmt.Sprintf(msg, button_msg, temp_cx, light_lothr)}
+        } else {
+            return r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowOnline, fmt.Sprintf(msg, present_msg, temp_cx, light_lothr)}
+        }
+    } else {
+        return r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, fmt.Sprintf(msg, notpresent_msg, temp_cx, light_lothr)}
+    }
+}
 
+func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presence_events_chan chan <- interface{}) {
+    button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
     defer func() {
         if x := recover(); x != nil {
             //defer ist called _after_ EventToXMPP function has returned. Thus we recover after returning from this function.
@@ -76,14 +93,11 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
     }()
 
     var present, frontlock bool = false, true
-    var last_buttonpress int64 = 0
+    var last_buttonpress, light_lothr int64 = 0, 0
+    var temp_cx float64 = 0.0
     var last_door_cmd r3events.DoorCommandEvent;
     var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0};
-    button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
-    present_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowOnline,"Somebody is present"}
-    notpresent_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe,"Nobody is here"}
-    button_status := r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowFreeForChat, "The button has been pressed :-)"}
-
+    
     xmpp_presence_events_chan <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
 
     for eventinterface := range(events) {
@@ -91,11 +105,8 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
         switch event := eventinterface.(type) {
             case r3events.PresenceUpdate:
                 present = event.Present
-                if present {
-                    xmpp_presence_events_chan <- present_status
-                } else {
-                    xmpp_presence_events_chan <- notpresent_status
-                }
+                if ! present { last_buttonpress = 0 }
+                xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
             case r3events.DoorCommandEvent:
                 last_door_cmd = event
                 xmpp_presence_events_chan <- fmt.Sprintln("DoorCommand:",event.Command, "using", event.Using, "by", event.Who, time.Unix(event.Ts,0))
@@ -113,15 +124,19 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <- chan interface{}, xmpp_presen
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)",IfThenElseStr(event.Shut,"now shut.","ajar!"),time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
            case r3events.GasLeakAlert:
                 xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg:  fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts,0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
-            case r3events.BoreDoomButtonPressEvent:
-                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
-                xmpp_presence_events_chan <- button_status
-                last_buttonpress = event.Ts
-            case r3events.TimeTick:
-                if present && last_buttonpress > 0 && time.Now().Unix() - last_buttonpress > button_press_timeout_ {
-                    xmpp_presence_events_chan <- present_status
-                    last_buttonpress = 0
+            case r3events.IlluminationSensorUpdate:
+                light_lothr = event.Value
+            case r3events.TempSensorUpdate:
+                if event.Sensorindex == 1 {
+                    temp_cx = event.Value
                 }
+            case r3events.BoreDoomButtonPressEvent:
+                last_buttonpress = event.Ts
+                xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
+                xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: r3xmppbot.R3OnlineOnlyInfo}
+            case r3events.TimeTick:
+                // update presence text with sensor and button info
+                xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
                 // Try to XMPP Ping the server and if that fails, quit XMPPBot
                 if bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false{ return }
             case r3events.DoorProblemEvent:
@@ -139,11 +154,11 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
         if xmpperr == nil {
             Syslog_.Printf("Successfully (re)started XMPP Bot")
             // subscribe before QueryLatestEventsAndInjectThem and EventToXMPP
-            psevents := ps.Sub("presence","door","buttons","updateinterval")
+            psevents := ps.Sub("presence","door","buttons","updateinterval","sensors")
             QueryLatestEventsAndInjectThem(ps, zmqctx)
             EventToXMPP(bot, psevents, xmpp_presence_events_chan)
             // unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
-            ps.Unsub(psevents, "presence","door","buttons","updateinterval")
+            ps.Unsub(psevents, "presence","door","buttons","updateinterval","sensors")
             bot.StopBot()
         } else {
             Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
