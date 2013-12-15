@@ -32,7 +32,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
                     last_event_indicating_presence = evnt.Ts
                 } else {
                     if last_presence { Syslog_.Printf("Presence: Mhh, SomethingReallyIsMoving{%+v} received but presence still true. Quite still a bunch we have here.", evnt) }
-                    if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 {
+                    if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 && (last_door_cmd == nil  || (last_door_cmd.Using != "Button"  && last_door_cmd.Ts >= last_manual_lockhandling )){
                         new_presence = false
                     }
                 }
@@ -68,6 +68,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
         } else if any_door_unlocked || any_door_ajar {
             new_presence = true
         } else if last_door_cmd != nil && (last_door_cmd.Using == "Button"  || last_door_cmd.Ts < last_manual_lockhandling) {
+            // if last_door_cmd is set then: if either door was closed using Button or if time of manual lock movement is greater (newer) than timestamp of last_door_cmd
             new_presence = true
         } else {
             new_presence = false
@@ -76,6 +77,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
         if new_presence != last_presence {
             last_presence = new_presence
             ps.Pub(r3events.PresenceUpdate{new_presence, ts} , "presence")
+            Syslog_.Printf("Presence: %t", new_presence)
         }
     }
 }
