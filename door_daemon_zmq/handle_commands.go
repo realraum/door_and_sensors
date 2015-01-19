@@ -22,7 +22,7 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler {
 
 func checkCmdDoorControl(tokens [][]byte) (error) {
     doorctrl_usage := "syntax: <open|close|toggle> <method> <nickname>"
-    if len(tokens) != 3 {
+    if len(tokens) < 2  || len(tokens) > 3 {
         return errors.New(doorctrl_usage)
     }
     cmd := string(tokens[0])
@@ -33,7 +33,7 @@ func checkCmdDoorControl(tokens [][]byte) (error) {
     if ! (method == "Button" || method == "ssh" || method == "SSH" || method == "Phone") {
         return errors.New("method must be one either Button, SSH or Phone")
     }
-    if len(tokens[2]) == 0 && method != "Button" {
+    if (len(tokens) == 2 || len(tokens[2]) == 0) && method != "Button" {
         return errors.New("Operator nickname must be given")
     }
     return nil
