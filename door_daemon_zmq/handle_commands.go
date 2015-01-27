@@ -22,7 +22,7 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
 // ---------- Talk with Firmware directly in response to stuff it sends ------------
 
 func WorkaroundFirmware(serial_wr chan string) (in chan [][]byte) {
-	in = make(chan [][]byte, 1)
+	in = make(chan [][]byte, 5)
 	go func() {
 		var last_state_time time.Time
 		var last_door_state string
