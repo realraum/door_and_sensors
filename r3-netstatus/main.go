@@ -182,7 +182,7 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
 		} else {
 			Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
 		}
-		time.Sleep(10 * time.Second)
+		time.Sleep(20 * time.Second)
 	}
 }
 

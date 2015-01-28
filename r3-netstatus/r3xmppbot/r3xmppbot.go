@@ -5,6 +5,7 @@ package r3xmppbot
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"os"
 	"path"
 	"strings"
@@ -444,6 +445,10 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 	if err != nil {
 		Syslog_.Println("Error connecting to xmpp server", err)
 		return nil, nil, err
+	}
+	if botdata.xmppclient_ == nil {
+		Syslog_.Println("xmpp.NewClient returned nil without error")
+		return nil, nil, errors.New("No answer from xmpp server")
 	}
 
 	err = botdata.xmppclient_.StartSession(true, &xmpp.Presence{})
