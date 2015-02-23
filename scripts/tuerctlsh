@@ -1,0 +1,31 @@
+#!/bin/zsh
+#
+# make this the default shell for user tuerctl and add 
+# the following line to sudoers file:
+#
+# tuerctl ALL=(tuer) NOPASSWD: /flash/tuer/tuer_socat.sh
+
+setopt histsubstpattern
+#local TUERCHAN="sudo -u tuer /flash/tuer/tuer_socat.sh"
+local TUERCHAN="sudo -u tuer /flash/tuer/door_client_zmq"
+
+[[ $1 == "-c" ]] && shift
+if [[ -z $1 ]]; then
+  ${(z)TUERCHAN}
+else
+  if [[ -z $SSH_ORIGINAL_COMMAND ]]; then
+    echo "Usable commands are: open, close, toggle status"
+    read -A CMD
+  else
+    CMD=("${=SSH_ORIGINAL_COMMAND}")
+  fi
+  if [[ $CMD == "status" ]]; then
+    local EXT=""
+  else
+    local EXT=" ssh $1"
+  fi
+  
+  ${(z)TUERCHAN} <<< "${${CMD[1]}:gs/[^a-zA-Z]//}${EXT}"
+  [[ $CMD == status ]] && sleep 1
+fi
+

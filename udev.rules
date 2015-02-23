@@ -1,0 +1,8 @@
+# ardiuno tuer rules
+#
+# copy this to /etc/udev/rules.d/ and change serial number to your needs
+
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB*", ATTRS{serial}=="A6008ifG", SYMLINK+="door", OWNER="tuer", GROUP="nogroup"
+
+# disable autosuspend for OpenPCD
+ACTION=="add", ATTR{idVendor}=="16c0", ATTR{idProduct}=="076b", MODE="664", OWNER="tuer", ATTR{power/autosuspend}="0"

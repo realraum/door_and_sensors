@@ -1,0 +1,7 @@
+# common defaults for tuer_core and tuer_status
+
+DIR_RUN=/var/run/tuer
+DOOR_USR=tuer
+DOOR_GRP=nogroup
+
+DOOR_SOCKET=${DIR_RUN}/door_cmd.socket
