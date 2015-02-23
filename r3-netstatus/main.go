@@ -10,8 +10,8 @@ import (
 	"./r3xmppbot"
 	pubsub "github.com/tuxychandru/pubsub"
 	//~ "./brain"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 	zmq "github.com/vaughan0/go-zmq"
-	r3events "svn.spreadspace.org/realraum/go.svn/r3events"
 )
 
 type SpaceState struct {

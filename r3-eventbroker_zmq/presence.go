@@ -5,8 +5,8 @@ package main
 import (
 	"time"
 	//~ "./brain"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
-	r3events "svn.spreadspace.org/realraum/go.svn/r3events"
 )
 
 func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeout int64) {

@@ -5,8 +5,8 @@ package main
 import (
 	"flag"
 	//~ "time"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
-	r3events "svn.spreadspace.org/realraum/go.svn/r3events"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {

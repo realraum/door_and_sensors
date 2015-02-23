@@ -3,16 +3,16 @@
 package main
 
 import (
-    pubsub "github.com/tuxychandru/pubsub"
-    "./spaceapi"
-    "regexp"
+	"fmt"
 	"net/http"
 	"net/url"
-    "time"
-    "fmt"
-    r3events "svn.spreadspace.org/realraum/go.svn/r3events"
-    )
+	"regexp"
+	"time"
 
+	"./spaceapi"
+	r3events "github.com/realraum/door_and_sensors/r3events"
+	pubsub "github.com/tuxychandru/pubsub"
+)
 
 type spaceState struct {
 	present           bool
@@ -20,11 +20,10 @@ type spaceState struct {
 }
 
 var (
-	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "http://realraum.at", "http://realraum.at/logo-red_250x250.png", "http://realraum.at/logo-re_open_100x100.png", "http://realraum.at/logo-re_empty_100x100.png",47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
+	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "http://realraum.at", "http://realraum.at/logo-red_250x250.png", "http://realraum.at/logo-re_open_100x100.png", "http://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
 	statusstate     *spaceState        = new(spaceState)
 	re_querystresc_ *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 )
-
 
 func init() {
 	spaceapidata.AddSpaceFeed("calendar", "http://grical.realraum.at/s/?query=!realraum&view=rss")
@@ -32,7 +31,6 @@ func init() {
 	spaceapidata.AddSpaceFeed("wiki", "http://realraum.at/wiki")
 	spaceapidata.AddSpaceContactInfo("+43780700888524", "irc://irc.oftc.net/#realraum", "realraum@realraum.at", "realraum@realraum.at", "realraum@realraum.at", "vorstand@realraum.at")
 }
-
 
 func updateStatusString() {
 	var spacestatus string
@@ -71,46 +69,45 @@ func publishStateToWeb() {
 }
 
 func EventToWeb(ps *pubsub.PubSub) {
-    events := ps.Sub("presence","door","sensors","buttons","updateinterval")
+	events := ps.Sub("presence", "door", "sensors", "buttons", "updateinterval")
 
-    for eventinterface := range(events) {
-        //Debug_.Printf("EventToWeb: %s" , eventinterface)
-        switch event := eventinterface.(type) {
-            case r3events.TimeTick:
-                publishStateToWeb()
-            case r3events.PresenceUpdate:
-                statusstate.present = event.Present
-                publishStateToWeb()
-            case r3events.BackdoorAjarUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
-                publishStateToWeb()
-            case r3events.DoorAjarUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
-                publishStateToWeb()
-            case r3events.DoorLockUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
-                publishStateToWeb()
-            case r3events.BoreDoomButtonPressEvent:
-                statusstate.buttonpress_until = event.Ts + 3600
-                spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
-                publishStateToWeb()
-            case r3events.TempSensorUpdate:
-                var tempsensorlocation string
-                switch event.Sensorindex {
-                    case 0:
-                        tempsensorlocation = "LoTHR"
-                    case 1:
-                        tempsensorlocation = "CX"
-                    default:
-                        tempsensorlocation = "Sonstwo"
-                }
-               spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d",event.Sensorindex),tempsensorlocation, event.Value))
-            case r3events.IlluminationSensorUpdate:
-                spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode","LoTHR","1024V/5V", event.Value))
-            case r3events.GasLeakAlert:
-                spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
-                publishStateToWeb()                
-        }
+	for eventinterface := range events {
+		//Debug_.Printf("EventToWeb: %s" , eventinterface)
+		switch event := eventinterface.(type) {
+		case r3events.TimeTick:
+			publishStateToWeb()
+		case r3events.PresenceUpdate:
+			statusstate.present = event.Present
+			publishStateToWeb()
+		case r3events.BackdoorAjarUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
+			publishStateToWeb()
+		case r3events.DoorAjarUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
+			publishStateToWeb()
+		case r3events.DoorLockUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
+			publishStateToWeb()
+		case r3events.BoreDoomButtonPressEvent:
+			statusstate.buttonpress_until = event.Ts + 3600
+			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
+			publishStateToWeb()
+		case r3events.TempSensorUpdate:
+			var tempsensorlocation string
+			switch event.Sensorindex {
+			case 0:
+				tempsensorlocation = "LoTHR"
+			case 1:
+				tempsensorlocation = "CX"
+			default:
+				tempsensorlocation = "Sonstwo"
+			}
+			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d", event.Sensorindex), tempsensorlocation, event.Value))
+		case r3events.IlluminationSensorUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode", "LoTHR", "1024V/5V", event.Value))
+		case r3events.GasLeakAlert:
+			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
+			publishStateToWeb()
+		}
 	}
 }
-
