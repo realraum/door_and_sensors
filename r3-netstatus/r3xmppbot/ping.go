@@ -28,6 +28,8 @@ func HandleServerToClientPing(iq *xmpp.Iq, xmppout chan<- xmpp.Stanza) bool {
 	return false
 }
 
+//Uses XMPP Ping to check if server is still there
+// returns either false or true
 func (botdata *XmppBot) PingServer(timeout_ms time.Duration) (is_up bool) {
 	///<iq from='juliet@capulet.lit/balcony' to='capulet.lit' id='c2s1' type='get'>
 	///  <ping xmlns='urn:xmpp:ping'/>
@@ -65,11 +67,12 @@ func (botdata *XmppBot) PingServer(timeout_ms time.Duration) (is_up bool) {
 	go func() {
 		defer func() {
 			if x := recover(); x == nil {
+				//if error is nil, it means we did NOT panic when trying to send false to pong channel which was already closed
 				Syslog_.Printf("response to iq ping timed out !!")
 			}
 		}() //recover from writing to possibly already closed chan. If we did not need to recover, then Handler did not receive reply
 		time.Sleep(timeout_ms * time.Millisecond)
-		pong <- false //xmpp ping timed out
+		pong <- false //xmpp ping timed out, if this succeeds. Really we expect the channel to be closed already and this statement to panic
 	}()
 	return <-pong
 }
