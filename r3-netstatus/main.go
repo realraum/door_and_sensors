@@ -32,6 +32,7 @@ var (
 	button_press_timeout_         int64 = 3600
 	brain_connect_addr_           string
 	enable_syslog_, enable_debug_ bool
+	webpass_                      string
 )
 
 type EventToXMPPStartupFinished struct{}
@@ -39,15 +40,18 @@ type EventToXMPPStartupFinished struct{}
 //-------
 
 func init() {
+	//TODO: move to Environment Variables instead of CL arguments
 	flag.StringVar(&xmpp_login_.jid, "xjid", "realrauminfo@realraum.at/Tuer", "XMPP Bot Login JID")
 	flag.StringVar(&xmpp_login_.pass, "xpass", "", "XMPP Bot Login Password")
 	flag.StringVar(&xmpp_bot_authstring_, "xbotauth", "", "String that users use to authenticate themselves to the bot")
 	flag.StringVar(&xmpp_state_save_dir_, "xstatedir", "/flash/var/lib/r3netstatus/", "Directory to save XMPP bot state in")
 	flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://torwaechter.realraum.at:4244", "zmq address to subscribe r3events")
 	flag.StringVar(&brain_connect_addr_, "brainconnect", "tcp://torwaechter.realraum.at:4245", "address to ask about most recent stored events")
+	flag.StringVar(&webpass_, "webpass", "", "password for webstatus update")
 	flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
 	flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
 	flag.Parse()
+	SetWebPass(webpass_)
 }
 
 //-------
