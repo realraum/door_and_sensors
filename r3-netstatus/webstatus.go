@@ -88,7 +88,7 @@ func publishStateToWeb() {
 
 	stdinp, err := session.StdinPipe()
 	if err != nil {
-		Syslog_.Println("Error: Failed to publish status info", err.Error())
+		Syslog_.Println("Error: Failed to create ssh stdin pipe:", err.Error())
 		return
 	}
 	defer stdinp.Close()
@@ -97,7 +97,14 @@ func publishStateToWeb() {
 		Syslog_.Println("Error: Failed to run ssh command:", err.Error())
 		return
 	}
-	stdinp.Write(jsondata_b)
+
+	written, err := stdinp.Write(jsondata_b)
+	if err != nil {
+		Syslog_.Println("Error: Failed to publish status info", err.Error())
+		return
+	}
+
+	Syslog_.Printf("updated status.json (sent %d bytes)", written)
 }
 
 func EventToWeb(ps *pubsub.PubSub) {
