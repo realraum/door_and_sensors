@@ -5,6 +5,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"time"
 
 	"./r3xmppbot"
@@ -61,6 +62,14 @@ func IfThenElseStr(c bool, strue, sfalse string) string {
 		return strue
 	} else {
 		return sfalse
+	}
+}
+
+func environOrDefault(envvarname, defvalue string) string {
+	if len(os.Getenv(envvarname)) > 0 {
+		return os.Getenv(envvarname)
+	} else {
+		return defvalue
 	}
 }
 
