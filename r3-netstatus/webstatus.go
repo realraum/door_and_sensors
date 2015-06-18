@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"regexp"
 	"time"
 
@@ -22,10 +21,9 @@ type spaceState struct {
 }
 
 var (
-	spaceapidata     spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "http://realraum.at", "http://realraum.at/logo-red_250x250.png", "http://realraum.at/logo-re_open_100x100.png", "http://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
-	statusstate      *spaceState        = new(spaceState)
-	re_querystresc_  *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
-	webpass_escaped_ string
+	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "http://realraum.at", "http://realraum.at/logo-red_250x250.png", "http://realraum.at/logo-re_open_100x100.png", "http://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
+	statusstate     *spaceState        = new(spaceState)
+	re_querystresc_ *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 )
 
 func init() {
@@ -100,10 +98,6 @@ func publishStateToWeb() {
 		return
 	}
 	stdinp.Write(jsondata_b)
-}
-
-func SetWebPass(wp string) {
-	webpass_escaped_ = url.QueryEscape(wp)
 }
 
 func EventToWeb(ps *pubsub.PubSub) {
