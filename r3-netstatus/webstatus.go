@@ -4,11 +4,8 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"regexp"
 	"time"
-
-	"golang.org/x/crypto/ssh"
 
 	"./spaceapi"
 	r3events "github.com/realraum/door_and_sensors/r3events"
@@ -55,33 +52,8 @@ func publishStateToWeb() {
 		return
 	}
 
-	privateBytes, err := ioutil.ReadFile(environOrDefault("SSH_ID_FILE", "/flash/tuer/id_rsa"))
-	if err != nil {
-		Syslog_.Println("Error: Failed to load ssh private key:", err.Error())
-		return
-	}
-	signer, err := ssh.ParsePrivateKey([]byte(privateBytes))
-	if err != nil {
-		Syslog_.Println("Error: Failed to parse ssh private key:", err.Error())
-		return
-	}
-
-	config := &ssh.ClientConfig{
-		User: environOrDefault("SSH_USER", "www-data"),
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-	}
-	client, err := ssh.Dial("tcp", environOrDefault("SSH_HOST_PORT", "vex.realraum.at:2342"), config)
-	if err != nil {
-		Syslog_.Println("Error: Failed to connect to ssh host:", err.Error())
-		return
-	}
-	defer client.Conn.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		Syslog_.Println("Error: Failed to create ssh session:", err.Error())
+	session := getWebStatusSSHSession()
+	if session == nil {
 		return
 	}
 	defer session.Close()
@@ -93,11 +65,10 @@ func publishStateToWeb() {
 	}
 	defer stdinp.Close()
 
-	if err := session.Run("set"); err != nil {
+	if err := session.Start("set"); err != nil {
 		Syslog_.Println("Error: Failed to run ssh command:", err.Error())
 		return
 	}
-
 	written, err := stdinp.Write(jsondata_b)
 	if err != nil {
 		Syslog_.Println("Error: Failed to publish status info", err.Error())
