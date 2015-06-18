@@ -88,13 +88,15 @@ func publishStateToWeb() {
 	}
 	defer session.Close()
 
-	if err := session.Run("set"); err != nil {
-		Syslog_.Println("Error: Failed to run ssh command:", err.Error())
-		return
-	}
 	stdinp, err := session.StdinPipe()
 	if err != nil {
 		Syslog_.Println("Error: Failed to publish status info", err.Error())
+		return
+	}
+	defer stdinp.Close()
+
+	if err := session.Run("set"); err != nil {
+		Syslog_.Println("Error: Failed to run ssh command:", err.Error())
 		return
 	}
 	stdinp.Write(jsondata_b)
