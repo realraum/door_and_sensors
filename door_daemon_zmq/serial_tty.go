@@ -8,7 +8,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/go/termios"
+	"github.com/realraum/go/termios"
 )
 
 // ---------- Serial TTY Code -------------

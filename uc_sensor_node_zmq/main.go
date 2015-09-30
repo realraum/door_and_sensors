@@ -22,7 +22,7 @@ var (
 const exponential_backof_activation_threshold int64 = 4
 
 func init() {
-	flag.StringVar(&pub_addr, "brokeraddr", "tcp://torwaechter.realraum.at:4243", "zmq address to send stuff to")
+	flag.StringVar(&pub_addr, "brokeraddr", "tcp://zmqbroker.realraum.at:4243", "zmq address to send stuff to")
 	flag.StringVar(&tty_dev_, "ttydev", "/dev/ttyACM0", "path do tty uc device")
 	flag.UintVar(&serial_speed_, "serspeed", 0, "tty baudrate (0 to disable setting a baudrate e.g. in case of ttyACM)")
 	flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")

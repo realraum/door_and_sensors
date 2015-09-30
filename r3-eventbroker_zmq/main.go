@@ -32,7 +32,7 @@ var (
 
 func init() {
 	flag.StringVar(&door_cmd_addr_, "doorcmdaddr", "ipc:///run/tuer/door_cmd.ipc", "zmq door event publish addr")
-	flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://torwaechter.realraum.at:4242", "zmq door event publish addr")
+	flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://zmqbroker.realraum.at:4242", "zmq door event publish addr")
 	flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://*:4243", "zmq public/listen socket addr for incoming sensor data")
 	flag.StringVar(&pub_port_, "pubport", "tcp://*:4244", "zmq port publishing consodilated events")
 	flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
