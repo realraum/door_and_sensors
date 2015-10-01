@@ -11,7 +11,7 @@ import (
 var ssh_webstatus_client_ *ssh.Client
 
 func connectWebStatusSSHConnection() (*ssh.Client, error) {
-	privateBytes, err := ioutil.ReadFile(environOrDefault("SSH_ID_FILE", "/flash/tuer/id_rsa"))
+	privateBytes, err := ioutil.ReadFile(EnvironOrDefault("TUER_STATUSPUSH_SSH_ID_FILE", DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE))
 	if err != nil {
 		Syslog_.Println("Error: Failed to load ssh private key:", err.Error())
 		return nil, err
@@ -22,12 +22,12 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 		return nil, err
 	}
 	config := &ssh.ClientConfig{
-		User: environOrDefault("SSH_USER", "www-data"),
+		User: EnvironOrDefault("TUER_STATUSPUSH_SSH_USER", DEFAULT_TUER_STATUSPUSH_SSH_USER),
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
 	}
-	client, err := ssh.Dial("tcp", environOrDefault("SSH_HOST_PORT", "vex.realraum.at:2342"), config)
+	client, err := ssh.Dial("tcp", EnvironOrDefault("TUER_STATUSPUSH_SSH_HOST_PORT", DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT), config)
 	if err != nil {
 		Syslog_.Println("Error: Failed to connect to ssh host:", err.Error())
 		return nil, err

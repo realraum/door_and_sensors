@@ -27,29 +27,42 @@ var (
 		jid  string
 		pass string
 	}
-	xmpp_bot_authstring_          string
-	xmpp_state_save_dir_          string
-	r3eventssub_port_             string
 	button_press_timeout_         int64 = 3600
-	brain_connect_addr_           string
 	enable_syslog_, enable_debug_ bool
 )
 
 type EventToXMPPStartupFinished struct{}
 
 //-------
+// available Config Environment Variables
+// TUER_XMPP_JID
+// TUER_XMPP_LOGIN
+// TUER_XMPP_PASS
+// TUER_XMPP_CHATAUTHSTRING
+// b
+// TUER_R3EVENTS_ZMQBROKER_ADDR
+// TUER_R3EVENTS_ZMQBRAIN_ADDR
+// TUER_STATUSPUSH_SSH_USER
+// TUER_STATUSPUSH_SSH_ID_FILE
+// TUER_STATUSPUSH_SSH_HOST_PORT
+
+const (
+	DEFAULT_TUER_XMPP_STATE_SAVEDIR       string = "/flash/var/lib/r3netstatus/"
+	DEFAULT_TUER_XMPP_JID                 string = "realrauminfo@realraum.at/Tuer"
+	DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR  string = "tcp://zmqbroker.realraum.at:4244"
+	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR   string = "tcp://zmqbroker.realraum.at:4245"
+	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string = "/flash/tuer/id_rsa"
+	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "www-data"
+	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:2342"
+)
 
 func init() {
 	//TODO: move to Environment Variables instead of CL arguments
-	flag.StringVar(&xmpp_login_.jid, "xjid", "realrauminfo@realraum.at/Tuer", "XMPP Bot Login JID")
-	flag.StringVar(&xmpp_login_.pass, "xpass", "", "XMPP Bot Login Password")
-	flag.StringVar(&xmpp_bot_authstring_, "xbotauth", "", "String that users use to authenticate themselves to the bot")
-	flag.StringVar(&xmpp_state_save_dir_, "xstatedir", "/flash/var/lib/r3netstatus/", "Directory to save XMPP bot state in")
-	flag.StringVar(&r3eventssub_port_, "eventsubport", "tcp://zmqbroker.realraum.at:4244", "zmq address to subscribe r3events")
-	flag.StringVar(&brain_connect_addr_, "brainconnect", "tcp://zmqbroker.realraum.at:4245", "address to ask about most recent stored events")
 	flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
 	flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
 	flag.Parse()
+	xmpp_login_.jid = EnvironOrDefault("TUER_XMPP_JID", DEFAULT_TUER_XMPP_JID)
+	xmpp_login_.pass = EnvironOrDefault("TUER_XMPP_PASS", "")
 }
 
 //-------
@@ -62,7 +75,7 @@ func IfThenElseStr(c bool, strue, sfalse string) string {
 	}
 }
 
-func environOrDefault(envvarname, defvalue string) string {
+func EnvironOrDefault(envvarname, defvalue string) string {
 	if len(os.Getenv(envvarname)) > 0 {
 		return os.Getenv(envvarname)
 	} else {
@@ -178,7 +191,8 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
 	var bot *r3xmppbot.XmppBot
 	var xmpp_presence_events_chan chan interface{}
 	for {
-		bot, xmpp_presence_events_chan, xmpperr = r3xmppbot.NewStartedBot(xmpp_login_.jid, xmpp_login_.pass, xmpp_bot_authstring_, xmpp_state_save_dir_, true)
+		bot, xmpp_presence_events_chan, xmpperr = r3xmppbot.NewStartedBot(xmpp_login_.jid, xmpp_login_.pass, EnvironOrDefault("TUER_XMPP_CHATAUTHSTRING", ""), EnvironOrDefault("TUER_XMPP_STATE_SAVEDIR", DEFAULT_TUER_XMPP_STATE_SAVEDIR), true)
+
 		if xmpperr == nil {
 			Syslog_.Printf("Successfully (re)started XMPP Bot")
 			// subscribe before QueryLatestEventsAndInjectThem and EventToXMPP
@@ -206,7 +220,7 @@ func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) {
 }
 
 func QueryLatestEventsAndInjectThem(ps *pubsub.PubSub, zmqctx *zmq.Context) {
-	answ := ZmqsAskQuestionsAndClose(zmqctx, brain_connect_addr_, [][][]byte{
+	answ := ZmqsAskQuestionsAndClose(zmqctx, EnvironOrDefault("TUER_R3EVENTS_ZMQBRAIN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR), [][][]byte{
 		[][]byte{[]byte("BackdoorAjarUpdate")},
 		[][]byte{[]byte("DoorCommandEvent")},
 		[][]byte{[]byte("DoorLockUpdate")},
@@ -230,7 +244,7 @@ func main() {
 	}
 	Syslog_.Print("started")
 	defer Syslog_.Print("exiting")
-	zmqctx, zmqsub := ZmqsInit(r3eventssub_port_)
+	zmqctx, zmqsub := ZmqsInit(EnvironOrDefault("TUER_R3EVENTS_ZMQBROKER_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR))
 	defer zmqctx.Close()
 	if zmqsub != nil {
 		defer zmqsub.Close()
