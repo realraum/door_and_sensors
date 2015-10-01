@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from __future__ import with_statement
@@ -9,14 +8,14 @@ import serial
 ######## r3 ZMQ ############
 
 def sendR3Message(socket, structname, datadict):
-    print socket.send_multipart([structname, json.dumps(datadict)])
+    socket.send_multipart([structname, json.dumps(datadict)])
 
 #Start zmq connection to publish / forward sensor data
 def initZMQ():
     zmqctx = zmq.Context()
     zmqctx.linger = 0
     zmqpub = zmqctx.socket(zmq.PUB)
-    zmqpub.connect("tcp://torwaechter.realraum.at:4243")
+    zmqpub.connect("tcp://zmqbroker.realraum.at:4243")
     return zmqpub,zmqctx
     
 #Initialize TTY interface

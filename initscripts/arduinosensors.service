@@ -1,0 +1,14 @@
+[Unit]
+Description=Arduino Sensors Bridge
+
+[Service]
+Nice=19
+Type=simple
+Restart=always
+WorkingDirectory=/root/
+ExecStart=/root/arduinosensors.py
+SyslogIdentifier=arduinosensors
+
+
+[Install]
+WantedBy=multi-user.target
