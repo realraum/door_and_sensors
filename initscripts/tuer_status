@@ -10,14 +10,11 @@
 ### END INIT INFO
 
 EXE_UWEB=/flash/tuer/r3-netstatus
-STATE_DIR=/flash/var/lib/r3netstatus/
 CFG_UWEB="-syslog"
 
 . /etc/default/tuer
 
-[ -n "$XMPPJID" ] && CFG_UWEB="$CFG_UWEB --xjid $XMPPJID"
-[ -n "$XMPPPASS" ] && CFG_UWEB="$CFG_UWEB --xpass $XMPPPASS"
-[ -n "$XMPPBOTAUTH" ] && CFG_UWEB="$CFG_UWEB --xbotauth $XMPPBOTAUTH"
+[ -n "$DEBUG" ] && CFG_UWEB="$CFG_UWEB --debug"
 
 
 PIDFILE_UWEB=${DIR_RUN}/r3-netstatus.pid
@@ -28,9 +25,9 @@ if [ ! -d $DIR_RUN ]; then
 	chown -R $DOOR_USR:$DOOR_GRP $DIR_RUN
 fi
 
-if [ ! -d $STATE_DIR ]; then
-	mkdir -p $STATE_DIR || exit 2
-	chown -R $DOOR_USR:$DOOR_GRP $STATE_DIR
+if [ ! -d $TUER_XMPP_STATE_SAVEDIR ]; then
+	mkdir -p $TUER_XMPP_STATE_SAVEDIR || exit 2
+	chown -R $DOOR_USR:$DOOR_GRP $TUER_XMPP_STATE_SAVEDIR
 fi
 
 . /lib/lsb/init-functions

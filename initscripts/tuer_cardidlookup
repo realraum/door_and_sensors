@@ -10,7 +10,6 @@
 ### END INIT INFO
 
 EXE_KEYLOOKUP=/flash/tuer/door_nick_lookup_zmq
-DOOR_DEV=/dev/door
 
 . /etc/default/tuer
 
@@ -21,7 +20,6 @@ if [ ! -d $DIR_RUN ]; then
 	mkdir -p $DIR_RUN || exit 2
 	chown -R $DOOR_USR:$DOOR_GRP $DIR_RUN
 fi
-chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
 
 . /lib/lsb/init-functions
 
@@ -32,12 +30,12 @@ chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
 case "$1" in
 start)	
   log_daemon_msg "Starting CardID Lookup Server" "door_nick_lookup_zmq"
-  start-stop-daemon --start --quiet --pidfile $PIDFILE_KEYLOOKUP -c $DOOR_USR -m -g $DOOR_GRP -b --name door_nick_lookup_zmq --startas $EXE_KEYLOOKUP -- --server
+  start-stop-daemon --start --quiet --pidfile $PIDFILE_KEYLOOKUP -c $DOOR_USR -m -g $DOOR_GRP -b --exec $EXE_KEYLOOKUP --startas $EXE_KEYLOOKUP -- --server
   log_end_msg $?
   ;;
 stop)
   log_daemon_msg "Stopping CardID Lookup Server" "door_nick_lookup_zmq"
-  start-stop-daemon --stop --quiet --pidfile $PIDFILE_KEYLOOKUP -m --name door_nick_lookup_zmq
+  start-stop-daemon --stop --quiet --pidfile $PIDFILE_KEYLOOKUP -m --exec $EXE_KEYLOOKUP
   log_end_msg $?
   ;;
 restart)

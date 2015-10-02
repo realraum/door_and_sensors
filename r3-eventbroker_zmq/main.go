@@ -34,9 +34,6 @@ var (
 // TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR
 // TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR
 // TUER_ZMQKEYNAMELOOKUP_ADDR
-// TUER_STATUSPUSH_SSH_ID_FILE
-// TUER_STATUSPUSH_SSH_USER
-// TUER_STATUSPUSH_SSH_HOST_PORT
 
 const (
 	DEFAULT_TUER_ZMQDOORCMD_ADDR                     string = "ipc:///run/tuer/door_cmd.ipc"
@@ -46,9 +43,6 @@ const (
 	DEFAULT_TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR      string = "tcp://*:4244"
 	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR       string = "tcp://*:4245"
 	DEFAULT_TUER_ZMQKEYNAMELOOKUP_ADDR               string = "ipc:///run/tuer/door_keyname.ipc"
-	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE              string = "/flash/tuer/id_rsa"
-	DEFAULT_TUER_STATUSPUSH_SSH_USER                 string = "www-data"
-	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT            string = "vex.realraum.at:2342"
 )
 
 func init() {

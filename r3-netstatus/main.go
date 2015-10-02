@@ -35,6 +35,7 @@ type EventToXMPPStartupFinished struct{}
 
 //-------
 // available Config Environment Variables
+// TUER_XMPP_STATE_SAVEDIR
 // TUER_XMPP_JID
 // TUER_XMPP_PASS
 // TUER_XMPP_CHATAUTHSTRING

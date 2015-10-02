@@ -32,7 +32,7 @@ chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
 case "$1" in
 start)
   log_daemon_msg "Starting door daemon" "door_daemon_zmq"
-  start-stop-daemon --start --quiet --pidfile $PIDFILE_DOOR -c $DOOR_USR -m -g $DOOR_GRP -b --name door_daemon_zmq --startas $EXE_DOOR -- --device $DOOR_DEV --cmdport "$DOOR_SOCKET" --syslog
+  start-stop-daemon --start --quiet --pidfile $PIDFILE_DOOR -c $DOOR_USR -m -g $DOOR_GRP -b --name door_daemon_zmq --startas $EXE_DOOR -- --syslog
   log_end_msg $?
   ;;
 stop)

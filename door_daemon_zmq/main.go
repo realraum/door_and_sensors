@@ -26,13 +26,28 @@ var (
 	enable_debug_  bool
 )
 
+// TUER_ZMQDOORCMD_ADDR
+// TUER_ZMQDOOREVTS_LISTEN_ADDR
+// TUER_TTY_PATH
+
+const (
+	DEFAULT_TUER_ZMQDOORCMD_ADDR         string = "ipc:///run/tuer/door_cmd.ipc"
+	DEFAULT_TUER_ZMQDOOREVTS_LISTEN_ADDR string = "tcp://*:4242"
+	DEFAULT_TUER_TTY_PATH                string = "/dev/door"
+)
+
 func init() {
-	flag.StringVar(&cmd_port_, "cmdport", "ipc:///run/tuer/door_cmd.ipc", "zmq command socket path")
-	flag.StringVar(&pub_port_, "pubport", "tcp://*:4242", "zmq public/listen socket path")
-	flag.StringVar(&door_tty_path_, "device", "/dev/door", "door tty device path")
 	flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
 	flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
 	flag.Parse()
+}
+
+func EnvironOrDefault(envvarname, defvalue string) string {
+	if len(os.Getenv(envvarname)) > 0 {
+		return os.Getenv(envvarname)
+	} else {
+		return defvalue
+	}
 }
 
 func main() {
@@ -45,12 +60,14 @@ func main() {
 	Syslog_.Print("started")
 	defer Syslog_.Print("exiting")
 
-	zmqctx, cmd_chans, pub_chans := ZmqsInit(cmd_port_, pub_port_)
+	zmqctx, cmd_chans, pub_chans := ZmqsInit(
+		EnvironOrDefault("TUER_ZMQDOORCMD_ADDR", DEFAULT_TUER_ZMQDOORCMD_ADDR),
+		EnvironOrDefault("TUER_ZMQDOOREVTS_LISTEN_ADDR", DEFAULT_TUER_ZMQDOOREVTS_LISTEN_ADDR))
 	defer cmd_chans.Close()
 	defer pub_chans.Close()
 	defer zmqctx.Close()
 
-	serial_wr, serial_rd, err := OpenAndHandleSerial(door_tty_path_, 0)
+	serial_wr, serial_rd, err := OpenAndHandleSerial(EnvironOrDefault("TUER_TTY_PATH", DEFAULT_TUER_TTY_PATH), 0)
 	defer close(serial_wr)
 	if err != nil {
 		panic(err)
