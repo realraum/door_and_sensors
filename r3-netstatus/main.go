@@ -56,7 +56,6 @@ const (
 )
 
 func init() {
-	//TODO: move to Environment Variables instead of CL arguments
 	flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
 	flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
 	flag.Parse()
