@@ -36,10 +36,8 @@ type EventToXMPPStartupFinished struct{}
 //-------
 // available Config Environment Variables
 // TUER_XMPP_JID
-// TUER_XMPP_LOGIN
 // TUER_XMPP_PASS
 // TUER_XMPP_CHATAUTHSTRING
-// b
 // TUER_R3EVENTS_ZMQBROKER_ADDR
 // TUER_R3EVENTS_ZMQBRAIN_ADDR
 // TUER_STATUSPUSH_SSH_USER

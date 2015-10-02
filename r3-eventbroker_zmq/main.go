@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"os"
 	//~ "time"
 	r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
@@ -20,26 +21,48 @@ import (
 // ---------- Main Code -------------
 
 var (
-	doorsub_addr_      string
-	sensorssub_port_   string
-	pub_port_          string
-	keylookup_addr_    string
-	brain_listen_addr_ string
-	door_cmd_addr_     string
-	use_syslog_        bool
-	enable_debuglog_   bool
+	use_syslog_      bool
+	enable_debuglog_ bool
+)
+
+//-------
+// available Config Environment Variables
+// TUER_ZMQDOORCMD_ADDR
+// TUER_ZMQDOOREVTS_ADDR
+// TUER_R3EVENTS_ZMQBROKERINPUT_ADDR
+// TUER_R3EVENTS_ZMQBROKERINPUT_LISTEN_ADDR
+// TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR
+// TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR
+// TUER_ZMQKEYNAMELOOKUP_ADDR
+// TUER_STATUSPUSH_SSH_ID_FILE
+// TUER_STATUSPUSH_SSH_USER
+// TUER_STATUSPUSH_SSH_HOST_PORT
+
+const (
+	DEFAULT_TUER_ZMQDOORCMD_ADDR                     string = "ipc:///run/tuer/door_cmd.ipc"
+	DEFAULT_TUER_ZMQDOOREVTS_ADDR                    string = "tcp://zmqbroker.realraum.at:4242"
+	DEFAULT_TUER_R3EVENTS_ZMQBROKERINPUT_ADDR        string = "tcp://zmqbroker.realraum.at:4243"
+	DEFAULT_TUER_R3EVENTS_ZMQBROKERINPUT_LISTEN_ADDR string = "tcp://*:4243"
+	DEFAULT_TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR      string = "tcp://*:4244"
+	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR       string = "tcp://*:4245"
+	DEFAULT_TUER_ZMQKEYNAMELOOKUP_ADDR               string = "ipc:///run/tuer/door_keyname.ipc"
+	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE              string = "/flash/tuer/id_rsa"
+	DEFAULT_TUER_STATUSPUSH_SSH_USER                 string = "www-data"
+	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT            string = "vex.realraum.at:2342"
 )
 
 func init() {
-	flag.StringVar(&door_cmd_addr_, "doorcmdaddr", "ipc:///run/tuer/door_cmd.ipc", "zmq door event publish addr")
-	flag.StringVar(&doorsub_addr_, "doorsubaddr", "tcp://zmqbroker.realraum.at:4242", "zmq door event publish addr")
-	flag.StringVar(&sensorssub_port_, "sensorsubport", "tcp://*:4243", "zmq public/listen socket addr for incoming sensor data")
-	flag.StringVar(&pub_port_, "pubport", "tcp://*:4244", "zmq port publishing consodilated events")
-	flag.StringVar(&keylookup_addr_, "keylookupaddr", "ipc:///run/tuer/door_keyname.ipc", "address to use for key/name lookups")
-	flag.StringVar(&brain_listen_addr_, "brainlisten", "tcp://*:4245", "address to listen for requests about latest stored event")
 	flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local2 facility")
 	flag.BoolVar(&enable_debuglog_, "debug", false, "enable debug logging")
 	flag.Parse()
+}
+
+func EnvironOrDefault(envvarname, defvalue string) string {
+	if len(os.Getenv(envvarname)) > 0 {
+		return os.Getenv(envvarname)
+	} else {
+		return defvalue
+	}
 }
 
 func main() {
@@ -52,7 +75,11 @@ func main() {
 		defer Syslog_.Print("exiting")
 	}
 
-	zmqctx, sub_in_chans, pub_out_socket, keylookup_socket := ZmqsInit(doorsub_addr_, sensorssub_port_, pub_port_, keylookup_addr_)
+	zmqctx, sub_in_chans, pub_out_socket, keylookup_socket := ZmqsInit(
+		EnvironOrDefault("TUER_ZMQDOOREVTS_ADDR", DEFAULT_TUER_ZMQDOOREVTS_ADDR),
+		EnvironOrDefault("TUER_R3EVENTS_ZMQBROKERINPUT_LISTEN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBROKERINPUT_LISTEN_ADDR),
+		EnvironOrDefault("TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR),
+		EnvironOrDefault("TUER_ZMQKEYNAMELOOKUP_ADDR", DEFAULT_TUER_ZMQKEYNAMELOOKUP_ADDR))
 	if sub_in_chans != nil {
 		defer sub_in_chans.Close()
 	}
@@ -72,13 +99,15 @@ func main() {
 	//~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
 
 	store_these_events_chan := ps.Sub("door", "doorcmd", "presence", "sensors", "buttons", "movement")
-	go BrainCenter(zmqctx, brain_listen_addr_, store_these_events_chan)
+	go BrainCenter(zmqctx,
+		EnvironOrDefault("TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR),
+		store_these_events_chan)
 
 	go MetaEventRoutine_Movement(ps, 10, 20, 10)
 	go MetaEventRoutine_Presence(ps, 21, 200)
 
 	// --- get update on most recent status ---
-	answ := ZmqsAskQuestionsAndClose(zmqctx, door_cmd_addr_, [][][]byte{[][]byte{[]byte("status")}})
+	answ := ZmqsAskQuestionsAndClose(zmqctx, EnvironOrDefault("TUER_ZMQDOORCMD_ADDR", DEFAULT_TUER_ZMQDOORCMD_ADDR), [][][]byte{[][]byte{[]byte("status")}})
 	for _, a := range answ {
 		ParseSocketInputLine(a, ps, keylookup_socket)
 	}
