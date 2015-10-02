@@ -28,18 +28,19 @@ def initTTY():
 #listen for sensor data and forward them    
 def handle_sensors(zmqpub,tty):
     sensordata = tty.readline()
-    sensordata = sensordata[:-2] 
-    if sensordata == 'PanicButton':
-        sendR3Message(zmqpub,"BoreDoomButtonPressEvent",{"Ts":int(time.time())})
-    
-    elif sensordata == 'movement':
-        sendR3Message(zmqpub, "MovementSensorUpdate", {"Sensorindex":0, "Ts":int(time.time())})
+    if not sensordata is None and len(sensordata) > 2:
+        sensordata = sensordata[:-2] 
+        if sensordata == 'PanicButton':
+            sendR3Message(zmqpub,"BoreDoomButtonPressEvent",{"Ts":int(time.time())})
+        elif sensordata == 'movement':
+            sendR3Message(zmqpub, "MovementSensorUpdate", {"Sensorindex":0, "Ts":int(time.time())})
 
     tty.write('*')
     sensordata = tty.readline()
     sensordata = sensordata[:-2]
     temp = float(sensordata[9:])
-    sendR3Message(zmqpub, "TempSensorUpdate", {"Sensorindex":0, "Value":temp, "Ts":int(time.time())})
+    if temp != 0:
+        sendR3Message(zmqpub, "TempSensorUpdate", {"Sensorindex":0, "Value":temp, "Ts":int(time.time())})
 
     tty.write('?')
     sensordata = tty.readline()
@@ -59,8 +60,8 @@ if __name__ == '__main__':
             zmqpub,zmqctx = initZMQ()
             while True:
                 handle_sensors(zmqpub,tty)
-        except:
-            pass
+        except Exception, e:
+            print "Exception:", e
         finally:
             if isinstance(tty,file):
                 tty.close()
