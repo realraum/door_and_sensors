@@ -245,7 +245,7 @@ else:
 zmqctx = zmq.Context()
 zmqctx.linger = 0
 zmqpub = zmqctx.socket(zmq.PUB)
-zmqpub.connect("tcp://torwaechter.realraum.at:4243")
+zmqpub.connect("tcp://zmqbroker.realraum.at:4243")
 
 #listen for sensor data and forward them
 trackSensorStatus(uwscfg, zmqpub)

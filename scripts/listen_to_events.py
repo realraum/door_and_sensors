@@ -6,6 +6,8 @@ import sys
 import signal
 import zmq.utils.jsonapi as json
 import zmq
+import traceback
+import time
 ########################
 
 def decodeR3Message(multipart_msg):
@@ -33,7 +35,7 @@ while True:
     zmqctx.linger = 0
     zmqsub = zmqctx.socket(zmq.SUB)
     zmqsub.setsockopt(zmq.SUBSCRIBE, "")
-    zmqsub.connect("tcp://torwaechter.realraum.at:4244")
+    zmqsub.connect("tcp://zmqbroker.realraum.at:4244")
 
     while True:
 
@@ -42,7 +44,7 @@ while True:
       print "Got data: " + structname + ":"+ str(dictdata)
 
   except Exception, ex:
-    logging.error("main: "+str(ex))
+    print "main: "+str(ex)
     traceback.print_exc(file=sys.stdout)
     try:
       zmqsub.close()
