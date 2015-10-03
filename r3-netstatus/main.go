@@ -46,13 +46,14 @@ type EventToXMPPStartupFinished struct{}
 // TUER_STATUSPUSH_SSH_HOST_PORT
 
 const (
-	DEFAULT_TUER_XMPP_STATE_SAVEDIR       string = "/flash/var/lib/r3netstatus/"
-	DEFAULT_TUER_XMPP_JID                 string = "realrauminfo@realraum.at/Tuer"
-	DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR  string = "tcp://zmqbroker.realraum.at:4244"
-	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR   string = "tcp://zmqbroker.realraum.at:4245"
-	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string = "/flash/tuer/id_rsa"
-	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "www-data"
-	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:2342"
+	XMPP_PING_TIMEOUT                     time.Duration = 1500 * time.Millisecond
+	DEFAULT_TUER_XMPP_STATE_SAVEDIR       string        = "/flash/var/lib/r3netstatus/"
+	DEFAULT_TUER_XMPP_JID                 string        = "realrauminfo@realraum.at/Tuer"
+	DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR  string        = "tcp://zmqbroker.realraum.at:4244"
+	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR   string        = "tcp://zmqbroker.realraum.at:4245"
+	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string        = "/flash/tuer/id_rsa"
+	DEFAULT_TUER_STATUSPUSH_SSH_USER      string        = "www-data"
+	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string        = "vex.realraum.at:2342"
 )
 
 func init() {
@@ -175,7 +176,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 			// update presence text with sensor and button info
 			xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
 			// Try to XMPP Ping the server and if that fails, quit XMPPBot
-			if bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false && bot.PingServer(900) == false {
+			if bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false {
 				return
 			}
 		case r3events.DoorProblemEvent:

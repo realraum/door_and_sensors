@@ -30,7 +30,7 @@ func HandleServerToClientPing(iq *xmpp.Iq, xmppout chan<- xmpp.Stanza) bool {
 
 //Uses XMPP Ping to check if server is still there
 // returns either false or true
-func (botdata *XmppBot) PingServer(timeout_ms time.Duration) (is_up bool) {
+func (botdata *XmppBot) PingServer(timeout time.Duration) (is_up bool) {
 	///<iq from='juliet@capulet.lit/balcony' to='capulet.lit' id='c2s1' type='get'>
 	///  <ping xmlns='urn:xmpp:ping'/>
 	///</iq>
@@ -41,10 +41,15 @@ func (botdata *XmppBot) PingServer(timeout_ms time.Duration) (is_up bool) {
 		Id:     <-xmpp.Id,
 		Type:   "get",
 		Nested: []interface{}{XMPPPing{}}}}
-	pong := make(chan bool, 1)
-	defer close(pong)
+	pong := make(chan bool, 1) // store one element, means if we take out exaclty one, we can put in two without blocking
+	defer close(pong)          // not strictly needed, as garbage collector will take care of it sooner or later unless the functions with this jid is _never_ called
 	f := func(v xmpp.Stanza) bool {
-		defer recover() //recover from writing to possibly already closed chan
+		defer func() {
+			if x := recover(); x != nil {
+				//if error is nil, it means we did NOT panic when trying to send false to pong channel which was already closed
+				Syslog_.Printf("ping reply (or cancel) was received too late")
+			}
+		}() //recover from writing to possibly already closed chan.
 		let_others_handle_stanza := false
 		iq, ok := v.(*xmpp.Iq)
 		if !ok {
@@ -71,7 +76,7 @@ func (botdata *XmppBot) PingServer(timeout_ms time.Duration) (is_up bool) {
 				Syslog_.Printf("response to iq ping timed out !!")
 			}
 		}() //recover from writing to possibly already closed chan. If we did not need to recover, then Handler did not receive reply
-		time.Sleep(timeout_ms * time.Millisecond)
+		time.Sleep(timeout)
 		pong <- false //xmpp ping timed out, if this succeeds. Really we expect the channel to be closed already and this statement to panic
 	}()
 	return <-pong
