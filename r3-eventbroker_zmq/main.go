@@ -88,7 +88,7 @@ func main() {
 		panic("zmq sockets must not be nil !!")
 	}
 
-	ps := pubsub.New(10)
+	ps := pubsub.New(100)
 	defer ps.Shutdown() // ps.Shutdown should be called before zmq_ctx.Close(), since it will cause goroutines to shutdown and close zqm_sockets which is needed for zmq_ctx.Close() to return
 	//~ ticker := time.NewTicker(time.Duration(5) * time.Minute)
 
