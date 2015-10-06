@@ -473,12 +473,20 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 
 	go func() {
 		for { //auto recover from panic
+			if botdata.xmppclient_.Out == nil {
+				break
+			}
 			botdata.handleEventsforXMPP(botdata.xmppclient_.Out, presence_events, jabber_events)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}()
 	go func() {
 		for { //auto recover from panic
+			if botdata.xmppclient_.In == nil || botdata.xmppclient_.Out == nil {
+				break
+			}
 			botdata.handleIncomingXMPPStanzas(botdata.xmppclient_.In, botdata.xmppclient_.Out, jabber_events)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}()
 

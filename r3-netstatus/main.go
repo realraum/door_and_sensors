@@ -98,6 +98,7 @@ func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, door
 	}
 }
 
+// compose a message string from presence state
 func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpress int64) r3xmppbot.XMPPStatusEvent {
 	present_msg := "Somebody is present"
 	notpresent_msg := "Nobody is here"
@@ -115,6 +116,7 @@ func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpres
 	}
 }
 
+// gets r3events and sends corresponding XMPP messages and XMPP Presence/Status Updates
 func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presence_events_chan chan<- interface{}) {
 	button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
 	defer func() {
@@ -198,6 +200,7 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
 			psevents := ps.Sub("presence", "door", "buttons", "updateinterval", "sensors", "xmppmeta")
 			QueryLatestEventsAndInjectThem(ps, zmqctx)
 			ps.Pub(EventToXMPPStartupFinished{}, "xmppmeta")
+			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
 			EventToXMPP(bot, psevents, xmpp_presence_events_chan)
 			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
 			ps.Unsub(psevents, "presence", "door", "buttons", "updateinterval", "sensors", "xmppmeta")
