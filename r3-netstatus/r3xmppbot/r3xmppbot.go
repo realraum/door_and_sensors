@@ -200,6 +200,9 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 						xmppout <- botdata.makeXMPPMessage(to, pec.Msg, nil)
 					}
 				}
+			case bool:
+				Debug_.Println("handleEventsforXMPP<-presence_events: shutdown received: quitting")
+				return
 			default:
 				Debug_.Println("handleEventsforXMPP<-presence_events: unknown type received: quitting")
 				return
@@ -473,7 +476,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 
 	go func() {
 		for { //auto recover from panic
-			if botdata.xmppclient_.Out == nil {
+			if botdata.xmppclient_ == nil || botdata.xmppclient_.Out == nil {
 				break
 			}
 			botdata.handleEventsforXMPP(botdata.xmppclient_.Out, presence_events, jabber_events)
@@ -482,7 +485,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 	}()
 	go func() {
 		for { //auto recover from panic
-			if botdata.xmppclient_.In == nil || botdata.xmppclient_.Out == nil {
+			if botdata.xmppclient_ == nil || botdata.xmppclient_.In == nil || botdata.xmppclient_.Out == nil {
 				break
 			}
 			botdata.handleIncomingXMPPStanzas(botdata.xmppclient_.In, botdata.xmppclient_.Out, jabber_events)
