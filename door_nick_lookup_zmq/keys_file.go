@@ -11,7 +11,7 @@ import (
     "bufio"
 )
 
-var re_keynickline *regexp.Regexp = regexp.MustCompile("^\\s*([0-9a-fA-F]+)\\s+((?:\\p{Latin}|\\d)+).*")
+var re_keynickline *regexp.Regexp = regexp.MustCompile("^\\s*([0-9a-fA-F]+)\\s+((?:\\p{Latin}|[[:graph:]]|[[:digit:]])+).*")
 
 type KeyNickStore map[uint64]string
 
