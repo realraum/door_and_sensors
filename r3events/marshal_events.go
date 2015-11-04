@@ -131,6 +131,11 @@ func UnmarshalByteByte2Event(data [][]byte) (event interface{}, category string,
             err = json.Unmarshal(data[1], newevent)
             category = "network"
             event = *newevent
+        case "LaserCutter":
+            newevent := new(LaserCutter)
+            err = json.Unmarshal(data[1], newevent)
+            category = "sensors"
+            event = *newevent
         default:
             event = nil
             err = errors.New("cannot unmarshal unknown type")

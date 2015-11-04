@@ -93,3 +93,8 @@ type MovementSensorUpdate struct {
     Sensorindex int
     Ts int64
 }
+
+type LaserCutter struct {
+    IsHot bool
+    Ts int64
+}
