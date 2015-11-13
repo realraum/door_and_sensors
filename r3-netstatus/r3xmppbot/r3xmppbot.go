@@ -504,7 +504,10 @@ func (botdata *XmppBot) StopBot() {
 		close(botdata.xmppclient_.Out)
 	}
 	if botdata.presence_events_ != nil {
-		*botdata.presence_events_ <- false
+		select {
+		case *botdata.presence_events_ <- false:
+		default:
+		}
 		close(*botdata.presence_events_)
 	}
 	botdata.config_file_ = ""
