@@ -6,7 +6,7 @@ import (
 	"flag"
 	"time"
 
-	zmq "github.com/vaughan0/go-zmq"
+	zmq "github.com/pebbe/zmq4"
 )
 
 // ---------- Main Code -------------
@@ -52,7 +52,7 @@ func ConnectSerialToZMQ(pub_sock *zmq.Socket, timeout time.Duration) {
 			}
 			t.Reset(timeout)
 			Syslog_.Printf("%s", incoming_ser_line)
-			if err := pub_sock.Send(incoming_ser_line); err != nil {
+			if _, err := pub_sock.SendMessageDontwait(incoming_ser_line); err != nil {
 				Syslog_.Println(err.Error())
 			}
 
@@ -67,7 +67,7 @@ func main() {
 	if pub_sock == nil {
 		panic("zmq socket creation failed")
 	}
-	defer zmqctx.Close()
+	defer zmqctx.Term()
 	defer pub_sock.Close()
 
 	if enable_debug_ {
