@@ -39,27 +39,34 @@ type BoreDoomButtonPressEvent struct {
 }
 
 type TempSensorUpdate struct {
-	Sensorindex int
-	Value       float64
-	Ts          int64
+	Location string
+	Value    float64
+	Ts       int64
+}
+
+type TempOverThreshold struct {
+	Location  string
+	Value     float64
+	Threshold float64
+	Ts        int64
 }
 
 type IlluminationSensorUpdate struct {
-	Sensorindex int
-	Value       int64
-	Ts          int64
+	Location string
+	Value    int64
+	Ts       int64
 }
 
 type DustSensorUpdate struct {
-	Sensorindex int
-	Value       int64
-	Ts          int64
+	Location string
+	Value    int64
+	Ts       int64
 }
 
 type RelativeHumiditySensorUpdate struct {
-	Sensorindex int
-	Percent     int
-	Ts          int64
+	Location string
+	Percent  int
+	Ts       int64
 }
 
 type NetDHCPACK struct {

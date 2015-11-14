@@ -8,7 +8,7 @@ import (
 )
 
 type DoorCmdHandler struct {
-	Checker      func([][]byte) error
+	Checker      func(SerialLine) error
 	FirmwareChar string
 }
 
@@ -35,20 +35,20 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
 // As Workaround, the door daemon watches for "timeout_after_open" events.
 // If one is detected and followed by an "door is now ajar" info, we tell the firmware
 // to open the door, causing it to move out of the error state and into the final open key/cogwheel position.
-func WorkaroundFirmware(serial_wr chan string) (in chan [][]byte) {
-	in = make(chan [][]byte, 5)
+func WorkaroundFirmware(serial_wr chan string) (in chan SerialLine) {
+	in = make(chan SerialLine, 5)
 	go func() {
 		var last_state_time time.Time
 		var last_door_state string
 		for firmware_output := range in {
 			Debug_.Printf("WorkaroundFirmware Input: %s", firmware_output)
-			if len(firmware_output) > 1 && string(firmware_output[0]) == "State:" {
+			if len(firmware_output) > 1 && firmware_output[0] == "State:" {
 				last_state_time = time.Now()
-				last_door_state = string(firmware_output[1])
+				last_door_state = firmware_output[1]
 			}
 			if len(firmware_output) == 5 &&
-				string(firmware_output[0]) == "Info(ajar):" &&
-				string(firmware_output[4]) == "ajar" &&
+				firmware_output[0] == "Info(ajar):" &&
+				firmware_output[4] == "ajar" &&
 				time.Now().Sub(last_state_time) < 30*time.Second &&
 				last_door_state == "timeout_after_open" {
 				//If we were in state "timeout_after_open" and within 30s the door was openend anyway,
@@ -63,16 +63,16 @@ func WorkaroundFirmware(serial_wr chan string) (in chan [][]byte) {
 
 // ---------- ZMQ Command Handling Code -------------
 
-func checkCmdDoorControl(tokens [][]byte) error {
+func checkCmdDoorControl(tokens SerialLine) error {
 	doorctrl_usage := "syntax: <open|close|toggle> <method> <nickname>"
 	if len(tokens) < 2 || len(tokens) > 3 {
 		return errors.New(doorctrl_usage)
 	}
-	cmd := string(tokens[0])
+	cmd := tokens[0]
 	if !(cmd == "open" || cmd == "close" || cmd == "toggle") {
 		return errors.New(doorctrl_usage)
 	}
-	method := string(tokens[1])
+	method := tokens[1]
 	if !(method == "Button" || method == "ssh" || method == "SSH" || method == "Phone") {
 		return errors.New("method must be one either Button, SSH or Phone")
 	}
@@ -82,19 +82,19 @@ func checkCmdDoorControl(tokens [][]byte) error {
 	return nil
 }
 
-func checkCmdNoArgs(tokens [][]byte) error {
+func checkCmdNoArgs(tokens SerialLine) error {
 	if len(tokens) != 1 {
 		return errors.New("command does not accept arguments")
 	}
 	return nil
 }
 
-func HandleCommand(tokens [][]byte, serial_wr chan string, serial_rd chan [][]byte) error {
+func HandleCommand(tokens SerialLine, serial_wr chan string, serial_rd chan SerialLine) error {
 	if len(tokens) < 1 {
 		return errors.New("No Command to handle")
 	}
 
-	dch, present := cmdToDoorCmdHandler[string(tokens[0])]
+	dch, present := cmdToDoorCmdHandler[tokens[0]]
 	if !present {
 		return errors.New("Unknown Command")
 	}

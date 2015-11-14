@@ -4,8 +4,8 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
+	"strings"
 	"syscall"
 
 	"github.com/schleibinger/sio"
@@ -46,14 +46,14 @@ func serialWriter(in <-chan string, serial *sio.Port) {
 	serial.Close()
 }
 
-func serialReader(out chan<- [][]byte, serial *sio.Port) {
+func serialReader(out chan<- SerialLine, serial *sio.Port) {
 	linescanner := bufio.NewScanner(serial)
 	linescanner.Split(bufio.ScanLines)
 	for linescanner.Scan() {
 		if err := linescanner.Err(); err != nil {
 			panic(err.Error())
 		}
-		text := bytes.Fields([]byte(linescanner.Text()))
+		text := strings.Fields(linescanner.Text())
 		if len(text) == 0 {
 			continue
 		}
@@ -61,13 +61,13 @@ func serialReader(out chan<- [][]byte, serial *sio.Port) {
 	}
 }
 
-func OpenAndHandleSerial(filename string, serspeed uint) (chan string, chan [][]byte, error) {
+func OpenAndHandleSerial(filename string, serspeed uint) (chan string, chan SerialLine, error) {
 	serial, err := openTTY(filename, serspeed)
 	if err != nil {
 		return nil, nil, err
 	}
 	wr := make(chan string, 1)
-	rd := make(chan [][]byte, 20)
+	rd := make(chan SerialLine, 20)
 	go serialWriter(wr, serial)
 	go serialReader(rd, serial)
 	return wr, rd, nil

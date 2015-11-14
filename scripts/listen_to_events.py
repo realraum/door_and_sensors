@@ -1,54 +1,45 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
 import os.path
 import sys
 import signal
-import zmq.utils.jsonapi as json
-import zmq
+import json
 import traceback
 import time
+import paho.mqtt.client as mqtt
 ########################
 
 def decodeR3Message(multipart_msg):
     try:
         return (multipart_msg[0], json.loads(multipart_msg[1]))
-    except Exception, e:
+    except Exception as e:
         logging.debug("decodeR3Message:"+str(e))
         return ("",{})
 
-def exitHandler(signum, frame):
-  try:
-    zmqsub.close()
-    zmqctx.destroy()
-  except:
-    pass
-  sys.exit(0)
+# The callback for when the client receives a CONNACK response from the server.
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code "+str(rc))
 
-signal.signal(signal.SIGINT, exitHandler)
-signal.signal(signal.SIGQUIT, exitHandler)
+    # Subscribing in on_connect() means that if we lose the connection and
+    # reconnect then subscriptions will be renewed.
+    client.subscribe("#")
+    # client.subscribe("$SYS/#")
 
-while True:
-  try:
-    #Start zmq connection to publish / forward sensor data
-    zmqctx = zmq.Context()
-    zmqctx.linger = 0
-    zmqsub = zmqctx.socket(zmq.SUB)
-    zmqsub.setsockopt(zmq.SUBSCRIBE, "")
-    zmqsub.connect("tcp://zmqbroker.realraum.at:4244")
+# The callback for when a PUBLISH message is received from the server.
+def on_message(client, userdata, msg):
+    print(msg.topic+": %s (%s)" % (msg.payload, type(msg.payload)))
+    #(structname, dictdata) = decodeR3Message(data)
+    #print("Got data: " + structname + ":"+ str(dictdata))
 
-    while True:
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
 
-      data = zmqsub.recv_multipart()
-      (structname, dictdata) = decodeR3Message(data)
-      print "Got data: " + structname + ":"+ str(dictdata)
+client.connect("mqtt.mgmt.realraum.at", 1883, 60)
 
-  except Exception, ex:
-    print "main: "+str(ex)
-    traceback.print_exc(file=sys.stdout)
-    try:
-      zmqsub.close()
-      zmqctx.destroy()
-    except:
-      pass
-    time.sleep(5)
+# Blocking call that processes network traffic, dispatches callbacks and
+# handles reconnecting.
+# Other loop*() functions are available that give a threaded interface and a
+# manual interface.
+client.loop_forever()

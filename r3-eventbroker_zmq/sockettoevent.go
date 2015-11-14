@@ -10,7 +10,7 @@ import (
 	//~ "./brain"
 	r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
-	zmq "github.com/vaughan0/go-zmq"
+	"github.com/vaughan0/go-zmq"
 )
 
 var (
