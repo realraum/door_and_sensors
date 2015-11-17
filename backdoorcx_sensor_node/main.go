@@ -4,9 +4,12 @@ package main
 
 import (
 	"flag"
+	"strconv"
 	"time"
 
-	zmq "github.com/pebbe/zmq4"
+	"github.com/realraum/door_and_sensors/r3events"
+
+	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 )
 
 // ---------- Main Code -------------
@@ -30,7 +33,7 @@ func init() {
 	flag.Parse()
 }
 
-func ConnectSerialToZMQ(pub_sock *zmq.Socket, timeout time.Duration) {
+func ConnectSerialToMQTT(pub_sock *mqtt.Client, timeout time.Duration) {
 	defer func() {
 		if x := recover(); x != nil {
 			Syslog_.Println(x)
@@ -52,10 +55,17 @@ func ConnectSerialToZMQ(pub_sock *zmq.Socket, timeout time.Duration) {
 			}
 			t.Reset(timeout)
 			Syslog_.Printf("%s", incoming_ser_line)
-			if _, err := pub_sock.SendMessageDontwait(incoming_ser_line); err != nil {
-				Syslog_.Println(err.Error())
+			temp, err = strconv.ParseFloat(incoming_ser_line, 64) // use regex
+			if err != nil {
+				Syslog_.Print("Error parsing float", err)
+				continue
 			}
-
+			payload := r3events.MarshalEvent2ByteOrPanic(r3events.TemperatureUpdate{Location: "cx", Ts: time.Now().Unix(), Value: temp})
+			tk := c.Publish("realraum/backdoorcx/temperature", 1, false, payload)
+			tk.Wait()
+			if tk.Error() != nil {
+				Syslog_.Print("mqtt publish error", tk.Error())
+			}
 		case <-t.C:
 			Syslog_.Print("Timeout, no message for 120 seconds")
 		}
