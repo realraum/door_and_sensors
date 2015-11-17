@@ -32,8 +32,11 @@ class UWSConfig:
     self.config_parser.add_section('notify')
     self.config_parser.set('notify','emails',"oskar@realraum.at")
     self.config_parser.set('notify','xmpps',"xro@realraum.at")
+    self.config_parser.set('notify','smsgroups',"olgacore xro")
     self.config_parser.add_section('sensor')
+    self.config_parser.set('sensor','sampleinterval',"8")
     self.config_parser.set('sensor','uri',"http://192.168.33.11/")
+    self.config_parser.set('sensor','warnunreachablelimit',"6")
     self.config_parser.set('sensor','tempjsonkey',"temp")
     self.config_parser.set('sensor','warnjsonkey',"warnabove")
     self.config_parser.set('sensor','locjsonkey',"desc")
@@ -124,13 +127,21 @@ class UWSConfig:
     return rv
 
 
-def sendWarningEmail(temp):
-    pass
-
 ######## r3 MQTT ############
 
 def sendR3Message(client, topic, datadict):
     client.publish(topic, json.dumps(datadict))
+
+def sendSMS(groups, message):
+    if not isinstance(groups,list):
+        groups=[groups]
+    print(groups,message)
+    return
+    smsproc = subprocess.Popen(["/usr/local/bin/send_group_sms.sh"] + groups)
+    smsproc.communicate(message)
+
+def sendEmail(groups, message):
+    pass
 
 ######## Sensor ############
 
@@ -140,44 +151,69 @@ def getJSON(url):
         return r.json()
     return {}
 
-def queryTempMonitorAndForward(uwscfg):
-    rd = getJSON(uwscfg.sensor_uri)
-    if uwscfg.sensor_tempjsonkey in rd:
-        temp=rd[uwscfg.sensor_tempjsonkey]
-        loc=rd[uwscfg.sensor_locjsonkey]
-        try:
-            warntemp = float(rd[uwscfg.sensor_warnjsonkey])
-        except:
-            warntemp = -9999
-        sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":float(temp), "Ts":int(time.time())})
-        if temp > warntemp:
-            sendR3Message(mqttclient, "realraum/olgafreezer/overtemp", {"Location":loc, "Value":float(temp),"Threshold":warntemp, "Ts":int(time.time())})
-            sendWarningEmail(temp)
+unreachable_count = 0
+def queryTempMonitorAndForward(uwscfg, mqttclient):
+    global unreachable_count
+    jsondict = getJSON(uwscfg.sensor_uri)
+    ts = int(time.time())
+    if "sensors" in jsondict:
+        unreachable_count = 0
+        for tsd in jsondict["sensors"]:
+            loc=tsd[uwscfg.sensor_locjsonkey]
+            temp=tsd[uwscfg.sensor_tempjsonkey]
+            try:
+                warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
+            except:
+                warntemp = -9999            
+            print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["scale"]))
+            if isinstance(tsd[uwscfg.sensor_warnjsonkey],float) and temp > warntemp:
+                print("ALARM ALARM %d", tsd["busid"])
+                msg="Sensor #%d aka %s is @%f °C" % (tsd["busid"], tsd["desc"], tsd["temp"])
+                #send warnings
+                sendSMS(uwscfg.notify_smsgroups.split(" "),msg)
+                sendR3Message(mqttclient, "realraum/olgafreezer/overtemp", {"Location":loc, "Value":temp,"Threshold":warntemp, "Ts":ts})
+                sendEmail(uwscfg.notify_emails.split(" "),msg)
+            sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts})
+    else:
+        if unreachable_count > int(uwscfg.sensor_warnunreachablelimit):
+            sendSMS(uwscfg.notify_smsgroups.split(" "),"OLGA Frige Sensor remains unreachable")
+            sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable")
+        else:
+            unreachable_count += 1
+
 
 
 ############ Main Routine ############
 
-logging.info("Olga Fridge Temp Monitor started")
+if __name__ == '__main__':
 
-#option and only argument: path to config file
-if len(sys.argv) > 1:
-  uwscfg = UWSConfig(sys.argv[1])
-else:
-  uwscfg = UWSConfig()
+    logging.info("Olga Fridge Temp Monitor started")
 
-#Start mqtt connection to publish / forward sensor data
-client = mqtt.Client()
-client.connect(uwscfg.mqtt_brokerhost, int(uwscfg.mqtt_brokerport), 60)
+    #option and only argument: path to config file
+    if len(sys.argv) > 1:
+        uwscfg = UWSConfig(sys.argv[1])
+    else:
+        uwscfg = UWSConfig()
 
-#listen for sensor data and forward them
-while True:
-    try:
-        queryTempMonitorAndForward(uwscfg)
-        client.loop(timeout=5.0, max_packets=1)
-    except Exception as e:
-        print(e)
-        break
+    #Start mqtt connection to publish / forward sensor data
+    client = mqtt.Client()
+    client.connect(uwscfg.mqtt_brokerhost, int(uwscfg.mqtt_brokerport), 60)
 
-client.disconnect()
+    #listen for sensor data and forward them
+    interval_s = float(uwscfg.sensor_sampleinterval)
+    while True:
+        try:
+            queryTempMonitorAndForward(uwscfg, client)
+            starttime = time.time()
+            client.loop(timeout=interval_s, max_packets=1)
+            remaining_time = interval_s - (time.time() - starttime)
+            if remaining_time > 0:
+                time.sleep(remaining_time)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
+            break
+
+    client.disconnect()
 
 
