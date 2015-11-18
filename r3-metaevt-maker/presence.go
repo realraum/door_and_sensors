@@ -5,18 +5,19 @@ package main
 import (
 	"time"
 	//~ "./brain"
+	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
 )
 
-func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeout int64) {
+func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_timeout, button_timeout int64) {
 	var last_door_cmd *r3events.DoorCommandEvent
 	var last_presence bool
 	var last_event_indicating_presence, last_frontlock_use, last_manual_lockhandling int64
 	var front_locked, front_shut, back_shut bool = true, true, true
 
-	events_chan := ps.Sub("door", "doorcmd", "buttons", "movement")
-	defer ps.Unsub(events_chan, "door", "doorcmd", "buttons", "movement")
+	events_chan := ps.Sub("r3events")
+	defer ps.Unsub(events_chan, "r3events")
 
 	for event := range events_chan {
 		Debug_.Printf("Presence prior: %t : %T %+v", last_presence, event, event)
@@ -83,7 +84,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, movement_timeout, button_timeo
 		//~ Debug_.Printf("Presence: new: %s , last:%s", new_presence, last_presence)
 		if new_presence != last_presence {
 			last_presence = new_presence
-			ps.Pub(r3events.PresenceUpdate{new_presence, ts}, "presence")
+			mqttc.Publish(r3events.TOPIC_META_PRESENCE, MQTT_QOS_4STPHANDSHAKE, true, r3events.MarshalEvent2ByteOrPanic(r3events.PresenceUpdate{new_presence, ts}))
 			Syslog_.Printf("Presence: %t", new_presence)
 		}
 	}
