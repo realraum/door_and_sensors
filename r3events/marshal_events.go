@@ -35,7 +35,7 @@ func MarshalEvent2ByteOrPanic(event_interface interface{}) (data []byte) {
 	return
 }
 
-func UnmarshalByteByte2Event(topic string, data []byte) (event interface{}, category string, err error) {
+func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, category string, err error) {
 	switch topic {
 	case TOPIC_FRONTDOOR_LOCK:
 		newevent := new(DoorLockUpdate)
@@ -77,9 +77,7 @@ func UnmarshalByteByte2Event(topic string, data []byte) (event interface{}, cate
 		err = json.Unmarshal(data, newevent)
 		category = "sensors"
 		event = *newevent
-	case TOPIC_PILLAR_TEMP:
-	case TOPIC_BACKDOOR_TEMP:
-	case TOPIC_OLGAFREEZER_TEMP:
+	case TOPIC_PILLAR_TEMP, TOPIC_BACKDOOR_TEMP, TOPIC_OLGAFREEZER_TEMP:
 		newevent := new(TempSensorUpdate)
 		err = json.Unmarshal(data, newevent)
 		category = "sensors"
@@ -109,8 +107,7 @@ func UnmarshalByteByte2Event(topic string, data []byte) (event interface{}, cate
 		err = json.Unmarshal(data, newevent)
 		category = "sensors"
 		event = *newevent
-	case TOPIC_PILLAR_MOVEMENTPIR:
-	case TOPIC_BACKDOOR_MOVEMENTPIR:
+	case TOPIC_PILLAR_MOVEMENTPIR, TOPIC_BACKDOOR_MOVEMENTPIR:
 		newevent := new(MovementSensorUpdate)
 		err = json.Unmarshal(data, newevent)
 		category = "movement"
@@ -159,6 +156,11 @@ func UnmarshalByteByte2Event(topic string, data []byte) (event interface{}, cate
 		newevent := new(LaserCutter)
 		err = json.Unmarshal(data, newevent)
 		category = "actions"
+		event = *newevent
+	case TOPIC_BACKDOOR_POWERLOSS:
+		newevent := new(UPSPowerLoss)
+		err = json.Unmarshal(data, newevent)
+		category = "sensors"
 		event = *newevent
 	default:
 		event = nil

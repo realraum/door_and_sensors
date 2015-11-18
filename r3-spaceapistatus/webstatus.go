@@ -9,7 +9,6 @@ import (
 
 	"./spaceapi"
 	r3events "github.com/realraum/door_and_sensors/r3events"
-	pubsub "github.com/tuxychandru/pubsub"
 )
 
 type spaceState struct {
@@ -78,9 +77,7 @@ func publishStateToWeb() {
 	Syslog_.Printf("updated status.json (sent %d bytes)", written)
 }
 
-func EventToWeb(ps *pubsub.PubSub) {
-	events := ps.Sub("presence", "door", "sensors", "buttons", "updateinterval")
-
+func EventToWeb(events chan interface{}) {
 	for eventinterface := range events {
 		//Debug_.Printf("EventToWeb: %s" , eventinterface)
 		switch event := eventinterface.(type) {
@@ -103,20 +100,17 @@ func EventToWeb(ps *pubsub.PubSub) {
 			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
 			publishStateToWeb()
 		case r3events.TempSensorUpdate:
-			var tempsensorlocation string
-			switch event.Sensorindex {
-			case 0:
-				tempsensorlocation = "LoTHR"
-			case 1:
-				tempsensorlocation = "CX"
-			default:
-				tempsensorlocation = "Sonstwo"
-			}
-			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d", event.Sensorindex), tempsensorlocation, event.Value))
+			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%s", event.Location), event.Location, event.Value))
 		case r3events.IlluminationSensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode", "LoTHR", "1024V/5V", event.Value))
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
+			publishStateToWeb()
+		case r3events.TempOverThreshold:
+			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value))
+			publishStateToWeb()
+		case r3events.UPSPowerLoss:
+			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery))
 			publishStateToWeb()
 		}
 	}

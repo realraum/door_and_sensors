@@ -68,6 +68,11 @@ type RelativeHumiditySensorUpdate struct {
 	Percent  int
 	Ts       int64
 }
+type UPSPowerLoss struct {
+	OnBattery      bool
+	PercentBattery byte
+	Ts             int64
+}
 
 type NetDHCPACK struct {
 	Mac  string

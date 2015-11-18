@@ -10,7 +10,7 @@ import (
 	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 )
 
-const DEFAULT_R3_MQTT_BROKER string = "tcp://mqtt.mgmt.realraum.at:1883"
+const DEFAULT_R3_MQTT_BROKER string = "tcp://mqtt.realraum.at:1883"
 
 func main() {
 	options := mqtt.NewClientOptions().AddBroker(DEFAULT_R3_MQTT_BROKER).SetAutoReconnect(true).SetProtocolVersion(4).SetCleanSession(true)
