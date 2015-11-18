@@ -6,7 +6,6 @@ import (
 
 	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	"github.com/btittelbach/pubsub"
-	"github.com/realraum/door_and_sensors/r3events"
 )
 
 const MQTT_QOS_NOCONFIRMATION byte = 0
@@ -15,8 +14,8 @@ const MQTT_QOS_4STPHANDSHAKE byte = 2
 
 var re_cardid_ *regexp.Regexp = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
 
-func ConnectMQTTBroker(brocker_addr string) *mqtt.Client {
-	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(r3events.CLIENTID_XMPPBOT)
+func ConnectMQTTBroker(brocker_addr, clientid string) *mqtt.Client {
+	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(clientid)
 	c := mqtt.NewClient(options)
 	tk := c.Connect()
 	tk.Wait()

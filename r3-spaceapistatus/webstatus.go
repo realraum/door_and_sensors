@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"./spaceapi"
-	pubsub "github.com/btittelbach/pubsub"
 	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
@@ -78,9 +77,7 @@ func publishStateToWeb() {
 	Syslog_.Printf("updated status.json (sent %d bytes)", written)
 }
 
-func EventToWeb(ps *pubsub.PubSub) {
-	events := ps.Sub("presence", "door", "sensors", "buttons", "updateinterval")
-
+func EventToWeb(events chan interface{}) {
 	for eventinterface := range events {
 		//Debug_.Printf("EventToWeb: %s" , eventinterface)
 		switch event := eventinterface.(type) {
@@ -108,6 +105,12 @@ func EventToWeb(ps *pubsub.PubSub) {
 			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode", "LoTHR", "1024V/5V", event.Value))
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
+			publishStateToWeb()
+		case r3events.TempOverThreshold:
+			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value))
+			publishStateToWeb()
+		case r3events.UPSPowerLoss:
+			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery))
 			publishStateToWeb()
 		}
 	}
