@@ -35,7 +35,7 @@ var (
 // TUER_ZMQKEYNAMELOOKUP_ADDR
 
 const (
-	DEFAULT_R3_MQTT_BROKER string = "tcp://mqtt.mgmt.realraum.at:1883"
+	DEFAULT_R3_MQTT_BROKER string = "tcp://mqtt.realraum.at:1883"
 )
 
 func init() {

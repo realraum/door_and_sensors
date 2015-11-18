@@ -43,7 +43,7 @@ const (
 	XMPP_PING_TIMEOUT               time.Duration = 1500 * time.Millisecond
 	DEFAULT_TUER_XMPP_STATE_SAVEDIR string        = "/flash/var/lib/r3netstatus/"
 	DEFAULT_TUER_XMPP_JID           string        = "realrauminfo@realraum.at/Tuer"
-	DEFAULT_R3_MQTT_BROKER          string        = "tcp://mqtt.mgmt.realraum.at:1883"
+	DEFAULT_R3_MQTT_BROKER          string        = "tcp://mqtt.realraum.at:1883"
 )
 
 func init() {

@@ -21,7 +21,7 @@ const (
 	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string = "/flash/tuer/id_rsa"
 	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "www-data"
 	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:2342"
-	DEFAULT_R3_MQTT_BROKER                string = "tcp://mqtt.mgmt.realraum.at:1883"
+	DEFAULT_R3_MQTT_BROKER                string = "tcp://mqtt.realraum.at:1883"
 )
 
 var (

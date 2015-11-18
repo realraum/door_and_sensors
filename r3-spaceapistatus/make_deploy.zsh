@@ -1,5 +1,5 @@
 #!/bin/zsh
-REMOTE_HOST=mqtt.mgmt.realraum.at
+REMOTE_HOST=mqtt.realraum.at
 
 #ping -W 1 -c 1 $REMOTE_HOST || OPTIONS=(-e "ssh -o ProxyCommand='ssh gw.realraum.at exec nc %h %p'")
 export GOOS=linux

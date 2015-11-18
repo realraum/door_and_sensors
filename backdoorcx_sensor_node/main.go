@@ -28,7 +28,7 @@ type SerialLine []string
 const exponential_backof_activation_threshold int64 = 4
 
 const (
-	DEFAULT_R3_MQTT_BROKER              string = "tcp://mqtt.mgmt.realraum.at:1883"
+	DEFAULT_R3_MQTT_BROKER              string = "tcp://mqtt.realraum.at:1883"
 	DEFAULT_R3_AJARSENSOR_TTY_PATH      string = "/dev/backdoor"
 	DEFAULT_R3_GASLEAK2SMS_MININTERVAL  string = "45"
 	DEFAULT_R3_GASLEAK2SMS_DESTINATIONS string = "livesclose"

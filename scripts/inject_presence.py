@@ -12,7 +12,7 @@ def sendR3Message(client, structname, datadict):
 
 #Start zmq connection to publish / forward sensor data
 client = mqtt.Client()
-client.connect("mqtt.mgmt.realraum.at", 1883, 60)
+client.connect("mqtt.realraum.at", 1883, 60)
 
 #listen for sensor data and forward them
 sendR3Message(client,"realraum/metaevt/presence",{"Present":True,"Ts":int(time.time())})

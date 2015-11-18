@@ -27,7 +27,7 @@ class UWSConfig:
     self.configfile=configfile
     self.config_parser=configparser.ConfigParser()
     self.config_parser.add_section('mqtt')
-    self.config_parser.set('mqtt','brokerhost',"mqtt.mgmt.realraum.at")
+    self.config_parser.set('mqtt','brokerhost',"mqtt.realraum.at")
     self.config_parser.set('mqtt','brokerport',"1883")
     self.config_parser.add_section('notify')
     self.config_parser.set('notify','emails',"oskar@realraum.at")
