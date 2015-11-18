@@ -5,14 +5,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"time"
+
+	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 
 	"./r3xmppbot"
 	pubsub "github.com/btittelbach/pubsub"
-	//~ "./brain"
 	r3events "github.com/realraum/door_and_sensors/r3events"
-	zmq "github.com/vaughan0/go-zmq"
 )
 
 type SpaceState struct {
@@ -49,11 +48,10 @@ const (
 	XMPP_PING_TIMEOUT                     time.Duration = 1500 * time.Millisecond
 	DEFAULT_TUER_XMPP_STATE_SAVEDIR       string        = "/flash/var/lib/r3netstatus/"
 	DEFAULT_TUER_XMPP_JID                 string        = "realrauminfo@realraum.at/Tuer"
-	DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR  string        = "tcp://zmqbroker.realraum.at:4244"
-	DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR   string        = "tcp://zmqbroker.realraum.at:4245"
 	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string        = "/flash/tuer/id_rsa"
 	DEFAULT_TUER_STATUSPUSH_SSH_USER      string        = "www-data"
 	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string        = "vex.realraum.at:2342"
+	DEFAULT_R3_MQTT_BROKER                string        = "tcp://mqtt.mgmt.realraum.at:1883"
 )
 
 func init() {
@@ -65,22 +63,6 @@ func init() {
 }
 
 //-------
-
-func IfThenElseStr(c bool, strue, sfalse string) string {
-	if c {
-		return strue
-	} else {
-		return sfalse
-	}
-}
-
-func EnvironOrDefault(envvarname, defvalue string) string {
-	if len(os.Getenv(envvarname)) > 0 {
-		return os.Getenv(envvarname)
-	} else {
-		return defvalue
-	}
-}
 
 func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, doorcmd r3events.DoorCommandEvent, ts int64) string {
 	var ajarstring string = ""
@@ -167,7 +149,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 		case r3events.IlluminationSensorUpdate:
 			light_lothr = event.Value
 		case r3events.TempSensorUpdate:
-			if event.Sensorindex == 1 {
+			if event.Location == "CX" {
 				temp_cx = event.Value
 			}
 		case r3events.BoreDoomButtonPressEvent:
@@ -187,7 +169,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 	}
 }
 
-func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
+func RunXMPPBot(ps *pubsub.PubSub) {
 	var xmpperr error
 	var bot *r3xmppbot.XmppBot
 	var xmpp_presence_events_chan chan interface{}
@@ -197,13 +179,15 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
 		if xmpperr == nil {
 			Syslog_.Printf("Successfully (re)started XMPP Bot")
 			// subscribe before QueryLatestEventsAndInjectThem and EventToXMPP
-			psevents := ps.Sub("presence", "door", "buttons", "updateinterval", "sensors", "xmppmeta")
-			QueryLatestEventsAndInjectThem(ps, zmqctx)
+			psevents := ps.Sub("r3events", "updateinterval", "xmppmeta")
 			ps.Pub(EventToXMPPStartupFinished{}, "xmppmeta")
+
+			//TODO: if restarted, ask mqtt broker to resend persistent messages (or save them ourselves somewhere)
+
 			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
 			EventToXMPP(bot, psevents, xmpp_presence_events_chan)
 			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
-			ps.Unsub(psevents, "presence", "door", "buttons", "updateinterval", "sensors", "xmppmeta")
+			ps.Unsub(psevents, "r3events", "updateinterval", "xmppmeta")
 			bot.StopBot()
 		} else {
 			Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
@@ -212,28 +196,19 @@ func RunXMPPBot(ps *pubsub.PubSub, zmqctx *zmq.Context) {
 	}
 }
 
-func ParseZMQr3Event(lines [][]byte, ps *pubsub.PubSub) {
-	evnt, pubsubcat, err := r3events.UnmarshalByteByte2Event(lines)
-	Debug_.Printf("ParseZMQr3Event: %s %s %s", evnt, pubsubcat, err)
-	if err != nil {
-		return
-	}
-	ps.Pub(evnt, pubsubcat)
-}
-
-func QueryLatestEventsAndInjectThem(ps *pubsub.PubSub, zmqctx *zmq.Context) {
-	answ := ZmqsAskQuestionsAndClose(zmqctx, EnvironOrDefault("TUER_R3EVENTS_ZMQBRAIN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR), [][][]byte{
-		[][]byte{[]byte("BackdoorAjarUpdate")},
-		[][]byte{[]byte("DoorCommandEvent")},
-		[][]byte{[]byte("DoorLockUpdate")},
-		[][]byte{[]byte("DoorAjarUpdate")},
-		[][]byte{[]byte("PresenceUpdate")},
-		[][]byte{[]byte("IlluminationSensorUpdate")},
-		[][]byte{[]byte("TempSensorUpdate")}})
-	for _, a := range answ {
-		ParseZMQr3Event(a, ps)
-	}
-}
+// func QueryLatestEventsAndInjectThem(ps *pubsub.PubSub, zmqctx *zmq.Context) {
+// 	answ := ZmqsAskQuestionsAndClose(zmqctx, EnvironOrDefault("TUER_R3EVENTS_ZMQBRAIN_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBRAIN_ADDR), [][][]byte{
+// 		[][]byte{[]byte("BackdoorAjarUpdate")},
+// 		[][]byte{[]byte("DoorCommandEvent")},
+// 		[][]byte{[]byte("DoorLockUpdate")},
+// 		[][]byte{[]byte("DoorAjarUpdate")},
+// 		[][]byte{[]byte("PresenceUpdate")},
+// 		[][]byte{[]byte("IlluminationSensorUpdate")},
+// 		[][]byte{[]byte("TempSensorUpdate")}})
+// 	for _, a := range answ {
+// 		ParseR3Event(a, ps)
+// 	}
+// }
 
 func main() {
 	if enable_syslog_ {
@@ -246,31 +221,30 @@ func main() {
 	}
 	Syslog_.Print("started")
 	defer Syslog_.Print("exiting")
-	zmqctx, zmqsub := ZmqsInit(EnvironOrDefault("TUER_R3EVENTS_ZMQBROKER_ADDR", DEFAULT_TUER_R3EVENTS_ZMQBROKER_ADDR))
-	defer zmqctx.Close()
-	if zmqsub != nil {
-		defer zmqsub.Close()
-	}
-	if zmqsub == nil {
-		panic("zmq sockets must not be nil !!")
-	}
 
-	ps := pubsub.New(10)
+	mqttc := ConnectMQTTBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER))
+	defer mqttc.Disconnect(20)
+
+	ps := pubsub.NewNonBlocking(50)
 	defer ps.Shutdown()
-	//~ brn := brain.New()
-	//~ defer brn.Shutdown()
 
+	xmppreadychan := ps.SubOnce("xmppmeta")
 	go EventToWeb(ps)
-	// --- get update on most recent events ---
-	QueryLatestEventsAndInjectThem(ps, zmqctx)
-	go RunXMPPBot(ps, zmqctx)
+	go RunXMPPBot(ps)
+
+	//wait for xmppbot to have started processing events
+	<-xmppreadychan
 
 	// --- receive and distribute events ---
 	ticker := time.NewTicker(time.Duration(6) * time.Minute)
+	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{"realraum/+/temperature", "realraum/+/illumination", "realraum/metaevt/#", "realraum/frontdoor/+", "realraum/+/ajar", "realraum/+/overtemp", "realraum/+/boredoombuttonpressed", "realraum/+/gasalert", "realraum/+/powerloss"})
 	for {
 		select {
-		case e := <-zmqsub.In():
-			ParseZMQr3Event(e, ps) //, brn)
+		case msg := <-incoming_message_chan:
+			evnt, _, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
+			if err == nil {
+				ps.Pub(evnt, "r3events")
+			}
 		case <-ticker.C:
 			ps.Pub(r3events.TimeTick{time.Now().Unix()}, "updateinterval")
 		}

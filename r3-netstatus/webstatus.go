@@ -103,16 +103,7 @@ func EventToWeb(ps *pubsub.PubSub) {
 			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
 			publishStateToWeb()
 		case r3events.TempSensorUpdate:
-			var tempsensorlocation string
-			switch event.Sensorindex {
-			case 0:
-				tempsensorlocation = "LoTHR"
-			case 1:
-				tempsensorlocation = "CX"
-			default:
-				tempsensorlocation = "Sonstwo"
-			}
-			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%d", event.Sensorindex), tempsensorlocation, event.Value))
+			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%s", event.Location), event.Location, event.Value))
 		case r3events.IlluminationSensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode", "LoTHR", "1024V/5V", event.Value))
 		case r3events.GasLeakAlert:

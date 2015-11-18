@@ -24,3 +24,11 @@ func EnvironOrDefault(envvarname, defvalue string) string {
 		return defvalue
 	}
 }
+
+func IfThenElseStr(c bool, strue, sfalse string) string {
+	if c {
+		return strue
+	} else {
+		return sfalse
+	}
+}
