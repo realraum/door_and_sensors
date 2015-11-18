@@ -4,12 +4,13 @@ package main
 
 import (
 	"flag"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/realraum/door_and_sensors/r3events"
-
 	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
+	"github.com/realraum/door_and_sensors/r3events"
 )
 
 // ---------- Main Code -------------
@@ -22,25 +23,55 @@ var (
 	serial_speed_ uint
 )
 
+type SerialLine []string
+
 const exponential_backof_activation_threshold int64 = 4
 
+const (
+	DEFAULT_R3_MQTT_BROKER              string = "tcp://mqtt.mgmt.realraum.at:1883"
+	DEFAULT_R3_AJARSENSOR_TTY_PATH      string = "/dev/backdoor"
+	DEFAULT_R3_GASLEAK2SMS_MININTERVAL  string = "45"
+	DEFAULT_R3_GASLEAK2SMS_DESTINATIONS string = "livesclose"
+)
+
 func init() {
-	flag.StringVar(&pub_addr, "brokeraddr", "tcp://zmqbroker.realraum.at:4243", "zmq address to send stuff to")
-	flag.StringVar(&tty_dev_, "ttydev", "/dev/ttyACM0", "path do tty uc device")
-	flag.UintVar(&serial_speed_, "serspeed", 0, "tty baudrate (0 to disable setting a baudrate e.g. in case of ttyACM)")
 	flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
 	flag.BoolVar(&enable_debug_, "debug", false, "debugging messages on")
 	flag.Parse()
 }
 
-func ConnectSerialToMQTT(pub_sock *mqtt.Client, timeout time.Duration) {
+func SendSMS(groups []string, text string) {
+	cmd := exec.Command("/usr/local/bin/send_group_sms.sh", groups...)
+	stdinpipe, err := cmd.StdinPipe()
+	if err != nil {
+		Syslog_.Printf("Error sending text to smsscript: %s", err)
+		return
+	}
+	err = cmd.Start()
+	if err != nil {
+		Syslog_.Printf("Error sending sms: %s", err)
+		return
+	}
+	stdinpipe.Write([]byte(text))
+	stdinpipe.Close()
+}
+
+func ConnectSerialToMQTT(mc *mqtt.Client, timeout time.Duration) {
 	defer func() {
 		if x := recover(); x != nil {
 			Syslog_.Println(x)
 		}
 	}()
 
-	serial_wr, serial_rd, err := OpenAndHandleSerial(tty_dev_, serial_speed_)
+	var gasleak_min_interval time.Duration
+	var err error
+	if gasleak_min_interval, err = time.ParseDuration(EnvironOrDefault("R3_GASLEAK2SMS_MININTERVAL", DEFAULT_R3_GASLEAK2SMS_MININTERVAL)); err != nil {
+		gasleak_min_interval = time.Duration(30 * time.Minute) //minutes between notifications per sms
+	}
+	gasleak_last_time := time.Now().Add(-1 * gasleak_min_interval)
+	gasleak_smsnotification_destinations := strings.Fields(EnvironOrDefault("R3_GASLEAK2SMS_DESTINATIONS", DEFAULT_R3_GASLEAK2SMS_DESTINATIONS))
+
+	serial_wr, serial_rd, err := OpenAndHandleSerial(EnvironOrDefault("R3_AJARSENSOR_TTY_PATH", DEFAULT_R3_AJARSENSOR_TTY_PATH), 57600)
 	if err != nil {
 		panic(err)
 	}
@@ -55,16 +86,34 @@ func ConnectSerialToMQTT(pub_sock *mqtt.Client, timeout time.Duration) {
 			}
 			t.Reset(timeout)
 			Syslog_.Printf("%s", incoming_ser_line)
-			temp, err = strconv.ParseFloat(incoming_ser_line, 64) // use regex
-			if err != nil {
-				Syslog_.Print("Error parsing float", err)
-				continue
+			var tk mqtt.Token
+			switch incoming_ser_line[0] {
+			case "temp1:", "temp2:", "temp0:":
+				temp, err := strconv.ParseFloat(incoming_ser_line[1], 64)
+				if err != nil {
+					Syslog_.Print("Error parsing float", err)
+					continue
+				}
+				payload := r3events.MarshalEvent2ByteOrPanic(r3events.TempSensorUpdate{Location: "CX", Ts: time.Now().Unix(), Value: temp})
+				tk = mc.Publish(r3events.TOPIC_BACKDOOR_TEMP, 0, true, payload)
+			case "BackdoorInfo(ajar):":
+				payload := r3events.MarshalEvent2ByteOrPanic(r3events.BackdoorAjarUpdate{Shut: incoming_ser_line[1] == "shut", Ts: time.Now().Unix()})
+				tk = mc.Publish(r3events.TOPIC_BACKDOOR_AJAR, 2, true, payload)
+			case "GasLeakAlert":
+				if time.Now().Sub(gasleak_last_time) >= gasleak_min_interval {
+					gasleak_last_time = time.Now()
+					SendSMS(gasleak_smsnotification_destinations, "r3 ALERT: possible GAS LEAK detected")
+				}
+				payload := r3events.MarshalEvent2ByteOrPanic(r3events.GasLeakAlert{Ts: time.Now().Unix()})
+				tk = mc.Publish(r3events.TOPIC_BACKDOOR_GASALERT, 2, false, payload)
+			default:
+				Syslog_.Printf("Received unknown line")
 			}
-			payload := r3events.MarshalEvent2ByteOrPanic(r3events.TemperatureUpdate{Location: "cx", Ts: time.Now().Unix(), Value: temp})
-			tk := c.Publish("realraum/backdoorcx/temperature", 1, false, payload)
-			tk.Wait()
-			if tk.Error() != nil {
-				Syslog_.Print("mqtt publish error", tk.Error())
+			if tk != nil {
+				tk.Wait()
+				if tk.Error() != nil {
+					Syslog_.Print("mqtt publish error", tk.Error())
+				}
 			}
 		case <-t.C:
 			Syslog_.Print("Timeout, no message for 120 seconds")
@@ -73,13 +122,6 @@ func ConnectSerialToMQTT(pub_sock *mqtt.Client, timeout time.Duration) {
 }
 
 func main() {
-	zmqctx, pub_sock := ZmqsInit(pub_addr)
-	if pub_sock == nil {
-		panic("zmq socket creation failed")
-	}
-	defer zmqctx.Term()
-	defer pub_sock.Close()
-
 	if enable_debug_ {
 		LogEnableDebuglog()
 	} else if use_syslog_ {
@@ -87,10 +129,18 @@ func main() {
 		Syslog_.Print("started")
 	}
 
+	options := mqtt.NewClientOptions().AddBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER)).SetAutoReconnect(true).SetProtocolVersion(4).SetCleanSession(true)
+	mqttclient := mqtt.NewClient(options)
+	ctk := mqttclient.Connect()
+	ctk.Wait()
+	if ctk.Error() != nil {
+		Syslog_.Fatal("Error connecting to MQTT broker", ctk.Error())
+	}
+
 	var backoff_exp uint32 = 0
 	for {
 		start_time := time.Now().Unix()
-		ConnectSerialToZMQ(pub_sock, time.Second*120)
+		ConnectSerialToMQTT(mqttclient, time.Second*120)
 		run_time := time.Now().Unix() - start_time
 		if run_time > exponential_backof_activation_threshold {
 			backoff_exp = 0

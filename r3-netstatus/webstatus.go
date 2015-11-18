@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"./spaceapi"
+	pubsub "github.com/btittelbach/pubsub"
 	r3events "github.com/realraum/door_and_sensors/r3events"
-	pubsub "github.com/tuxychandru/pubsub"
 )
 
 type spaceState struct {

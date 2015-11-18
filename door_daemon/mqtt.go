@@ -18,8 +18,7 @@ var re_cardid_ *regexp.Regexp = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
 
 func parseSocketInputLine_State(lines []string, mqttc *mqtt.Client, ts int64) {
 	switch lines[0] {
-	case "reset":
-	case "closed":
+	case "reset", "closed":
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_LOCK, MQTT_QOS_REQCONFIRMATION, false, r3events.MarshalEvent2ByteOrPanic(r3events.DoorLockUpdate{true, ts}))
 	case "opened":
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_LOCK, MQTT_QOS_REQCONFIRMATION, false, r3events.MarshalEvent2ByteOrPanic(r3events.DoorLockUpdate{false, ts}))
