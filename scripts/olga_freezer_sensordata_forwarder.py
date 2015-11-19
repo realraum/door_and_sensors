@@ -146,9 +146,12 @@ def sendEmail(groups, message):
 ######## Sensor ############
 
 def getJSON(url):
-    r = requests.get(url)
-    if r.status_code == 200:
-        return r.json()
+    try:
+        r = requests.get(url)
+        if r.status_code == 200:
+            return r.json()
+    except Exception as e:
+        print("Error getJSON:", e)
     return {}
 
 unreachable_count = 0
@@ -176,7 +179,7 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
             sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts})
     else:
         if unreachable_count > int(uwscfg.sensor_warnunreachablelimit):
-            sendSMS(uwscfg.notify_smsgroups.split(" "),"OLGA Frige Sensor remains unreachable")
+            sendSMS(["xro"],"OLGA Frige Sensor remains unreachable")
             sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable")
         else:
             unreachable_count += 1
