@@ -4,26 +4,16 @@ DIR_RUN=/var/run/tuer
 DOOR_USR=tuer
 DOOR_GRP=nogroup
 
-export TUER_XMPP_STATE_SAVEDIR="/flash/var/lib/r3netstatus/"
-export TUER_XMPP_JID="realrauminfo@realraum.at/Tuer"
 export TUER_XMPP_PASS=""
 export TUER_XMPP_CHATAUTHSTRING=""
-export TUER_R3EVENTS_ZMQBROKER_ADDR="tcp://zmqbroker.realraum.at:4244"
-export TUER_R3EVENTS_ZMQBRAIN_ADDR="tcp://zmqbroker.realraum.at:4245"
+
+export R3_MQTT_BROKER="tcp://mqtt.realraum.at:1883"
+export TUER_DOORCMD_SOCKETPATH="/run/tuer/door_cmd.unixpacket"
+export TUER_XMPP_JID="realrauminfo@realraum.at/Tuer"
+export TUER_XMPP_STATE_SAVEDIR="/var/lib/r3-xmppbot/"
 export TUER_STATUSPUSH_SSH_USER="www-data"
-export TUER_STATUSPUSH_SSH_ID_FILE="/flash/tuer/id_rsa"
+export TUER_STATUSPUSH_SSH_ID_FILE="/home/realraum/.ssh/id_rsa"
 export TUER_STATUSPUSH_SSH_HOST_PORT="vex.realraum.at:2342"
-export TUER_ZMQDOORCMD_ADDR=ipc://${DIR_RUN}/door_cmd.ipc
-export TUER_ZMQDOOREVTS_ADDR="tcp://zmqbroker.realraum.at:4242"
-export TUER_R3EVENTS_ZMQBROKERINPUT_LISTEN_ADDR="tcp://*:4243"
-export TUER_R3EVENTS_ZMQBROKER_LISTEN_ADDR="tcp://*:4244"
-export TUER_R3EVENTS_ZMQBRAIN_LISTEN_ADDR="tcp://*:4245"
-export TUER_ZMQKEYNAMELOOKUP_ADDR="ipc:///run/tuer/door_keyname.ipc"
-export TUER_STATUSPUSH_SSH_ID_FILE="/flash/tuer/id_rsa"
-export TUER_STATUSPUSH_SSH_USER="www-data"
-export TUER_STATUSPUSH_SSH_HOST_PORT="vex.realraum.at:2342"
-export TUER_ZMQDOOREVTS_LISTEN_ADDR="tcp://*:4242"
 export TUER_TTY_PATH="/dev/door"
 export TUER_KEYSFILE_PATH="/flash/keys"
-
 #DEBUG=TRUE

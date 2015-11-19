@@ -1,22 +1,23 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from __future__ import with_statement
-import zmq.utils.jsonapi as json
-import zmq
+
+import json
 import time
 import serial
+import paho.mqtt.client as mqtt
+import traceback
 ######## r3 ZMQ ############
 
-def sendR3Message(socket, structname, datadict):
-    socket.send_multipart([structname, json.dumps(datadict)])
+myclientid_="pillar"
+
+def sendR3Message(client, topic, datadict):
+    client.publish(topic, json.dumps(datadict))
 
 #Start zmq connection to publish / forward sensor data
-def initZMQ():
-    zmqctx = zmq.Context()
-    zmqctx.linger = 0
-    zmqpub = zmqctx.socket(zmq.PUB)
-    zmqpub.connect("tcp://zmqbroker.realraum.at:4243")
-    return zmqpub,zmqctx
+def initMQTT():
+    client = mqtt.Client(client_id=myclientid_)
+    client.connect("mqtt.realraum.at", 1883, 60)
+    return client
     
 #Initialize TTY interface
 def initTTY():
@@ -26,47 +27,44 @@ def initTTY():
     return tty
     
 #listen for sensor data and forward them    
-def handle_sensors(zmqpub,tty):
+def handle_sensors(client,tty):
     sensordata = tty.readline()
     if not sensordata is None and len(sensordata) > 2:
         sensordata = sensordata[:-2] 
-        if sensordata == 'PanicButton':
-            sendR3Message(zmqpub,"BoreDoomButtonPressEvent",{"Ts":int(time.time())})
-        elif sensordata == 'movement':
-            sendR3Message(zmqpub, "MovementSensorUpdate", {"Sensorindex":0, "Ts":int(time.time())})
+        if sensordata == b'PanicButton':
+            sendR3Message(client,"realraum/"+myclientid_+"/boredoombuttonpressed",{"Ts":int(time.time())})
+        elif sensordata == b'movement':
+            sendR3Message(client, "realraum/"+myclientid_+"/movement", {"Sensorindex":0, "Ts":int(time.time())})
 
-    tty.write('*')
+    tty.write(b'*')
     sensordata = tty.readline()
     sensordata = sensordata[:-2]
     temp = float(sensordata[9:])
     if temp != 0:
-        sendR3Message(zmqpub, "TempSensorUpdate", {"Sensorindex":0, "Value":temp, "Ts":int(time.time())})
+        sendR3Message(client, "realraum/"+myclientid_+"/temperature", {"Location":"LoTHR", "Value":temp, "Ts":int(time.time())})
 
-    tty.write('?')
+    tty.write(b'?')
     sensordata = tty.readline()
     sensordata = sensordata[:-2]
     light = int(sensordata[9:])
-    sendR3Message(zmqpub, "IlluminationSensorUpdate", {"Sensorindex":0, "Value":light, "Ts":int(time.time())})
+    sendR3Message(client, "realraum/"+myclientid_+"/illumination", {"Location":"LoTHR", "Value":light, "Ts":int(time.time())})
 
 if __name__ == '__main__':
     while True:
         tty = None
-        zmqpub = None
-        zmqctx = None
+        client = None
         try:
             tty = initTTY()
             ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
             ## otherwise we continously try to establish a zmq connection just to close it again
-            zmqpub,zmqctx = initZMQ()
+            client = initMQTT()
             while True:
-                handle_sensors(zmqpub,tty)
-        except Exception, e:
-            print "Exception:", e
+                handle_sensors(client,tty)
+        except Exception as e:
+            traceback.print_exc()
         finally:
-            if isinstance(tty,file):
+            if tty:
                 tty.close()
-            if isinstance(zmqpub,zmq.Socket):
-                zmqpub.close()
-            if isinstance(zmqctx,zmq.Context):
-                zmqctx.destroy()
+            if isinstance(client,mqtt.Client):
+                client.disconnect()
             time.sleep(5)
