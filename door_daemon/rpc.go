@@ -8,7 +8,7 @@ import (
 )
 
 type CmdAndReply struct {
-	cmd      string
+	cmd      SerialLine
 	backchan chan SerialLine
 	errchan  chan error
 }
@@ -17,7 +17,7 @@ type Frontdoor struct {
 	ReqChan chan CmdAndReply
 }
 
-func (r *Frontdoor) SendCmd(cmd_w_args string, reply *SerialLine) error {
+func (r *Frontdoor) SendCmd(cmd_w_args SerialLine, reply *SerialLine) error {
 	backchan := make(chan SerialLine)
 	errchan := make(chan error)
 	r.ReqChan <- CmdAndReply{cmd_w_args, backchan, errchan}

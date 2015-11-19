@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/hishboy/gocommons/lang"
@@ -47,7 +46,9 @@ func main() {
 
 	// RPC Server
 	send_me_cmds := make(chan CmdAndReply, 10)
+	os.Remove(EnvironOrDefault("TUER_DOORCMD_SOCKETPATH", DEFAULT_TUER_DOORCMD_SOCKETPATH))
 	go StartRPCServer(send_me_cmds, EnvironOrDefault("TUER_DOORCMD_SOCKETPATH", DEFAULT_TUER_DOORCMD_SOCKETPATH))
+	defer os.Remove(EnvironOrDefault("TUER_DOORCMD_SOCKETPATH", DEFAULT_TUER_DOORCMD_SOCKETPATH))
 
 	knstore, err := NewKeyNickStore(EnvironOrDefault("DEFAULT_TUER_KEYSFILE_PATH", DEFAULT_TUER_KEYSFILE_PATH))
 	if err != nil {
@@ -55,7 +56,7 @@ func main() {
 	}
 
 	// Connection to Door Firmware
-	serial_wr, serial_rd, err := OpenAndHandleSerial(EnvironOrDefault("TUER_TTY_PATH", DEFAULT_TUER_TTY_PATH), 0)
+	serial_wr, serial_rd, err := OpenAndHandleSerial(EnvironOrDefault("TUER_TTY_PATH", DEFAULT_TUER_TTY_PATH), 115200)
 	defer close(serial_wr)
 	if err != nil {
 		panic(err)
@@ -73,7 +74,7 @@ func main() {
 	timeout_timer := time.NewTimer(0)
 	timeout_timer.Stop()
 	waiting_for_reply := lang.NewQueue()
-
+	HandleCommand([]string{"status"}, serial_wr, serial_rd)
 	for {
 		select {
 		case incoming_ser_line, is_notclosed := <-serial_rd:
@@ -90,6 +91,7 @@ func main() {
 				}
 				workaround_in_chan <- incoming_ser_line
 				publish_line_as_event_to_mqtt <- incoming_ser_line
+			} else {
 				Syslog_.Print("serial device disappeared, exiting")
 				os.Exit(1)
 			}
@@ -107,27 +109,26 @@ func main() {
 				Syslog_.Print("rpc chan closed, exiting")
 				os.Exit(2)
 			}
-			incoming_request := strings.Fields(incoming_cmd.cmd)
-			if incoming_request[0] == "log" {
-				if len(incoming_request) < 2 {
+			if incoming_cmd.cmd[0] == "log" {
+				if len(incoming_cmd.cmd) < 2 {
 					incoming_cmd.errchan <- errors.New("argument missing")
 					close(incoming_cmd.errchan)
 					close(incoming_cmd.backchan)
 					continue
 				}
-				Syslog_.Printf("Log: %s", incoming_request[1:])
+				Syslog_.Printf("Log: %s", incoming_cmd.cmd[1:])
 				incoming_cmd.backchan <- SerialLine{"Ok"}
 				close(incoming_cmd.errchan)
 				close(incoming_cmd.backchan)
 				continue
 			}
-			Syslog_.Printf("%s", incoming_request)
-			if err := HandleCommand(incoming_request, serial_wr, serial_rd); err != nil {
+			Syslog_.Printf("%s", incoming_cmd.cmd)
+			if err := HandleCommand(incoming_cmd.cmd, serial_wr, serial_rd); err != nil {
 				incoming_cmd.errchan <- err
 				close(incoming_cmd.errchan)
 				close(incoming_cmd.backchan)
 			} else {
-				publish_line_as_event_to_mqtt <- incoming_request
+				publish_line_as_event_to_mqtt <- incoming_cmd.cmd
 				waiting_for_reply.Push(incoming_cmd)
 				timeout_timer.Reset(3 * time.Second)
 			}

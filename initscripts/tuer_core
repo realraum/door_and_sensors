@@ -9,7 +9,7 @@
 # Default-Stop:      0 1 6
 ### END INIT INFO
 
-EXE_DOOR=/flash/tuer/door_daemon_zmq
+EXE_DOOR=/flash/tuer/door_daemon
 DOOR_DEV=/dev/door
 
 . /etc/default/tuer
@@ -32,12 +32,12 @@ chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
 case "$1" in
 start)
   log_daemon_msg "Starting door daemon" "door_daemon_zmq"
-  start-stop-daemon --start --quiet --pidfile $PIDFILE_DOOR -c $DOOR_USR -m -g $DOOR_GRP -b --name door_daemon_zmq --startas $EXE_DOOR -- --syslog
+  start-stop-daemon --start --quiet --pidfile $PIDFILE_DOOR -c $DOOR_USR -m -g $DOOR_GRP -b --name door_daemon --startas $EXE_DOOR -- --syslog
   log_end_msg $?
   ;;
 stop)
   log_daemon_msg "Stopping door daemon" "door_daemon_zmq"
-  start-stop-daemon --stop --quiet --pidfile $PIDFILE_DOOR -m --name door_daemon_zmq
+  start-stop-daemon --stop --quiet --pidfile $PIDFILE_DOOR -m --name door_daemon
   log_end_msg $?
         ;;
 restart)
