@@ -107,6 +107,7 @@ type MovementSensorUpdate struct {
 
 type LaserCutter struct {
 	IsHot bool
+	Who   string
 	Ts    int64
 }
 

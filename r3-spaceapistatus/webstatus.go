@@ -112,6 +112,9 @@ func EventToWeb(events chan interface{}) {
 		case r3events.UPSPowerLoss:
 			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery))
 			publishStateToWeb()
+		case r3events.LaserCutter:
+			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "LasercutterHot", event.IsHot))
+			publishStateToWeb()
 		}
 	}
 }

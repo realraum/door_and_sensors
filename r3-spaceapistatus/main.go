@@ -55,7 +55,17 @@ func main() {
 
 	// --- receive and distribute events ---
 	ticker := time.NewTicker(time.Duration(6) * time.Minute)
-	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{"realraum/+/temperature", "realraum/+/illumination", "realraum/metaevt/#", "realraum/frontdoor/+", "realraum/+/ajar", "realraum/+/overtemp", "realraum/+/boredoombuttonpressed", "realraum/+/gasalert", "realraum/+/powerloss"})
+	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{
+		"realraum/+/temperature",
+		"realraum/+/illumination",
+		"realraum/metaevt/#",
+		"realraum/frontdoor/+",
+		"realraum/+/ajar",
+		"realraum/+/overtemp",
+		"realraum/+/boredoombuttonpressed",
+		"realraum/+/gasalert",
+		"realraum/+/powerloss",
+		"realraum/lasercutter/cardpresent"})
 	for {
 		select {
 		case msg := <-incoming_message_chan:
