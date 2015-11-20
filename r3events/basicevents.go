@@ -65,7 +65,7 @@ type DustSensorUpdate struct {
 
 type RelativeHumiditySensorUpdate struct {
 	Location string
-	Percent  int
+	Percent  float64
 	Ts       int64
 }
 type UPSPowerLoss struct {
