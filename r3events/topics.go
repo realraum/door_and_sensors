@@ -44,5 +44,6 @@ const (
 	TOPIC_GW_STATS               string = TOPIC_R3 + CLIENTID_GW + "/NetGWStatUpdate"
 	TOPIC_LASER_CARD             string = TOPIC_R3 + CLIENTID_LASERCUTTER + "/cardpresent"
 	ACT_RF433_SEND               string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/sendcode3byte"
-	ACT_YAMAHA_SEND              string = TOPIC_ACTIONS + ACTDESTID_YAMAHA + "/sendnamedcode"
+	ACT_RF433_SETDELAY           string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/setdelay"
+	ACT_YAMAHA_SEND              string = TOPIC_ACTIONS + ACTDESTID_YAMAHA + "/ircmd"
 )

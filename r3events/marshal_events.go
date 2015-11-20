@@ -148,12 +148,12 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, cat
 		category = "sensors"
 		event = *newevent
 	case ACT_YAMAHA_SEND:
-		newevent := new(LaserCutter)
+		newevent := new(YamahaIRCmd)
 		err = json.Unmarshal(data, newevent)
 		category = "actions"
 		event = *newevent
 	case ACT_RF433_SEND:
-		newevent := new(LaserCutter)
+		newevent := new(SendRF433Code)
 		err = json.Unmarshal(data, newevent)
 		category = "actions"
 		event = *newevent
@@ -162,6 +162,12 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, cat
 		err = json.Unmarshal(data, newevent)
 		category = "sensors"
 		event = *newevent
+	case ACT_RF433_SETDELAY:
+		newevent := new(SetRF433Delay)
+		err = json.Unmarshal(data, newevent)
+		category = "actions"
+		event = *newevent
+
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown type")
