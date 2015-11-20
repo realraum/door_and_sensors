@@ -27,11 +27,11 @@ logger.addHandler(lh_stderr)
 class UWSConfig:
   def __init__(self,configfile=None):
     self.configfile=configfile
-    self.config_parser=configparser.ConfigParser()
+    self.config_parser=configparser.ConfigParser(interpolation=None)
     #make option variable names case sensitive
     self.config_parser.optionxform = str
     self.config_parser.add_section('cmdlog')
-    self.config_parser.set('cmdlog','cmd',"logger %%ARG%%")
+    self.config_parser.set('cmdlog','cmd',"logger %ARGS%")
     self.config_parser.set('cmdlog','timeout',"2.0")
     self.config_parser.set('cmdlog','delay',"0.0")
     self.config_parser.set('cmdlog','type',"shellcmd")
@@ -125,7 +125,7 @@ def runRemoteCommand(remote_host,remote_shell,user,args=[]):
   sshp = None
   try:
     cmd = "ssh -i /flash/tuer/id_rsa -o PasswordAuthentication=no -o StrictHostKeyChecking=no %RHOST% %RSHELL%"
-    cmd = cmd.replace("%RHOST%",remote_host).replace("%RSHELL%",remote_shell).replace("%%ARG%%", " ".join(args)).replace("%USER%", user)
+    cmd = cmd.replace("%RHOST%",remote_host).replace("%RSHELL%",remote_shell).replace("%ARGS%", " ".join(args)).replace("%USER%", user)
     logging.debug("runRemoteCommand: Executing: "+cmd)
     sshp = subprocess.Popen(cmd.split(" "), bufsize=1024, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     logging.debug("runRemoteCommand: pid %d: running=%d" % (sshp.pid,sshp.poll() is None))
@@ -153,7 +153,7 @@ def runRemoteCommand(remote_host,remote_shell,user,args=[]):
 
 def runShellCommand(cmd,ptimeout,stdinput,user,args=[]):
   global uwscfg
-  cmd = cmd.replace("%ARG%"," ".join(args)).replace("%USER%", user)
+  cmd = cmd.replace("%ARGS%"," ".join(args)).replace("%USER%", user)
   if ptimeout is None or float(ptimeout) > 45:
     ptimeout = 45
   else:
@@ -290,8 +290,8 @@ def onMqttMessage(client, userdata, msg):
         unixts_last_movement=time.time()
         if (time.time() - unixts_last_presence) <= float(uwscfg.tracker_secs_presence_before_movement_to_launch_event):
             unixts_last_presence=0
-        if last_status:
-            playThemeOf(user=last_user, fallback_default="DEFAULT")
+            if last_status:
+                playThemeOf(user=last_user, fallback_default="DEFAULT")
         return
     elif topic.endswith("/problemevt") and "Severity" in dictdata:
         playThemeOf(user="ERROR", fallback_default="nothing")
@@ -327,6 +327,7 @@ while True:
             ("realraum/metaevt/presence",1),
             ("realraum/+/boredoombuttonpressed",1),
             ("realraum/+/ajar",1),
+            ("realraum/pillar/movement",1),
             ("realraum/+/problemevt",1),
             ("realraum/",1),
             ])

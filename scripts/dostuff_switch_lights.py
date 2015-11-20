@@ -38,7 +38,7 @@ def isTheSunDown():
 class UWSConfig:
   def __init__(self,configfile=None):
     self.configfile=configfile
-    self.config_parser=configparser.ConfigParser()
+    self.config_parser=configparser.ConfigParser(interpolation=None)
     #make option variable names case sensitive
     self.config_parser.optionxform = str
     self.config_parser.add_section('debug')
@@ -261,12 +261,12 @@ def decodeR3Message(topic, data):
         return (topic, json.loads(data.decode("utf-8")))
     except Exception as e:
         logging.debug("decodeR3Message:"+str(e))
-        return ("",{})  
+        return ("",{})
 
 def touchURL(url):
   try:
-    urllib.urlcleanup()
-    f = urllib.request.urlopen(url, proxies={})
+    urllib.request.urlcleanup()
+    f = urllib.request.urlopen(url)
     rq_response = f.read()
     logging.debug("touchURL: url: "+url)
     f.close()
@@ -279,7 +279,7 @@ def onMqttMessage(client, userdata, msg):
   if msg.retain:
     return # do not act on retained messages    
   (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
-  logging.debug("Got data: " + structname + ":"+ str(dictdata))
+  logging.debug("Got data: " + topic + ":"+ str(dictdata))
   if topic.endswith("/presence") and "Present" in dictdata:
     if dictdata["Present"] and last_status != dictdata["Present"]:
       #someone just arrived
@@ -293,8 +293,8 @@ def onMqttMessage(client, userdata, msg):
       #everybody left
       touchURL("http://localhost/cgi-bin/mswitch.cgi?couchred=0&all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
       time.sleep(2)
-      touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=all")
-      touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=couchred")
+      #touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=all")
+      #touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=couchred")
       touchURL("http://localhost/cgi-bin/mswitch.cgi?ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
       touchURL("http://localhost/cgi-bin/mswitch.cgi?all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
 
@@ -308,7 +308,7 @@ def exitHandler(signum, frame):
 signal.signal(signal.SIGINT, exitHandler)
 signal.signal(signal.SIGQUIT, exitHandler)
 
-logging.info("Door Status Listener 'PlaySound' started")
+logging.info("Door Status Listener 'DoStuff like switch on light' started")
 
 if len(sys.argv) > 1:
   uwscfg = UWSConfig(sys.argv[1])
