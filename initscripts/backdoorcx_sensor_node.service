@@ -1,16 +1,16 @@
 [Unit]
 Description=r3events meta event maker
-
-[Service]
-#Nice=10
 Wants=network.target
 Wants=mosquitto.service
 After=mosquitto.service
 OnFailure=xmppnotifyxro@backdoorcx_sensor_node.service
 
+[Service]
+#Nice=10
 Type=simple
 Restart=always
 WorkingDirectory=/home/realraum
+EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
 ExecStart=/home/realraum/bin/backdoorcx_sensor_node --debug
 SyslogIdentifier=%i
 
