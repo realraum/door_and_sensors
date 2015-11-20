@@ -1,0 +1,18 @@
+[Unit]
+Description=r3events meta event maker
+
+[Service]
+#Nice=10
+Wants=network.target
+Wants=mosquitto.service
+#After=mosquitto.service
+OnFailure=xmppnotifyxro@olga_freezer_sensordata_forwarder.service
+
+Type=simple
+Restart=always
+WorkingDirectory=/home/realraum
+ExecStart=/home/realraum/bin/olga_freezer_sensordata_forwarder.py
+SyslogIdentifier=%i
+
+[Install]
+WantedBy=multi-user.target

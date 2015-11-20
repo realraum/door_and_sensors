@@ -1,0 +1,17 @@
+[Unit]
+Description=r3events meta event maker
+
+[Service]
+#Nice=10
+Wants=network.target
+Wants=mosquitto.service
+After=mosquitto.service r3-metaevt-maker.service
+OnFailure=xmppnotifyxro@r3-spaceapistatus.service
+
+Type=simple
+Restart=always
+WorkingDirectory=/home/realraum
+ExecStart=/home/realraum/bin/r3-spaceapistatus --debug
+
+[Install]
+WantedBy=multi-user.target
