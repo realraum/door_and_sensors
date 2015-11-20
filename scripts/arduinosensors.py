@@ -127,8 +127,8 @@ if __name__ == '__main__':
             while True:
                 if time.time() - last_get_sensor_data_ts > query_sensor_intervall_:
                     getAndPublishDHT11SensorValues(client)
-                    tty.write(b'?')
-                    #tty.write(b'*')
+                    tty.write(b'?')  # query illumination sensor
+                    #tty.write(b'*')  # query temp sensor
                     last_get_sensor_data_ts = time.time()
                 handle_arduino_output(client,tty)
                 client.loop()
