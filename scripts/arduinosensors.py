@@ -49,8 +49,8 @@ yamaha_arudino_cmds_ = {
     ,"ymhp5":b")"
 }
 
-def sendR3Message(client, topic, datadict):
-    client.publish(topic, json.dumps(datadict))
+def sendR3Message(client, topic, datadict, qos=0, retain=False):
+    client.publish(topic, json.dumps(datadict), qos, retain)
 
 def decodeR3Payload(payload):
     try:
@@ -75,10 +75,10 @@ def getAndPublishDHT11SensorValues(client):
 
     if data[:0+5] == "Temp=":
         temp = float(data[5:5+4])
-        sendR3Message(client,"realraum/"+myclientid_+"/temperature",{"Location":"LoTHR","Value":temp,"Ts":ts})
+        sendR3Message(client,"realraum/"+myclientid_+"/temperature",{"Location":"LoTHR","Value":temp,"Ts":ts}, retain=True)
     if data[12:12+9] == "Humidity=":
         humidity = float(data[21:21+4])
-        sendR3Message(client,"realraum/"+myclientid_+"/relhumidity",{"Location":"LoTHR","Percent":humidity,"Ts":ts})
+        sendR3Message(client,"realraum/"+myclientid_+"/relhumidity",{"Location":"LoTHR","Percent":humidity,"Ts":ts}, retain=True)
 
 def onMQTTMessage(client, userdata, msg):
     #print(msg.topic,msg.payload)
@@ -127,7 +127,7 @@ def handle_arduino_output(client,tty):
             sendR3Message(client, "realraum/"+myclientid_+"/movement", {"Sensorindex":0, "Ts":int(time.time())})
         elif sensordata[:9] == b"Sensor ?:":
             light = int(sensordata[9:])
-            sendR3Message(client, "realraum/"+myclientid_+"/illumination", {"Location":"LoTHR", "Value":light, "Ts":int(time.time())})
+            sendR3Message(client, "realraum/"+myclientid_+"/illumination", {"Location":"LoTHR", "Value":light, "Ts":int(time.time())}, retain=True)
         elif sensordata[:9] == b"Sensor *:":
             temp = float(sensordata[9:])
             sendR3Message(client, "realraum/"+myclientid_+"/temperature", {"Location":"LoTHR", "Value":temp, "Ts":int(time.time())})
