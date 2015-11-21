@@ -171,15 +171,73 @@ func (nsi SpaceInfo) AddProjectsURLs(projecturls []string) SpaceInfo {
 	return nsi
 }
 
-func (nsi SpaceInfo) AddSpaceContactInfo(phone, irc, email, ml, jabber, issuemail string) SpaceInfo {
-	nsi["contact"] = SpaceInfo{
-		"phone":      phone,
-		"email":      email,
-		"ml":         ml,
-		"jabber":     jabber,
-		"issue_mail": issuemail}
-	nsi["issue_report_channels"] = [3]string{"issue_mail", "email", "ml"}
+func (nsi SpaceInfo) SetSpaceContactInfo(channel, info string, is_issue_report_channel bool) SpaceInfo {
+	if nsi["contact"] == nil {
+		nsi["contact"] = make([]SpaceInfo, 1)
+	}
+	contact := nsi["contact"].(SpaceInfo)
+	contact[channel] = info
+	if is_issue_report_channel && (channel == "email" || channel == "issue_mail" || channel == "twitter" || channel == "ml") {
+		if nsi["issue_report_channels"] == nil {
+			nsi["issue_report_channels"] = []string{channel}
+		} else {
+			nsi["issue_report_channels"] = append(nsi["issue_report_channels"].([]string), channel)
+		}
+	}
 	return nsi
+}
+
+func (nsi SpaceInfo) SetSpaceContactPhone(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("phone", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactSip(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("sip", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactIRC(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("irc", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactTwitter(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("twitter", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactFaceBook(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("facebook", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactGooglePlus(info string) SpaceInfo {
+	if nsi["contact"] == nil {
+		nsi["contact"] = make([]SpaceInfo, 1)
+	}
+	contact := nsi["contact"].(SpaceInfo)
+	contact["google"] = SpaceInfo{"plus": info}
+	return nsi
+}
+
+func (nsi SpaceInfo) SetSpaceContactIdentica(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("identica", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactFourSquare(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("foursquare", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactEmail(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("email", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactMailinglist(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("ml", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactJabber(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("jabber", info, is_issue_report_channel)
+}
+
+func (nsi SpaceInfo) SetSpaceContactIssueMail(info string, is_issue_report_channel bool) SpaceInfo {
+	return nsi.SetSpaceContactInfo("issue_mail", info, is_issue_report_channel)
 }
 
 func (nsi SpaceInfo) AddSpaceFeed(feedtype, url string) SpaceInfo {

@@ -26,9 +26,11 @@ var (
 
 func init() {
 	spaceapidata.AddSpaceFeed("calendar", "http://grical.realraum.at/s/?query=!realraum&view=rss")
-	spaceapidata.AddSpaceFeed("blog", "https://plus.google.com/113737596421797426873")
+	spaceapidata.AddSpaceFeed("blog", "https://wp.realraum.at/feed/")
 	spaceapidata.AddSpaceFeed("wiki", "http://realraum.at/wiki")
-	spaceapidata.AddSpaceContactInfo("-", "irc://irc.oftc.net/#realraum", "realraum@realraum.at", "realraum@realraum.at", "realraum@realraum.at", "vorstand@realraum.at")
+	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", false).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
+	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactTwitter("@realraum", false)
+	spaceapidata.SetSpaceContactGooglePlus("https://plus.google.com/+RealraumAt/").SetSpaceContactJabber("realraum@realraum.at", false)
 	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "http://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://synbiota.com/projects/openbiolabgraz/summary", "https://plus.google.com/+RealraumAt", "http://git.realraum.at"})
 	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
 		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
