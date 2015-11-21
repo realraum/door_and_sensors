@@ -8,9 +8,9 @@ ConditionFileIsExecutable=/home/realraum/bin/xmpp_notify_xro.py
  
 [Service]
 Type=oneshot
-#ExecStart=/bin/sh -c "/usr/bin/systemctl --user status -n70 %i | /home/realraum/bin/xmpp_notify_xro.py %i"
-ExecStart=/bin/sh -c "/usr/bin/systemctl --user status -n20 %i.service | /home/realraum/bin/xmpp_notify_xro.py %i"
-#ExecStart=/bin/sh -c "/usr/bin/journalctl --user -n70 -e | /home/realraum/bin/xmpp_notify_xro.py %i"
+#ExecStart=/bin/sh -c "/bin/systemctl --user status -n70 %i | /home/realraum/bin/xmpp_notify_xro.py %i"
+ExecStart=/bin/sh -c "/bin/systemctl --user status -n20 %i.service | /home/realraum/bin/xmpp_notify_xro.py %i"
+#ExecStart=/bin/sh -c "/bin/journalctl --user -n70 -e | /home/realraum/bin/xmpp_notify_xro.py %i"
 ExecStart=/bin/sh -c "tail /var/log/syslog -n70 | /home/realraum/bin/xmpp_notify_xro.py %i"
 
 [Install]
