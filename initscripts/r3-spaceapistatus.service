@@ -1,5 +1,5 @@
 [Unit]
-Description=r3events meta event maker
+Description=SpaceApi Publisher
 Wants=network.target
 Wants=mosquitto.service
 After=mosquitto.service r3-metaevt-maker.service

@@ -1,5 +1,5 @@
 [Unit]
-Description=r3events meta event maker
+Description=OlgaFreezer SMS Notifier and SensorData Forwarder
 Wants=network.target
 Wants=mosquitto.service
 #After=mosquitto.service

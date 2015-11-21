@@ -1,5 +1,5 @@
 [Unit]
-Description=r3events meta event maker
+Description=BackdoorCx Sensor Node
 Wants=network.target
 Wants=mosquitto.service
 After=mosquitto.service
