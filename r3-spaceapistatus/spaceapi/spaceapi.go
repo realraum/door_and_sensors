@@ -52,6 +52,17 @@ func MakeIlluminationSensor(name, where, unit string, value int64) SpaceInfo {
 	return SpaceInfo{"ext_illumination": listofwhats}
 }
 
+func MakeHumiditySensor(name, where, unit string, value float64) SpaceInfo {
+	listofwhats := make([]SpaceInfo, 1)
+	listofwhats[0] = SpaceInfo{
+		"value":       value,
+		"unit":        unit,
+		"location":    where,
+		"name":        name,
+		"description": "relative humidity level"}
+	return SpaceInfo{"humidity": listofwhats}
+}
+
 func MakePowerConsumptionSensor(name, where, unit string, value int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
@@ -112,7 +123,7 @@ func MakeLasercutterHotSensor(name, where string, value bool) SpaceInfo {
 		"location":    where,
 		"name":        name,
 		"description": "Indicates if the lasercutter is in use"}
-	return SpaceInfo{"lasercutter_hot": listofwhats}
+	return SpaceInfo{"ext_lasercutter_hot": listofwhats}
 }
 
 func (nsi SpaceInfo) MergeInSensor(sensorinfo SpaceInfo) {
@@ -147,6 +158,17 @@ func (nsi SpaceInfo) MergeInSensor(sensorinfo SpaceInfo) {
 			}
 		}
 	}
+}
+
+func (nsi SpaceInfo) AddProjectsURLs(projecturls []string) SpaceInfo {
+	if nsi["projects"] == nil {
+		nsi["projects"] = projecturls
+		//~ listofwhats := make([]SpaceInfo, 1)
+		//~ listofwhats[0] = sensortype.(SpaceInfo)
+		//~ sensorobj := SpaceInfo{what: listofwhats}
+		//~ nsi["sensors"] = sensorobj
+	}
+	return nsi
 }
 
 func (nsi SpaceInfo) AddSpaceContactInfo(phone, irc, email, ml, jabber, issuemail string) SpaceInfo {

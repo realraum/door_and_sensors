@@ -58,6 +58,7 @@ func main() {
 	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{
 		"realraum/+/temperature",
 		"realraum/+/illumination",
+		"realraum/+/relhumidity",
 		"realraum/metaevt/#",
 		"realraum/frontdoor/+",
 		"realraum/+/ajar",

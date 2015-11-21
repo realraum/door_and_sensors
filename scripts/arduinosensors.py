@@ -67,7 +67,7 @@ def getAndPublishDHT11SensorValues(client):
     data=""
     ts=0
     try:
-        ts = os.path.getmtime(dht_sensordata_file_)
+        ts = int(os.path.getmtime(dht_sensordata_file_))
         with open(dht_sensordata_file_,"r") as dhtf:
             data = dhtf.read()
     except:

@@ -4,7 +4,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	"./spaceapi"
@@ -26,7 +28,14 @@ func init() {
 	spaceapidata.AddSpaceFeed("calendar", "http://grical.realraum.at/s/?query=!realraum&view=rss")
 	spaceapidata.AddSpaceFeed("blog", "https://plus.google.com/113737596421797426873")
 	spaceapidata.AddSpaceFeed("wiki", "http://realraum.at/wiki")
-	spaceapidata.AddSpaceContactInfo("+43780700888524", "irc://irc.oftc.net/#realraum", "realraum@realraum.at", "realraum@realraum.at", "realraum@realraum.at", "vorstand@realraum.at")
+	spaceapidata.AddSpaceContactInfo("-", "irc://irc.oftc.net/#realraum", "realraum@realraum.at", "realraum@realraum.at", "realraum@realraum.at", "vorstand@realraum.at")
+	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "http://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://synbiota.com/projects/openbiolabgraz/summary", "https://plus.google.com/+RealraumAt", "http://git.realraum.at"})
+	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
+		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
+		if err == nil {
+			spaceapidata.MergeInSensor(spaceapi.MakeMemberCountSensor("Member Count", "realraum", int64(total_member_count)))
+		}
+	}
 }
 
 func updateStatusString() {
@@ -102,7 +111,9 @@ func EventToWeb(events chan interface{}) {
 		case r3events.TempSensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%s", event.Location), event.Location, event.Value))
 		case r3events.IlluminationSensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photodiode", "LoTHR", "1024V/5V", event.Value))
+			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value))
+		case r3events.RelativeHumiditySensorUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor("DHT11Humidity", event.Location, "%", event.Percent))
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
 			publishStateToWeb()
