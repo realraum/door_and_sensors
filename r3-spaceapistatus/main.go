@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
-	r3events "github.com/realraum/door_and_sensors/r3events"
+	//r3events "github.com/realraum/door_and_sensors/r3events"
+	r3events "../r3events"
 )
 
 type SpaceState struct {
@@ -60,8 +61,8 @@ func main() {
 		"realraum/+/illumination",
 		"realraum/+/relhumidity",
 		"realraum/metaevt/#",
-		"realraum/frontdoor/+",
-		"realraum/+/ajar",
+		r3events.TOPIC_R3 + r3events.CLIENTID_BACKDOOR + "/+",
+		r3events.TOPIC_R3 + r3events.CLIENTID_FRONTDOOR + "/+",
 		"realraum/+/overtemp",
 		"realraum/+/boredoombuttonpressed",
 		"realraum/+/gasalert",

@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"./spaceapi"
-	r3events "github.com/realraum/door_and_sensors/r3events"
+	//r3events "github.com/realraum/door_and_sensors/r3events"
+	r3events "../r3events"
 )
 
 type spaceState struct {
@@ -126,7 +127,7 @@ func EventToWeb(events chan interface{}) {
 			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery))
 			publishStateToWeb()
 		case r3events.LaserCutter:
-			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "LasercutterHot", event.IsHot))
+			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
 			publishStateToWeb()
 		}
 	}
