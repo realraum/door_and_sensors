@@ -11,6 +11,7 @@ import requests
 import threading
 import smtplib
 import paho.mqtt.client as mqtt
+import subprocess
 
 
 ######## Config File Data Class ############
@@ -35,7 +36,7 @@ class UWSConfig:
     self.config_parser.set('notify','smsgroups',"olgacore xro")
     self.config_parser.add_section('sensor')
     self.config_parser.set('sensor','sampleinterval',"8")
-    self.config_parser.set('sensor','uri',"http://192.168.33.11/")
+    self.config_parser.set('sensor','uri',"http://olgafreezer.realraum.at/")
     self.config_parser.set('sensor','warnunreachablelimit',"6")
     self.config_parser.set('sensor','tempjsonkey',"temp")
     self.config_parser.set('sensor','warnjsonkey',"warnabove")
@@ -129,16 +130,19 @@ class UWSConfig:
 
 ######## r3 MQTT ############
 
-def sendR3Message(client, topic, datadict):
-    client.publish(topic, json.dumps(datadict))
+def sendR3Message(client, topic, datadict, qos=0, retain=False):
+    client.publish(topic, json.dumps(datadict), qos, retain)
 
 def sendSMS(groups, message):
     if not isinstance(groups,list):
         groups=[groups]
     print(groups,message)
-    return
-    smsproc = subprocess.Popen(["/usr/local/bin/send_group_sms.sh"] + groups)
-    smsproc.communicate(message)
+    smsproc = subprocess.Popen(["/usr/local/bin/send_group_sms.sh"] + groups,stdin=subprocess.PIPE, universal_newlines=True)
+    try:
+        smsproc.communicate(message, timeout=6)
+    except subprocess.TimeoutExpired:
+        smsproc.kill()
+    print("done")
 
 def sendEmail(groups, message):
     pass
@@ -155,8 +159,9 @@ def getJSON(url):
     return {}
 
 unreachable_count = 0
+warned_about = {}
 def queryTempMonitorAndForward(uwscfg, mqttclient):
-    global unreachable_count
+    global unreachable_count, warned_about
     jsondict = getJSON(uwscfg.sensor_uri)
     ts = int(time.time())
     if "sensors" in jsondict:
@@ -167,20 +172,25 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
             try:
                 warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
             except:
-                warntemp = -9999            
-            print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["scale"]))
+                warntemp = -9999
+            print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
             if isinstance(tsd[uwscfg.sensor_warnjsonkey],float) and temp > warntemp:
-                print("ALARM ALARM %d", tsd["busid"])
-                msg="Sensor #%d aka %s is @%f °C" % (tsd["busid"], tsd["desc"], tsd["temp"])
-                #send warnings
-                sendSMS(uwscfg.notify_smsgroups.split(" "),msg)
-                sendR3Message(mqttclient, "realraum/olgafreezer/overtemp", {"Location":loc, "Value":temp,"Threshold":warntemp, "Ts":ts})
-                sendEmail(uwscfg.notify_emails.split(" "),msg)
-            sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts})
+                print("ALARM ALARM %d" % tsd["busid"])
+                if not loc in warned_about or warned_about[loc] == False:
+                    warned_about[loc]=True
+                    msg="Sensor #%d aka %s is @%f degC" % (tsd["busid"], tsd["desc"], tsd["temp"])
+                    #send warnings
+                    sendSMS(uwscfg.notify_smsgroups.split(" "),msg)
+                    sendR3Message(mqttclient, "realraum/olgafreezer/overtemp", {"Location":loc, "Value":temp,"Threshold":warntemp, "Ts":ts}, qos=2, retain=False)
+                    sendEmail(uwscfg.notify_emails.split(" "),msg)
+            else:
+                warned_about[loc]=False
+            sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
     else:
         if unreachable_count > int(uwscfg.sensor_warnunreachablelimit):
             sendSMS(["xro"],"OLGA Frige Sensor remains unreachable")
             sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable")
+            sendR3Message(mqttclient, "realraum/olgafreezer/sensorlost", {"Topic":"realraum/olgafreezer/temperature", "LastSeen":ts - int(uwscfg.sensor_sampleinterval)*int(uwscfg.sensor_warnunreachablelimit), "Ts":ts})
         else:
             unreachable_count += 1
 
