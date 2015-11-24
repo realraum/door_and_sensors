@@ -110,6 +110,7 @@ func main() {
 		"realraum/+/overtemp",
 		"realraum/+/boredoombuttonpressed",
 		"realraum/+/gasalert",
+		"realraum/+/sensorlost",
 		"realraum/+/powerloss"}
 	incoming_message_chan := ps.Sub("mqttrawmessages")
 	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters)
@@ -119,7 +120,7 @@ func main() {
 	for {
 		select {
 		case msg := <-incoming_message_chan:
-			evnt, _, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
+			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			if err == nil {
 				ps.Pub(evnt, "r3events")
 			}

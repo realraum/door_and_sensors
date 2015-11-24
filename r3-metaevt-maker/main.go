@@ -79,7 +79,7 @@ func main() {
 
 	got_events_chan := SubscribeMultipleAndForwardToChannel(mqttc, mqtt_subscription_filters)
 	for msg := range got_events_chan {
-		evnt, _, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
+		evnt, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
 		if err == nil {
 			ps.Pub(evnt, "r3events")
 			ps.Pub(msg.Topic(), "seentopics")
