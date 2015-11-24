@@ -37,6 +37,7 @@ const (
 	TOPIC_BACKDOOR_GASALERT      string = TOPIC_R3 + CLIENTID_BACKDOOR + "/gasalert"
 	TOPIC_BACKDOOR_POWERLOSS     string = TOPIC_R3 + CLIENTID_BACKDOOR + "/powerloss"
 	TOPIC_META_PRESENCE          string = TOPIC_R3 + CLIENTID_META + "/presence"
+	TOPIC_META_SENSORLOST        string = TOPIC_R3 + CLIENTID_META + "/sensorlost"
 	TOPIC_META_REALMOVE          string = TOPIC_R3 + CLIENTID_META + "/realmovement"
 	TOPIC_META_TEMPSPIKE         string = TOPIC_R3 + CLIENTID_META + "/TempSensorSpike"
 	TOPIC_META_DUSTSPIKE         string = TOPIC_R3 + CLIENTID_META + "/DustSensorSpike"

@@ -14,13 +14,26 @@ type SomethingReallyIsMoving struct {
 }
 
 type TempSensorSpike struct {
-	Sensorindex int
-	Value       float64
-	Ts          int64
+	Location string
+	Value    float64
+	Ts       int64
 }
 
 type DustSensorSpike struct {
-	Sensorindex int
-	Value       int64
-	Ts          int64
+	Location string
+	Value    int64
+	Ts       int64
+}
+
+type HumiditySensorSpike struct {
+	Location string
+	Percent  float64
+	Ts       int64
+}
+
+type SensorLost struct {
+	Topic         string
+	LastSeen      int64
+	UsualInterval int64
+	Ts            int64
 }

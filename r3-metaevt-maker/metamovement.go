@@ -6,8 +6,9 @@ import (
 	"container/ring"
 	"time"
 
+	r3events "../r3events"
 	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
-	r3events "github.com/realraum/door_and_sensors/r3events"
+	//r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
 )
 

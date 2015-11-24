@@ -5,7 +5,8 @@ package main
 import (
 	"flag"
 	//~ "time"
-	r3events "github.com/realraum/door_and_sensors/r3events"
+	r3events "../r3events"
+	//r3events "github.com/realraum/door_and_sensors/r3events"
 	pubsub "github.com/tuxychandru/pubsub"
 )
 
@@ -61,6 +62,12 @@ func main() {
 
 	go MetaEventRoutine_Movement(ps, mqttc, 10, 20, 10)
 	go MetaEventRoutine_Presence(ps, mqttc, 21, 200)
+	go MetaEventRoutine_SensorLost(ps, mqttc, []string{
+		r3events.TOPIC_PILLAR_RELHUMIDITY,
+		r3events.TOPIC_PILLAR_TEMP,
+		r3events.TOPIC_OLGAFREEZER_TEMP,
+		r3events.TOPIC_BACKDOOR_TEMP,
+		r3events.TOPIC_GW_STATS})
 
 	mqtt_subscription_filters := []string{
 		r3events.TOPIC_META_REALMOVE,
@@ -75,6 +82,7 @@ func main() {
 		evnt, _, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
 		if err == nil {
 			ps.Pub(evnt, "r3events")
+			ps.Pub(msg.Topic(), "seentopics")
 		}
 	}
 }
