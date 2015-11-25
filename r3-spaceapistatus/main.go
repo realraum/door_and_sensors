@@ -74,7 +74,11 @@ func main() {
 			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			if err == nil {
 				events_to_status_chan <- evnt
+			} else {
+				Syslog_.Printf("Error Unmarshalling Event", err)
+				Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			}
+
 		case ts := <-ticker.C:
 			events_to_status_chan <- r3events.TimeTick{ts.Unix()}
 		}

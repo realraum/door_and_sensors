@@ -91,9 +91,10 @@ func publishStateToWeb() {
 
 func EventToWeb(events chan interface{}) {
 	for eventinterface := range events {
-		//Debug_.Printf("EventToWeb: %s" , eventinterface)
+		Debug_.Printf("EventToWeb: %T %+v", eventinterface, eventinterface)
 		switch event := eventinterface.(type) {
 		case r3events.TimeTick:
+			spaceapidata.CleanOutdatedSpaceEvents()
 			publishStateToWeb()
 		case r3events.PresenceUpdate:
 			statusstate.present = event.Present
@@ -109,7 +110,7 @@ func EventToWeb(events chan interface{}) {
 			publishStateToWeb()
 		case r3events.BoreDoomButtonPressEvent:
 			statusstate.buttonpress_until = event.Ts + 3600
-			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed")
+			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed", event.Ts, 4*time.Hour)
 			publishStateToWeb()
 		case r3events.TempSensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%s", event.Location), event.Location, event.Value))
@@ -118,16 +119,22 @@ func EventToWeb(events chan interface{}) {
 		case r3events.RelativeHumiditySensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor("DHT11Humidity", event.Location, "%", event.Percent))
 		case r3events.GasLeakAlert:
-			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered")
+			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
 			publishStateToWeb()
 		case r3events.TempOverThreshold:
-			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value))
+			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value), event.Ts, 24*time.Hour)
 			publishStateToWeb()
 		case r3events.UPSPowerLoss:
-			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery))
+			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
 			publishStateToWeb()
 		case r3events.LaserCutter:
 			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
+			publishStateToWeb()
+		case r3events.FoodOrderETA:
+			//TODO: remember food orders TSofInvite and overwrite with new ETA if the same or add additonal if new
+			unixeta := time.Unix(event.ETA, 0)
+			timestr := unixeta.Format("15:04")
+			spaceapidata.AddSpaceEvent("Food Order ETA: "+timestr, "food", fmt.Sprintf("Food will arrive at %s", timestr), event.Ts, unixeta.Sub(time.Now()))
 			publishStateToWeb()
 		}
 	}

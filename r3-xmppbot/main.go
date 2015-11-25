@@ -75,6 +75,7 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_
 			ps.Unsub(psevents, "r3events", "updateinterval")
 			// unsubscribe mqtt events
 			mqttc.Unsubscribe(mqtt_subscription_topics...)
+			Syslog_.Printf("Stopping XMPP Bot, waiting for 20s")
 			bot.StopBot()
 		} else {
 			Syslog_.Printf("Error starting XMPP Bot: %s", xmpperr.Error())
@@ -111,7 +112,8 @@ func main() {
 		"realraum/+/boredoombuttonpressed",
 		"realraum/+/gasalert",
 		"realraum/+/sensorlost",
-		"realraum/+/powerloss"}
+		"realraum/+/powerloss",
+		"realraum/" + r3events.CLIENTID_IRCBOT + "/#"}
 	incoming_message_chan := ps.Sub("mqttrawmessages")
 	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters)
 
@@ -123,6 +125,9 @@ func main() {
 			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			if err == nil {
 				ps.Pub(evnt, "r3events")
+			} else {
+				Syslog_.Printf("Error Unmarshalling Event", err)
+				Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			}
 		case <-ticker.C:
 			ps.Pub(r3events.TimeTick{time.Now().Unix()}, "updateinterval")

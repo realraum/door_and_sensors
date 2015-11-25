@@ -145,7 +145,18 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(SetRF433Delay)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
-
+	case TOPIC_IRCBOT_FOODREQUEST:
+		newevent := new(FoodOrderRequest)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TOPIC_IRCBOT_FOODINVITE:
+		newevent := new(FoodOrderInvite)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TOPIC_IRCBOT_FOODETA:
+		newevent := new(FoodOrderETA)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown type")

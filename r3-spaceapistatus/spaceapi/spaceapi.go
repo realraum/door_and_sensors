@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-const max_num_events int = 4
-
 type SpaceInfo map[string]interface{}
 
 type SpaceDoorLockSensor struct {
@@ -24,6 +22,14 @@ type SpaceDoorAjarSensor struct {
 	location    string
 	name        string
 	description string
+}
+
+type SpaceEvent struct {
+	Name       string `json:"name"`
+	Type       string `json:"type"`
+	Timestamp  int64  `json:"timestamp"`
+	Extra      string `json:"extra"`
+	validuntil time.Time
 }
 
 func MakeTempSensor(name, where, unit string, value float64) SpaceInfo {
@@ -255,22 +261,41 @@ func (nsi SpaceInfo) AddSpaceFeed(feedtype, url string) SpaceInfo {
 	return nsi
 }
 
-func (nsi SpaceInfo) AddSpaceEvent(name, eventtype, extra string) SpaceInfo {
-	newevent := SpaceInfo{"name": name, "type": eventtype, "timestamp": time.Now().Unix(), "extra": extra}
+func (nsi SpaceInfo) AddSpaceEvent(name, eventtype, extra string, unixts int64, validity_duration time.Duration) SpaceInfo {
+	newevent := SpaceEvent{name, eventtype, unixts, extra, time.Now().Add(validity_duration)}
 	if nsi["events"] == nil {
-		eventlist := make([]SpaceInfo, 1)
+		eventlist := make([]SpaceEvent, 1)
 		eventlist[0] = newevent
 		nsi["events"] = eventlist
 	} else {
-		eventlist, ok := nsi["events"].([]SpaceInfo) //type assertion
+		eventlist, ok := nsi["events"].([]SpaceEvent) //type assertion
 		if ok {
-			if len(eventlist) >= max_num_events {
-				eventlist = eventlist[1:]
-			}
 			nsi["events"] = append(eventlist, newevent)
 		} else {
 			panic("Wrong Type of eventlist: Should never happen")
 		}
+	}
+	return nsi
+}
+
+func (nsi SpaceInfo) CleanOutdatedSpaceEvents() SpaceInfo {
+	if nsi["events"] == nil {
+		return nsi
+	}
+	events := nsi["events"].([]SpaceEvent)
+	now := time.Now()
+	for idx := len(events) - 1; idx >= 0; idx-- {
+		if events[idx].validuntil.Before(now) {
+			//delete element, no need to preserve order
+			events[idx] = events[len(events)-1]
+			// events[len(events)-1] = nil
+			events = events[:len(events)-1]
+		}
+	}
+	if len(events) > 0 {
+		nsi["events"] = events
+	} else {
+		delete(nsi, "events")
 	}
 	return nsi
 }

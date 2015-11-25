@@ -214,6 +214,7 @@ if __name__ == '__main__':
 
     #listen for sensor data and forward them
     interval_s = float(uwscfg.sensor_sampleinterval)
+    assert(interval_s > 1)
     while True:
         try:
             queryTempMonitorAndForward(uwscfg, client)

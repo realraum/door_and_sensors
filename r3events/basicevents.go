@@ -125,3 +125,22 @@ type SetRF433Delay struct {
 	Location string
 	DelayMs  int64
 }
+
+type FoodOrderRequest struct {
+	Who        string
+	Preference string
+	Ts         int64
+}
+
+type FoodOrderInvite struct {
+	Who   string
+	Where string
+	URL   string
+	Ts    int64
+}
+
+type FoodOrderETA struct {
+	TSofInvite int64
+	ETA        int64
+	Ts         int64
+}
