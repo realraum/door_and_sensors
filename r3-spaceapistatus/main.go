@@ -67,7 +67,8 @@ func main() {
 		"realraum/+/boredoombuttonpressed",
 		"realraum/+/gasalert",
 		"realraum/+/powerloss",
-		"realraum/lasercutter/cardpresent"})
+		"realraum/lasercutter/cardpresent",
+		r3events.TOPIC_IRCBOT_FOODETA})
 	for {
 		select {
 		case msg := <-incoming_message_chan:
