@@ -12,6 +12,7 @@ import threading
 import smtplib
 import paho.mqtt.client as mqtt
 import subprocess
+from collections import defaultdict
 
 
 ######## Config File Data Class ############
@@ -36,6 +37,7 @@ class UWSConfig:
     self.config_parser.set('notify','smsgroups',"olgacore xro")
     self.config_parser.add_section('sensor')
     self.config_parser.set('sensor','sampleinterval',"8")
+    self.config_parser.set('sensor','publishinterval',"40")
     self.config_parser.set('sensor','uri',"http://olgafreezer.realraum.at/")
     self.config_parser.set('sensor','warnunreachablelimit',"6")
     self.config_parser.set('sensor','tempjsonkey',"temp")
@@ -159,7 +161,8 @@ def getJSON(url):
     return {}
 
 unreachable_count = 0
-warned_about = {}
+warned_about = defaultdict(bool)
+last_publish_ts = defaultdict(int)
 def queryTempMonitorAndForward(uwscfg, mqttclient):
     global unreachable_count, warned_about
     jsondict = getJSON(uwscfg.sensor_uri)
@@ -173,7 +176,6 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                 warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
             except:
                 warntemp = -9999
-            print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
             if isinstance(tsd[uwscfg.sensor_warnjsonkey],float) and temp > warntemp:
                 print("ALARM ALARM %d" % tsd["busid"])
                 if not loc in warned_about or warned_about[loc] == False:
@@ -185,7 +187,11 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                     sendEmail(uwscfg.notify_emails.split(" "),msg)
             else:
                 warned_about[loc]=False
-            sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
+
+            if ts - last_publish_ts[loc] > int(uwscfg.sensor_publishinterval):
+                print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
+                sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
+                last_publish_ts[loc] = ts
     else:
         if unreachable_count > int(uwscfg.sensor_warnunreachablelimit):
             sendSMS(["xro"],"OLGA Frige Sensor remains unreachable")
