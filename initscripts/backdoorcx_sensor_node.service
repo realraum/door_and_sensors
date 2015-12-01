@@ -15,4 +15,4 @@ ExecStart=/home/realraum/bin/backdoorcx_sensor_node --debug
 SyslogIdentifier=%i
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

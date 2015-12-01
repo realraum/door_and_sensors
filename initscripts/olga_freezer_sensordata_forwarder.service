@@ -15,4 +15,4 @@ ExecStart=/home/realraum/bin/olga_freezer_sensordata_forwarder.py
 SyslogIdentifier=%i
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

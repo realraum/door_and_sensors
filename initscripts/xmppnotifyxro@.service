@@ -1,7 +1,6 @@
 [Unit]
 Description=Notify Xro via XMPP about %i
 Wants=network.target
-Wants=multi-user.target
 RefuseManualStart=true
 RefuseManualStop=true
 ConditionFileIsExecutable=/home/realraum/bin/xmpp_notify_xro.py

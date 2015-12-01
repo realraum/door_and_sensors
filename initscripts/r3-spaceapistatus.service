@@ -14,4 +14,4 @@ EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
 ExecStart=/home/realraum/bin/r3-spaceapistatus --debug
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
