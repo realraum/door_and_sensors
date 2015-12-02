@@ -70,7 +70,9 @@ type RelativeHumiditySensorUpdate struct {
 }
 type UPSPowerUpdate struct {
 	OnBattery      bool
-	PercentBattery byte
+	PercentBattery float64
+	LineVoltage    float64
+	LoadPercent    float64
 	Ts             int64
 }
 

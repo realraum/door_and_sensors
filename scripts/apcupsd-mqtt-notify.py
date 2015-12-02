@@ -46,14 +46,14 @@ if __name__ == '__main__':
     client.connect(R3_MQTT_BROKER_HOST, R3_MQTT_BROKER_PORT, 60)
     #listen for sensor data and forward them
     apc_status = getAPCStatus()
-    batt_percent = int(float(apc_status["bcharge"])) if "bcharge" in apc_status else 0
+    batt_percent = float(apc_status["bcharge"]) if "bcharge" in apc_status else 0
     ts = int(time.time())
     if sys.argv[0].endswith("offbattery"):
         sendR3Message(client,TOPIC_BACKDOOR_POWERLOSS,{ "OnBattery":False,"PercentBattery":batt_percent,"Ts":ts}, qos=2)
     elif sys.argv[0].endswith("onbattery"):
         sendR3Message(client,TOPIC_BACKDOOR_POWERLOSS,{ "OnBattery":True,"PercentBattery":batt_percent,"Ts":ts}, qos=2)
     else:
-        sendR3Message(client,TOPIC_BACKDOOR_POWERLOSS,{ "OnBattery":apc_status["status"] != "ONLINE","PercentBattery":batt_percent,"LineVoltage":apc_status["linev"],"LoadPercent":apc_status["loadpct"],"Ts":int(time.time())}, qos=0)
+        sendR3Message(client,TOPIC_BACKDOOR_POWERLOSS,{ "OnBattery":apc_status["status"] != "ONLINE","PercentBattery":batt_percent,"LineVoltage":float(apc_status["linev"]),"LoadPercent":float(apc_status["loadpct"]),"Ts":int(time.time())}, qos=0)
         sendR3Message(client,TOPIC_BACKDOOR_BATTTEMP,{ "Location": "UPS "+apc_status["upsname"]+" Battery", "Value":float(apc_status["itemp"]),"Ts":ts}, qos=0)
     client.loop(timeout=10.0)
     client.disconnect()
