@@ -124,7 +124,7 @@ func EventToWeb(events chan interface{}) {
 		case r3events.TempOverThreshold:
 			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value), event.Ts, 24*time.Hour)
 			publishStateToWeb()
-		case r3events.UPSPowerLoss:
+		case r3events.UPSPowerUpdate:
 			if event.PercentBattery < 100 {
 				if event.OnBattery {
 					spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)

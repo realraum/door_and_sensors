@@ -134,7 +134,7 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
 	case TOPIC_BACKDOOR_POWERLOSS:
-		newevent := new(UPSPowerLoss)
+		newevent := new(UPSPowerUpdate)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
 	case TOPIC_OLGAFREEZER_SENSORLOST, TOPIC_META_SENSORLOST:
