@@ -125,7 +125,13 @@ func EventToWeb(events chan interface{}) {
 			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value), event.Ts, 24*time.Hour)
 			publishStateToWeb()
 		case r3events.UPSPowerLoss:
-			spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+			if event.PercentBattery < 100 {
+				if event.OnBattery {
+					spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+				} else {
+					spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power resumed. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+				}
+			}
 			publishStateToWeb()
 		case r3events.LaserCutter:
 			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
