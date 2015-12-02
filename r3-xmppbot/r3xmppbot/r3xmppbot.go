@@ -285,7 +285,7 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Debug mode enabled", "Your New Status")
 		case "bye", "quit", "logout":
 			botdata.jid_lastauthtime_[inmsg.GetHeader().From] = 0
-			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Bye Bye !", nil)
+			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Bye Bye.", nil)
 		case "open", "close":
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Sorry, I'm just weak software, not strong enough to operate the door for you.", nil)
 		case "status":
@@ -321,7 +321,7 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "You're a quiet one, aren't you?", nil)
 		default:
 			//~ auth_match = re_msg_auth_.FindStringSubmatch(inmsg.Body.Chardata)
-			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "A nice day to you too !\nDo you need \"help\" ?", nil)
+			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "A nice day to you too!\nDo you need \"help\"?", nil)
 		}
 	}
 }
