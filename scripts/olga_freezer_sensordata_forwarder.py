@@ -189,7 +189,7 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                 warned_about[loc]=False
 
             if ts - last_publish_ts[loc] > int(uwscfg.sensor_publishinterval):
-                print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
+                #print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
                 sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
                 last_publish_ts[loc] = ts
     else:
