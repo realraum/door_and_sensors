@@ -74,7 +74,7 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_
 			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
 			ps.Unsub(psevents, "r3events", "updateinterval")
 			// unsubscribe mqtt events
-			mqttc.Unsubscribe(mqtt_subscription_topics...)
+			UnsubscribeMultiple(mqttc, mqtt_subscription_topics...)
 			Syslog_.Printf("Stopping XMPP Bot, waiting for 20s")
 			bot.StopBot()
 		} else {
