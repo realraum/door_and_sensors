@@ -193,12 +193,12 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                 sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
                 last_publish_ts[loc] = ts
     else:
-        if unreachable_count > int(uwscfg.sensor_warnunreachablelimit):
+        if unreachable_count == int(uwscfg.sensor_warnunreachablelimit):
             sendSMS(["xro"],"OLGA Frige Sensor remains unreachable")
             sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable")
             sendR3Message(mqttclient, "realraum/olgafreezer/sensorlost", {"Topic":"realraum/olgafreezer/temperature", "LastSeen":ts - int(uwscfg.sensor_sampleinterval)*int(uwscfg.sensor_warnunreachablelimit), "Ts":ts})
-        else:
-            unreachable_count += 1
+        unreachable_count += 1
+
 
 
 
