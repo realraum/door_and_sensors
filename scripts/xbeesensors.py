@@ -10,7 +10,6 @@ import sys
 ######## r3 ZMQ ############
 
 myclientid_="xbee"
-#myclientid_="pillar"
 mylocation_="Outside"
 rf433_send_delay_s_ = 0.0
 

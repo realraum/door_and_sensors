@@ -36,6 +36,8 @@ func MarshalEvent2ByteOrPanic(event_interface interface{}) (data []byte) {
 }
 
 func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err error) {
+	topics := strings.Split(topic, "/")
+	toplvltopic := topics[len(topics)-1]
 	switch topic {
 	case TOPIC_FRONTDOOR_LOCK:
 		newevent := new(DoorLockUpdate)
@@ -61,40 +63,8 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(DoorManualMovementEvent)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
-	case TOPIC_PILLAR_DOOMBUTTON:
-		newevent := new(BoreDoomButtonPressEvent)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_OLGAFREEZER_TEMPOVER:
-		newevent := new(TempOverThreshold)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_PILLAR_TEMP, TOPIC_BACKDOOR_TEMP, TOPIC_OLGAFREEZER_TEMP:
-		newevent := new(TempSensorUpdate)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_PILLAR_ILLUMINATION:
-		newevent := new(IlluminationSensorUpdate)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_PILLAR_DUST:
-		newevent := new(DustSensorUpdate)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_PILLAR_RELHUMIDITY:
-		newevent := new(RelativeHumiditySensorUpdate)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
 	case "realraum/backdoorcx/timetick":
 		newevent := new(TimeTick)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_BACKDOOR_GASALERT:
-		newevent := new(GasLeakAlert)
-		err = json.Unmarshal(data, newevent)
-		event = *newevent
-	case TOPIC_PILLAR_MOVEMENTPIR, TOPIC_BACKDOOR_MOVEMENTPIR:
-		newevent := new(MovementSensorUpdate)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
 	case TOPIC_META_PRESENCE:
@@ -155,6 +125,55 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		event = *newevent
 	case TOPIC_IRCBOT_FOODETA:
 		newevent := new(FoodOrderETA)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	default:
+		event = nil
+		err = errors.New("cannot unmarshal unknown type")
+	}
+	if event != nil && err == nil {
+		return
+	}
+
+	switch toplvltopic {
+	case TYPE_DOOMBUTTON:
+		newevent := new(BoreDoomButtonPressEvent)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_TEMPOVER:
+		newevent := new(TempOverThreshold)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_TEMP:
+		newevent := new(TempSensorUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_ILLUMINATION:
+		newevent := new(IlluminationSensorUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_DUST:
+		newevent := new(DustSensorUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_RELHUMIDITY:
+		newevent := new(RelativeHumiditySensorUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_GASALERT:
+		newevent := new(GasLeakAlert)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_MOVEMENTPIR:
+		newevent := new(MovementSensorUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_POWERLOSS:
+		newevent := new(UPSPowerUpdate)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
+	case TYPE_SENSORLOST:
+		newevent := new(SensorLost)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
 	default:
