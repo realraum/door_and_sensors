@@ -113,11 +113,11 @@ func EventToWeb(events chan interface{}) {
 			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed", event.Ts, 4*time.Hour)
 			publishStateToWeb()
 		case r3events.TempSensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp%s", event.Location), event.Location, event.Value))
+			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp@%s", event.Location), event.Location, event.Value))
 		case r3events.IlluminationSensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value))
 		case r3events.RelativeHumiditySensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor("DHT11Humidity", event.Location, "%", event.Percent))
+			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", event.Percent))
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
 			publishStateToWeb()

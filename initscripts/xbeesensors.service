@@ -1,0 +1,14 @@
+[Unit]
+Description=Xbee Sensors Bridge
+
+[Service]
+Nice=19
+Type=simple
+Restart=always
+WorkingDirectory=/root/
+ExecStart=/root/xbeesensors.py
+SyslogIdentifier=xbeesensors
+
+
+[Install]
+WantedBy=multi-user.target
