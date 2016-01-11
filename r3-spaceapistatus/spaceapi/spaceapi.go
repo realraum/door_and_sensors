@@ -32,55 +32,59 @@ type SpaceEvent struct {
 	validuntil time.Time
 }
 
-func MakeTempSensor(name, where, unit string, value float64) SpaceInfo {
+func MakeTempSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": ""}
+		"description": "",
+		"timestamp":   timestamp}
 	return SpaceInfo{"temperature": listofwhats}
 }
 
-func MakeTempCSensor(name, where string, value float64) SpaceInfo {
-	return MakeTempSensor(name, where, "\u00b0C", value)
+func MakeTempCSensor(name, where string, value float64, timestamp int64) SpaceInfo {
+	return MakeTempSensor(name, where, "\u00b0C", value, timestamp)
 }
 
-func MakeIlluminationSensor(name, where, unit string, value int64) SpaceInfo {
+func MakeIlluminationSensor(name, where, unit string, value int64, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": ""}
+		"description": "",
+		"timestamp":   timestamp}
 	return SpaceInfo{"ext_illumination": listofwhats}
 }
 
-func MakeHumiditySensor(name, where, unit string, value float64) SpaceInfo {
+func MakeHumiditySensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "relative humidity level"}
+		"description": "relative humidity level",
+		"timestamp":   timestamp}
 	return SpaceInfo{"humidity": listofwhats}
 }
 
-func MakePowerConsumptionSensor(name, where, unit string, value int64) SpaceInfo {
+func MakePowerConsumptionSensor(name, where, unit string, value, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": ""}
+		"description": "",
+		"timestamp":   timestamp}
 	return SpaceInfo{"power_consumption": listofwhats}
 }
 
-func MakeNetworkConnectionsSensor(name, where, nettype string, value, machines int64) SpaceInfo {
+func MakeNetworkConnectionsSensor(name, where, nettype string, value, machines, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
@@ -88,7 +92,8 @@ func MakeNetworkConnectionsSensor(name, where, nettype string, value, machines i
 		"machines":    machines,
 		"location":    where,
 		"name":        name,
-		"description": ""}
+		"description": "",
+		"timestamp":   timestamp}
 	return SpaceInfo{"network_connections": listofwhats}
 }
 
@@ -164,6 +169,46 @@ func (nsi SpaceInfo) MergeInSensor(sensorinfo SpaceInfo) {
 			}
 		}
 	}
+}
+
+func (nsi SpaceInfo) CleanOutdatedSensorData(older_than time.Duration) SpaceInfo {
+	now := time.Now()
+	if nsi["sensors"] != nil {
+		sensorobj := nsi["sensors"].(SpaceInfo)
+		for sensortype, subsensorobjlist := range sensorobj {
+			if subsensorobjlist != nil {
+				existingsensorobjslist := subsensorobjlist.([]SpaceInfo)
+				for i := len(existingsensorobjslist) - 1; i >= 0; i-- {
+					tsi, inmap := existingsensorobjslist[i]["timestamp"]
+					if !inmap {
+						continue
+					}
+					ts, taok := tsi.(int64)
+					if !taok {
+						continue
+					}
+					if now.Sub(time.Unix(ts, 0)) > older_than {
+						var newobjlist []SpaceInfo
+						if i > 0 {
+							newobjlist = existingsensorobjslist[0:i]
+						} else {
+							newobjlist = make([]SpaceInfo, 0)
+						}
+						if i < len(existingsensorobjslist)-1 {
+							newobjlist = append(newobjlist, existingsensorobjslist[i+1:len(existingsensorobjslist)]...)
+						}
+						existingsensorobjslist = newobjlist
+					}
+				}
+				if len(existingsensorobjslist) == 0 {
+					delete(sensorobj, sensortype)
+				} else {
+					sensorobj[sensortype] = existingsensorobjslist
+				}
+			}
+		}
+	}
+	return nsi
 }
 
 func (nsi SpaceInfo) AddProjectsURLs(projecturls []string) SpaceInfo {
