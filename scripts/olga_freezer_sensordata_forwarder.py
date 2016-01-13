@@ -36,8 +36,8 @@ class UWSConfig:
     self.config_parser.set('notify','xmpps',"xro@realraum.at")
     self.config_parser.set('notify','smsgroups',"olgacore xro")
     self.config_parser.add_section('sensor')
-    self.config_parser.set('sensor','sampleinterval',"8")
-    self.config_parser.set('sensor','publishinterval',"40")
+    self.config_parser.set('sensor','sampleinterval',"15")
+    self.config_parser.set('sensor','publishinterval',"59")
     self.config_parser.set('sensor','uri',"http://olgafreezer.realraum.at/")
     self.config_parser.set('sensor','warnunreachablelimit',"6")
     self.config_parser.set('sensor','tempjsonkey',"temp")
@@ -153,7 +153,7 @@ def sendEmail(groups, message):
 
 def getJSON(url):
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=4)
         if r.status_code == 200:
             return r.json()
     except Exception as e:
