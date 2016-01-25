@@ -6,7 +6,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	xmpp "code.google.com/p/goexmpp"
+	xmpp "github.com/curzonj/goexmpp"
 )
 
 // XMPP Ping

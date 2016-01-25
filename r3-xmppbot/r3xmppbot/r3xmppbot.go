@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	xmpp "code.google.com/p/goexmpp"
+	xmpp "github.com/curzonj/goexmpp"
 )
 
 func (botdata *XmppBot) makeXMPPMessage(to string, message interface{}, subject interface{}) *xmpp.Message {
