@@ -171,12 +171,12 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
         unreachable_count = 0
         for tsd in jsondict["sensors"]:
             loc=tsd[uwscfg.sensor_locjsonkey]
-            temp=tsd[uwscfg.sensor_tempjsonkey]
+            temp=float(tsd[uwscfg.sensor_tempjsonkey])
             try:
                 warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
             except:
                 warntemp = -9999
-            if isinstance(tsd[uwscfg.sensor_warnjsonkey],float) and temp > warntemp:
+            if temp > warntemp:
                 print("ALARM ALARM %d" % tsd["busid"])
                 if not loc in warned_about or warned_about[loc] == False:
                     warned_about[loc]=True
