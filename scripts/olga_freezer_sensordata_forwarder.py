@@ -193,9 +193,20 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                 sendR3Message(mqttclient, "realraum/olgafreezer/temperature", {"Location":loc, "Value":temp, "Ts":ts}, retain=True)
                 last_publish_ts[loc] = ts
     else:
-        if unreachable_count == int(uwscfg.sensor_warnunreachablelimit):
-            sendSMS(["xro"],"OLGA Frige Sensor remains unreachable")
-            sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable")
+        if unreachable_count >= int(uwscfg.sensor_warnunreachablelimit) and unreachable_count < 2*int(uwscfg.sensor_warnunreachablelimit):
+            # if unreachable and before we send error SMS
+            # we switch off the power socket that powers the sensor box
+            # and then switch it on the next time
+            if (unreachable_count - int(uwscfg.sensor_warnunreachablelimit) ) % 2 == 0:
+                print("send RF Code for olgatherm OFF (%s)" % time.strftime("%c"))
+                sendR3Message(mqttclient, "action/rf433/sendcode3byte", {"Code":list(b"\x00\xa2\x2a"), "Ts":ts}, qos=1, retain=False)
+            else:
+                print("send RF Code for olgatherm ON (%s)" % time.strftime("%c"))
+                sendR3Message(mqttclient, "action/rf433/sendcode3byte", {"Code":list(b"\x00\xa2\x8a"), "Ts":int(time.time())}, qos=1, retain=False)
+        elif unreachable_count == 2*int(uwscfg.sensor_warnunreachablelimit):
+            timestr = time.strftime("%c")
+            sendSMS(["xro"],"OLGA Frige Sensor remains unreachable (%s)" % timestr)
+            sendEmail(uwscfg.notify_emails.split(" "),"OLGA Frige Sensor remains unreachable (%s)" % timestr)
             sendR3Message(mqttclient, "realraum/olgafreezer/sensorlost", {"Topic":"realraum/olgafreezer/temperature", "LastSeen":ts - int(uwscfg.sensor_sampleinterval)*int(uwscfg.sensor_warnunreachablelimit), "Ts":ts})
         unreachable_count += 1
 

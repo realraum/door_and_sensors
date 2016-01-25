@@ -31,7 +31,7 @@ def initMQTT():
 
 #Initialize TTY interface
 def initTTY(port):
-    tty = serial.Serial(port=port, baudrate=9600,timeout=66 )
+    tty = serial.Serial(port=port, baudrate=9600,timeout=128 )
     tty.flushInput()
     tty.flushOutput()
     return tty
