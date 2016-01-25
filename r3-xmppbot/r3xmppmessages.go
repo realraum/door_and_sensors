@@ -59,16 +59,13 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 	var temp_cx float64 = 0.0
 	var last_door_cmd r3events.DoorCommandEvent
 	var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0}
-	var standard_distribute_level r3xmppbot.R3JIDDesire = r3xmppbot.R3DebugInfo // initial state, changed after startup finished event recieved
+	var standard_distribute_level r3xmppbot.R3JIDDesire = r3xmppbot.R3OnlineOnlyInfo
 
 	xmpp_presence_events_chan <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
 
 	for eventinterface := range events {
 		Debug_.Printf("event2xmpp: %T %+v", eventinterface, eventinterface)
 		switch event := eventinterface.(type) {
-		case EventToXMPPStartupFinished:
-			//after we received all events from QueryLatestEventsAndInjectThem, we get this event and start sending new events normally
-			standard_distribute_level = r3xmppbot.R3OnlineOnlyInfo
 		case r3events.PresenceUpdate:
 			present = event.Present
 			if !present {
