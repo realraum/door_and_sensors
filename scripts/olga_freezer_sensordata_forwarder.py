@@ -171,7 +171,10 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
         unreachable_count = 0
         for tsd in jsondict["sensors"]:
             loc=tsd[uwscfg.sensor_locjsonkey]
-            temp=float(tsd[uwscfg.sensor_tempjsonkey])
+            try:
+                temp=float(tsd[uwscfg.sensor_tempjsonkey])
+            except:
+                continue
             try:
                 warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
             except:
