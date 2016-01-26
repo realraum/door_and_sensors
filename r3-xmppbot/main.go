@@ -69,6 +69,11 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_
 			psevents := ps.Sub("r3events", "updateinterval")
 			//this are the raw messages we subscribe to NOW, so that we get the latest persistent messages from the broker
 			SubscribeMultipleAndPublishToPubSub(mqttc, ps, mqtt_subscription_topics, "mqttrawmessages")
+			//wait till inital messages are queued in channel, then tell EventToXMPP to go into normal mode
+			go func() {
+				time.Sleep(100 * time.Millisecond)
+				psevents <- EventToXMPPStartupFinished{}
+			}()
 			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
 			EventToXMPP(bot, psevents, xmpp_presence_events_chan)
 			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
