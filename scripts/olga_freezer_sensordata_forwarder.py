@@ -175,7 +175,7 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
             try:
                 warntemp = float(tsd[uwscfg.sensor_warnjsonkey])
             except:
-                warntemp = -9999
+                warntemp = 9999
             if temp > warntemp:
                 print("ALARM ALARM %d" % tsd["busid"])
                 if not loc in warned_about or warned_about[loc] == False:
