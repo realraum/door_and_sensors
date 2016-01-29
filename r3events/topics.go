@@ -32,6 +32,7 @@ const (
 	TYPE_SENSORLOST              string = "sensorlost"
 	TYPE_GASALERT                string = "gasalert"
 	TYPE_POWERLOSS               string = "powerloss"
+	TYPE_DUSKORDAWN              string = "duskordawn"
 	TOPIC_FRONTDOOR_LOCK         string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_FRONTDOOR_AJAR         string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_AJAR
 	TOPIC_FRONTDOOR_CMDEVT       string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_CMDEVT
@@ -60,6 +61,7 @@ const (
 	TOPIC_META_REALMOVE          string = TOPIC_R3 + CLIENTID_META + "/" + TYPE_MOVEMENTPIR
 	TOPIC_META_TEMPSPIKE         string = TOPIC_R3 + CLIENTID_META + "/TempSensorSpike"
 	TOPIC_META_DUSTSPIKE         string = TOPIC_R3 + CLIENTID_META + "/DustSensorSpike"
+	TOPIC_META_DUSKORDAWN        string = TOPIC_R3 + CLIENTID_META + "/" + TYPE_DUSKORDAWN
 	TOPIC_GW_DHCPACK             string = TOPIC_R3 + CLIENTID_GW + "/NetDHCPACK"
 	TOPIC_GW_STATS               string = TOPIC_R3 + CLIENTID_GW + "/NetGWStatUpdate"
 	TOPIC_LASER_CARD             string = TOPIC_R3 + CLIENTID_LASERCUTTER + "/cardpresent"

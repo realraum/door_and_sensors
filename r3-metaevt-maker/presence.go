@@ -8,7 +8,7 @@ import (
 	r3events "../r3events"
 	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	//r3events "github.com/realraum/door_and_sensors/r3events"
-	pubsub "github.com/tuxychandru/pubsub"
+	pubsub "github.com/btittelbach/pubsub"
 )
 
 func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_timeout, button_timeout int64) {

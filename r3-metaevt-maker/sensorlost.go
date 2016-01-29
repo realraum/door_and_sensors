@@ -8,7 +8,7 @@ import (
 	r3events "../r3events"
 	//r3events "github.com/realraum/door_and_sensors/r3events"
 	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
-	pubsub "github.com/tuxychandru/pubsub"
+	pubsub "github.com/btittelbach/pubsub"
 )
 
 type TopicSeen struct {

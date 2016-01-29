@@ -37,3 +37,9 @@ type SensorLost struct {
 	UsualInterval int64
 	Ts            int64
 }
+
+type DuskOrDawn struct {
+	Event         string // Sunset, CivilDusk, NauticalDusk, AstronomicalDusk, AstronomicalDawn, NauticalDawn, CivilDawn, Sunrise
+	CivilSunlight bool
+	Ts            int64
+}

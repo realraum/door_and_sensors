@@ -44,8 +44,8 @@ class UWSConfig:
     self.config_parser.add_section('debug')
     self.config_parser.set('debug','enabled',"False")
     self.config_parser.add_section('broker')
-    self.config_parser.set('broker','host',"mqtt.realraum.at")    
-    self.config_parser.set('broker','port',"1883")    
+    self.config_parser.set('broker','host',"mqtt.realraum.at")
+    self.config_parser.set('broker','port',"1883")
     self.config_parser.add_section('tracker')
     self.config_parser.set('tracker','secs_movement_before_presence_to_launch_event','1')
     self.config_parser.set('tracker','secs_presence_before_movement_to_launch_event','120')
@@ -334,7 +334,7 @@ while True:
         # handles reconnecting.
         # Other loop*() functions are available that give a threaded interface and a
         # manual interface.
-        client.loop_forever()    
+        client.loop_forever()
 
     except Exception as ex:
         logging.error("main: "+str(ex))

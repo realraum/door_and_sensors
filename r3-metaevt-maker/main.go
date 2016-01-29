@@ -7,7 +7,7 @@ import (
 	//~ "time"
 	r3events "../r3events"
 	//r3events "github.com/realraum/door_and_sensors/r3events"
-	pubsub "github.com/tuxychandru/pubsub"
+	pubsub "github.com/btittelbach/pubsub"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {
