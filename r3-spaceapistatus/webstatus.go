@@ -20,19 +20,19 @@ type spaceState struct {
 }
 
 var (
-	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "http://realraum.at", "http://realraum.at/logo-red_250x250.png", "http://realraum.at/logo-re_open_100x100.png", "http://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
+  spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png", "https://realraum.at/logo-re_open_100x100.png", "https://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
 	statusstate     *spaceState        = new(spaceState)
 	re_querystresc_ *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 )
 
 func init() {
-	spaceapidata.AddSpaceFeed("calendar", "http://grical.realraum.at/s/?query=!realraum&view=rss")
+	spaceapidata.AddSpaceFeed("calendar", "https://grical.realraum.at/s/?query=!realraum&view=rss")
 	spaceapidata.AddSpaceFeed("blog", "https://wp.realraum.at/feed/")
-	spaceapidata.AddSpaceFeed("wiki", "http://realraum.at/wiki")
+	spaceapidata.AddSpaceFeed("wiki", "https://realraum.at/wiki")
 	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", false).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
 	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactTwitter("@realraum", false)
 	spaceapidata.SetSpaceContactGooglePlus("https://plus.google.com/+RealraumAt/").SetSpaceContactJabber("realraum@realraum.at", false)
-	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "http://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://synbiota.com/projects/openbiolabgraz/summary", "https://plus.google.com/+RealraumAt", "http://git.realraum.at"})
+	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "https://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://synbiota.com/projects/openbiolabgraz/summary", "https://plus.google.com/+RealraumAt", "https://git.realraum.at"})
 	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
 		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
 		if err == nil {
