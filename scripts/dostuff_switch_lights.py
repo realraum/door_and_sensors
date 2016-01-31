@@ -280,23 +280,25 @@ def onMqttMessage(client, userdata, msg):
     return # do not act on retained messages    
   (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
   logging.debug("Got data: " + topic + ":"+ str(dictdata))
-  if topic.endswith("/presence") and "Present" in dictdata:
+  if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
+    # if people are present and the sun is down, switch on CX Lights
+    if last_status and dictdata["HaveSunlight"] == False:
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
+  elif topic.endswith("/presence") and "Present" in dictdata:
     if dictdata["Present"] and last_status != dictdata["Present"]:
       #someone just arrived
       #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
 #boiler always on when someone is here
-      touchURL("http://localhost/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
       if isTheSunDown():
-        touchURL("http://localhost/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&couchred=1&bluebar=1")
+        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&couchred=1&bluebar=1")
     last_status=dictdata["Present"]
     if not last_status:
       #everybody left
-      touchURL("http://localhost/cgi-bin/mswitch.cgi?couchred=0&all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
       time.sleep(2)
-      #touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=all")
-      #touchURL("http://slug.realraum.at/cgi-bin/switch.cgi?power=off&id=couchred")
-      touchURL("http://localhost/cgi-bin/mswitch.cgi?ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
-      touchURL("http://localhost/cgi-bin/mswitch.cgi?all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0&ceiling1=0&ceiling2=0&ceiling3=0&ceiling4=0&ceiling5=0&ceiling6=0")
 
 
 def exitHandler(signum, frame):
@@ -326,9 +328,10 @@ while True:
         client = mqtt.Client()
         client.on_connect = lambda client, userdata, flags, rc: client.subscribe([
             ("realraum/metaevt/presence",1),
+            ("realraum/metaevt/duskordawn",1),
             ])
         client.on_message = onMqttMessage
-        client.connect(uwscfg.broker_host, int(uwscfg.broker_port), 60)
+        client.connect("mqtt.realraum.at", 1883, 60)
 
         # Blocking call that processes network traffic, dispatches callbacks and
         # handles reconnecting.
