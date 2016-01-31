@@ -3,29 +3,73 @@
 package main
 
 import (
+	"container/heap"
 	"time"
 
 	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
-	//r3events "github.com/realraum/door_and_sensors/r3events"
-	pubsub "github.com/btittelbach/pubsub"
-	"github.com/cpucycle/astrotime"
+	"github.com/btittelbach/astrotime"
+	"github.com/realraum/door_and_sensors/r3events"
 )
 
-const LATITUDE = float64(38.8895)
-const LONGITUDE = float64(77.0352)
+const LATITUDE = float64(47.065554)
+const LONGITUDE = float64(15.450435)
 
-func MetaEventRoutine_DuskDawnEventGenerator(ps *pubsub.PubSub, mqttc *mqtt.Client) {
+type upcomingEvent struct {
+	name         string
+	havesunlight bool
+	evt_time     time.Time
+}
+
+type eventHeap []upcomingEvent //propably less overhead than manageing and garbage collecting all those pointers if we did []*upcomingEvent
+
+//--- Sort Interface for eventHeap ----
+func (h eventHeap) Len() int {
+	return len(h)
+}
+func (h eventHeap) Less(i, j int) bool {
+	return h[i].evt_time.Before(h[j].evt_time)
+}
+func (h eventHeap) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+
+//---- container/heap Interface for eventHeap ----
+func (h *eventHeap) Push(x interface{}) {
+	*h = append(*h, x.(upcomingEvent))
+}
+
+func (h *eventHeap) Pop() interface{} {
+	old := *h
+	n := len(old)
+	item := old[n-1]
+	*h = old[0 : n-1]
+	return item
+}
+
+func (h *eventHeap) Peek() *upcomingEvent {
+	if h.Len() > 0 {
+		return &((*h)[0])
+	} else {
+		return nil
+	}
+}
+
+func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
 	for {
 		now := time.Now()
-		tsunrise := astrotime.NextSunrise(now, LATITUDE, LONGITUDE)
-		tsunset := astrotime.NextSunset(now, LATITUDE, LONGITUDE)
-		event := "Sunrise"
-		nexttrigger := tsunrise
-		if tsunset.Before(tsunrise) {
-			nexttrigger = tsunset
-			event = "Sunset"
-		}
-		<-time.NewTimer(nexttrigger.Sub(now)).C
-		mqttc.Publish(r3events.TOPIC_META_DUSKORDAWN, MQTT_QOS_4STPHANDSHAKE, false, r3events.MarshalEvent2ByteOrPanic(r3events.DuskOrDawn{Event: event, CivilSunlight: event == "Sunrise", ts: now.Unix()}))
+		eventheap := new(eventHeap)
+		heap.Init(eventheap)
+		heap.Push(eventheap, upcomingEvent{"Sunrise", true, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.SUNRISE)})
+		heap.Push(eventheap, upcomingEvent{"CivilDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"NauticalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"AstronomicalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.ASTRONOMICAL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"Sunset", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.SUNSET)})
+		heap.Push(eventheap, upcomingEvent{"CivilDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DUSK)})
+		heap.Push(eventheap, upcomingEvent{"NauticalDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DUSK)})
+		heap.Push(eventheap, upcomingEvent{"AstronomicalDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.ASTRONOMICAL_DUSK)})
+		upcoming_event := eventheap.Peek()
+		eventheap = nil
+		<-time.NewTimer(upcoming_event.evt_time.Sub(now)).C
+		mqttc.Publish(r3events.TOPIC_META_DUSKORDAWN, MQTT_QOS_4STPHANDSHAKE, false, r3events.MarshalEvent2ByteOrPanic(r3events.DuskOrDawn{Event: upcoming_event.name, HaveSunlight: upcoming_event.havesunlight, Ts: upcoming_event.evt_time.Unix()}))
 	}
 }

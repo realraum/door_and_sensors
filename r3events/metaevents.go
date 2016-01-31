@@ -39,7 +39,7 @@ type SensorLost struct {
 }
 
 type DuskOrDawn struct {
-	Event         string // Sunset, CivilDusk, NauticalDusk, AstronomicalDusk, AstronomicalDawn, NauticalDawn, CivilDawn, Sunrise
-	CivilSunlight bool
-	Ts            int64
+	Event        string // Sunset, CivilDusk, NauticalDusk, AstronomicalDusk, AstronomicalDawn, NauticalDawn, CivilDawn, Sunrise
+	HaveSunlight bool
+	Ts           int64
 }

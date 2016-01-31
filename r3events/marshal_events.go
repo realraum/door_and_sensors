@@ -83,6 +83,10 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(DustSensorSpike)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
+	case TOPIC_META_DUSKORDAWN:
+		newevent := new(DuskOrDawn)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
 	case TOPIC_GW_DHCPACK:
 		newevent := new(NetDHCPACK)
 		err = json.Unmarshal(data, newevent)

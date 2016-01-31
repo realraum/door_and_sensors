@@ -68,6 +68,7 @@ func main() {
 		r3events.TOPIC_OLGAFREEZER_TEMP,
 		r3events.TOPIC_BACKDOOR_TEMP,
 		r3events.TOPIC_GW_STATS})
+	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
 
 	mqtt_subscription_filters := []string{
 		r3events.TOPIC_META_REALMOVE,
