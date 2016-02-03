@@ -69,7 +69,8 @@ func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
 		heap.Push(eventheap, upcomingEvent{"AstronomicalDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.ASTRONOMICAL_DUSK)})
 		upcoming_event := eventheap.Peek()
 		eventheap = nil
-		<-time.NewTimer(upcoming_event.evt_time.Sub(now)).C
+		//block until time of next event has passed (add 30s, otherwise due to rounding in astrotime we might send event twice)
+		<-time.NewTimer(upcoming_event.evt_time.Sub(now) + 30*time.Second).C
 		mqttc.Publish(r3events.TOPIC_META_DUSKORDAWN, MQTT_QOS_4STPHANDSHAKE, false, r3events.MarshalEvent2ByteOrPanic(r3events.DuskOrDawn{Event: upcoming_event.name, HaveSunlight: upcoming_event.havesunlight, Ts: upcoming_event.evt_time.Unix()}))
 	}
 }
