@@ -45,6 +45,23 @@ func init() {
 	flag.Parse()
 }
 
+var topics_monitor_if_sensors_disappear = []string{
+	r3events.TOPIC_PILLAR_RELHUMIDITY,
+	r3events.TOPIC_PILLAR_TEMP,
+	//r3events.TOPIC_OLGAFREEZER_TEMP, //already sent by olga_freezer_sensordata_forwarder.py
+	r3events.TOPIC_BACKDOOR_TEMP,
+	r3events.TOPIC_GW_STATS,
+	r3events.TOPIC_XBEE_TEMP,
+	r3events.TOPIC_XBEE_RELHUMIDITY}
+
+var topics_needed_for_presenceevent = []string{
+	r3events.TOPIC_META_REALMOVE,
+	"realraum/+/movement",
+	"realraum/frontdoor/+",
+	"realraum/+/ajar",
+	"realraum/+/boredoombuttonpressed",
+}
+
 func main() {
 	if enable_debuglog_ {
 		LogEnableDebuglog()
@@ -62,21 +79,12 @@ func main() {
 
 	go MetaEventRoutine_Movement(ps, mqttc, 10, 20, 10)
 	go MetaEventRoutine_Presence(ps, mqttc, 21, 200)
-	go MetaEventRoutine_SensorLost(ps, mqttc, []string{
-		r3events.TOPIC_PILLAR_RELHUMIDITY,
-		r3events.TOPIC_PILLAR_TEMP,
-		r3events.TOPIC_OLGAFREEZER_TEMP,
-		r3events.TOPIC_BACKDOOR_TEMP,
-		r3events.TOPIC_GW_STATS})
+	go MetaEventRoutine_SensorLost(ps, mqttc, topics_monitor_if_sensors_disappear)
 	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
 
-	mqtt_subscription_filters := []string{
-		r3events.TOPIC_META_REALMOVE,
-		"realraum/+/movement",
-		"realraum/frontdoor/+",
-		"realraum/+/ajar",
-		"realraum/+/boredoombuttonpressed",
-	}
+	mqtt_subscription_filters := make([]string, 0, len(topics_needed_for_presenceevent)+len(topics_monitor_if_sensors_disappear))
+	copy(mqtt_subscription_filters[0:len(topics_needed_for_presenceevent)], topics_needed_for_presenceevent)
+	copy(mqtt_subscription_filters[len(topics_needed_for_presenceevent):cap(mqtt_subscription_filters)], topics_monitor_if_sensors_disappear)
 
 	got_events_chan := SubscribeMultipleAndForwardToChannel(mqttc, mqtt_subscription_filters)
 	for msg := range got_events_chan {
