@@ -71,7 +71,7 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_
 			SubscribeMultipleAndPublishToPubSub(mqttc, ps, mqtt_subscription_topics, "mqttrawmessages")
 			//wait till inital messages are queued in channel, then tell EventToXMPP to go into normal mode
 			go func() {
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(300 * time.Millisecond)
 				psevents <- EventToXMPPStartupFinished{}
 			}()
 			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
