@@ -43,8 +43,11 @@ def onMqttMessage(client, userdata, msg):
   #print("Got data: " + topic + ":"+ str(dictdata))
   if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
     # if people are present and the sun is down, switch on CX Lights
-    if last_status and dictdata["HaveSunlight"] == False:
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
+    if last_status:
+      if dictdata["HaveSunlight"] == False:
+        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
+      elif dictdata["Event"] == "Sunrise":
+        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
   elif topic.endswith("/presence") and "Present" in dictdata:
     if dictdata["Present"] and last_status != dictdata["Present"]:
       #someone just arrived
