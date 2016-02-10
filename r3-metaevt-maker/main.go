@@ -82,10 +82,10 @@ func main() {
 	go MetaEventRoutine_SensorLost(ps, mqttc, topics_monitor_if_sensors_disappear)
 	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
 
-	mqtt_subscription_filters := make([]string, 0, len(topics_needed_for_presenceevent)+len(topics_monitor_if_sensors_disappear))
+	mqtt_subscription_filters := make([]string, len(topics_needed_for_presenceevent)+len(topics_monitor_if_sensors_disappear))
 	copy(mqtt_subscription_filters[0:len(topics_needed_for_presenceevent)], topics_needed_for_presenceevent)
 	copy(mqtt_subscription_filters[len(topics_needed_for_presenceevent):cap(mqtt_subscription_filters)], topics_monitor_if_sensors_disappear)
-
+	Debug_.Println(mqtt_subscription_filters)
 	got_events_chan := SubscribeMultipleAndForwardToChannel(mqttc, mqtt_subscription_filters)
 	for msg := range got_events_chan {
 		evnt, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
