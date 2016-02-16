@@ -59,6 +59,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 	var temp_cx float64 = 0.0
 	var last_door_cmd r3events.DoorCommandEvent
 	var last_frontdoor_ajar r3events.DoorAjarUpdate = r3events.DoorAjarUpdate{true, 0}
+	var last_backdoor_ajar r3events.BackdoorAjarUpdate = r3events.BackdoorAjarUpdate{true, 0}
 	var standard_distribute_level r3xmppbot.R3JIDDesire = r3xmppbot.R3DebugInfo // initial state, changed after startup finished event recieved
 
 	xmpp_presence_events_chan <- r3xmppbot.XMPPStatusEvent{r3xmppbot.ShowNotAvailabe, "Nobody is here"}
@@ -89,7 +90,11 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 			}
 			last_frontdoor_ajar = event
 		case r3events.BackdoorAjarUpdate:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar!"), time.Unix(event.Ts, 0).String()), DistributeLevel: standard_distribute_level, RememberAsStatus: false}
+			//ignore persistant messages resends we get if mqtt reconnects
+			if last_backdoor_ajar.Ts != event.Ts {
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar!"), time.Unix(event.Ts, 0).String()), DistributeLevel: standard_distribute_level, RememberAsStatus: false}
+			}
+			last_backdoor_ajar = event
 		case r3events.GasLeakAlert:
 			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 		case r3events.UPSPowerUpdate:

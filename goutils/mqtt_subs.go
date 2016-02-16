@@ -89,7 +89,7 @@ func SubscribeMultipleAndForwardToChannel(mqttc *mqtt.Client, filters []string) 
 		filtermap[topicfilter] = 0 //qos == 0
 	}
 	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc *mqtt.Client, msg mqtt.Message) {
-		Debug_.Println("forwarding mqtt message to channel", msg)
+		Debug_.Printf("forwarding mqtt message to channel %+v", msg)
 		channel <- msg
 	})
 	tk.Wait()
@@ -120,7 +120,7 @@ func SubscribeMultipleAndPublishToPubSub(mqttc *mqtt.Client, ps *pubsub.PubSub, 
 		filtermap[topicfilter] = 0 //qos == 0
 	}
 	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc *mqtt.Client, msg mqtt.Message) {
-		Debug_.Println("forwarding mqtt message to pubsub", msg)
+		Debug_.Printf("forwarding mqtt message to pubsub %+v", msg)
 		ps.Pub(msg, pstopics...)
 	})
 	tk.Wait()
