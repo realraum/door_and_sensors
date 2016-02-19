@@ -55,8 +55,9 @@ def onMqttMessage(client, userdata, msg):
 #boiler always on when someone is here
       touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
       if isTheSunDown():
-        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&couchred=1&bluebar=1")
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1") # doppelt hält besser
+        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
+      # doppelt hält besser, für die essentiellen dinge
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
     last_status=dictdata["Present"]
     if not last_status:
       #everybody left
@@ -64,7 +65,8 @@ def onMqttMessage(client, userdata, msg):
       time.sleep(2)
       touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
       time.sleep(2)
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0") # doppelt hält besser
+      # doppelt hält besser, für die essentiellen dinge
+      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
 
 while True:
     last_status=None
