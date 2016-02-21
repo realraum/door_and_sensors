@@ -63,6 +63,8 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_t
 		case r3events.BackdoorAjarUpdate:
 			back_shut = evnt.Shut
 			last_event_indicating_presence = evnt.Ts
+		default:
+			continue
 		}
 
 		any_door_unlocked := (front_locked == false)
