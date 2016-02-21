@@ -277,6 +277,7 @@ def onMqttMessage(client, userdata, msg):
         unixts_panic_button=None
         if ( time.time() - unixts_last_movement ) <= float(uwscfg.tracker_secs_movement_before_presence_to_launch_event):
             unixts_last_movement=0
+            unixts_last_presence=0
             if last_status:
                 playThemeOf(user=last_user, fallback_default="DEFAULT")
         return
@@ -290,6 +291,7 @@ def onMqttMessage(client, userdata, msg):
         unixts_last_movement=time.time()
         if (time.time() - unixts_last_presence) <= float(uwscfg.tracker_secs_presence_before_movement_to_launch_event):
             unixts_last_presence=0
+            unixts_last_movement=0
             if last_status:
                 playThemeOf(user=last_user, fallback_default="DEFAULT")
         return
