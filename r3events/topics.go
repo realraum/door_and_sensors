@@ -15,6 +15,7 @@ const (
 	CLIENTID_XMPPBOT             string = "xmppbot"
 	CLIENTID_XBEE                string = "xbee"
 	CLIENTID_IRCBOT              string = "ircchanbot"
+	CLIENTID_LIGHTCTRL           string = "GoLightCtrl"
 	ACTDESTID_RF433              string = "rf433"
 	ACTDESTID_YAMAHA             string = "yamahastereo"
 	TYPE_LOCK                    string = "lock"
