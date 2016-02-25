@@ -108,13 +108,16 @@ func main() {
 	defer ps.Shutdown()
 
 	mqtt_subscription_filters := []string{
-		"realraum/+/temperature",
+		"realraum/+/" + r3events.TYPE_TEMP,
 		"realraum/+/illumination",
 		"realraum/metaevt/#",
-		"realraum/frontdoor/+",
-		"realraum/+/ajar",
+		"realraum/+/" + r3events.TYPE_LOCK,
+		"realraum/+/" + r3events.TYPE_AJAR,
+		"realraum/+/" + r3events.TYPE_MANUALLOCK,
+		r3events.TOPIC_FRONTDOOR_CMDEVT,
+		r3events.TOPIC_FRONTDOOR_PROBLEM,
 		"realraum/+/overtemp",
-		"realraum/+/boredoombuttonpressed",
+		"realraum/+/" + r3events.TYPE_DOOMBUTTON,
 		"realraum/+/gasalert",
 		"realraum/+/sensorlost",
 		"realraum/+/powerloss",
