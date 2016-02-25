@@ -56,7 +56,7 @@ func init() {
 
 //-------
 
-func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_topics []string) {
+func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_topics []string, watchdog_timeout time.Duration) {
 	var xmpperr error
 	var bot *r3xmppbot.XmppBot
 	var xmpp_presence_events_chan chan interface{}
@@ -75,7 +75,7 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_
 				psevents <- EventToXMPPStartupFinished{}
 			}()
 			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
-			EventToXMPP(bot, psevents, xmpp_presence_events_chan)
+			EventToXMPP(bot, psevents, xmpp_presence_events_chan, watchdog_timeout)
 			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
 			ps.Unsub(psevents, "r3events", "updateinterval")
 			// unsubscribe mqtt events
@@ -123,7 +123,7 @@ func main() {
 		"realraum/+/powerloss",
 		"realraum/" + r3events.CLIENTID_IRCBOT + "/#"}
 	incoming_message_chan := ps.Sub("mqttrawmessages")
-	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters)
+	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters, time.Duration(7)*time.Minute)
 
 	// --- receive and distribute events ---
 	ticker := time.NewTicker(time.Duration(6) * time.Minute)

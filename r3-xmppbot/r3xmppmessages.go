@@ -45,14 +45,17 @@ func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpres
 }
 
 // gets r3events and sends corresponding XMPP messages and XMPP Presence/Status Updates
-func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presence_events_chan chan<- interface{}) {
+func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presence_events_chan chan<- interface{}, watchdog_timeout time.Duration) {
 	button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
 	defer func() {
 		if x := recover(); x != nil {
 			//defer ist called _after_ EventToXMPP function has returned. Thus we recover after returning from this function.
-			Syslog_.Printf("handleIncomingXMPPStanzas: run time panic: %v", x)
+			Syslog_.Printf("EventToXMPP: run time panic: %v", x)
 		}
 	}()
+
+	//make sure watchdog time is
+	watchdog := time.AfterFunc(watchdog_timeout, func() { panic("Event2Xmpp Watchdog timed out") })
 
 	var present, frontlock bool = false, true
 	var last_buttonpress, light_lothr int64 = 0, 0
@@ -66,6 +69,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 
 	for eventinterface := range events {
 		Debug_.Printf("event2xmpp: %T %+v", eventinterface, eventinterface)
+		watchdog.Reset(watchdog_timeout)
 		switch event := eventinterface.(type) {
 		case EventToXMPPStartupFinished:
 			//after we received all events from QueryLatestEventsAndInjectThem, we get this event and start sending new events normally
@@ -121,7 +125,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 			// update presence text with sensor and button info
 			xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
 			// Try to XMPP Ping the server and if that fails, quit XMPPBot
-			if bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false {
+			if bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false && bot.PingServer(XMPP_PING_TIMEOUT) == false {
 				return
 			}
 		case r3events.DoorProblemEvent:
