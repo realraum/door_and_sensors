@@ -1,14 +1,18 @@
 [Unit]
 Description=Xbee Sensors Bridge
+Wants=network.target
+Wants=mosquitto.service
+OnFailure=xmppnotifyxro@xbeesensors.service
 
 [Service]
 Nice=19
 Type=simple
 Restart=always
-WorkingDirectory=/root/
-ExecStart=/root/xbeesensors.py
-SyslogIdentifier=xbeesensors
+WorkingDirectory=/home/realraum
+EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
+ExecStart=/home/realraum/bin/xbeesensors.py
+SyslogIdentifier=%i
 
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
