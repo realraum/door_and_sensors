@@ -23,7 +23,7 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe("#")
+    client.subscribe(to_subscribe)
     # client.subscribe("$SYS/#")
 
 # The callback for when a PUBLISH message is received from the server.
@@ -31,6 +31,10 @@ def on_message(client, userdata, msg):
     print(msg.topic+": %s (%s)" % (msg.payload, type(msg.payload)))
     #(structname, dictdata) = decodeR3Message(data)
     #print("Got data: " + structname + ":"+ str(dictdata))
+
+to_subscribe="#"
+if len(sys.argv) > 1:
+    to_subscribe = sys.argv[1]
 
 client = mqtt.Client()
 client.on_connect = on_connect
