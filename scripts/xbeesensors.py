@@ -31,7 +31,7 @@ def initMQTT():
 
 #Initialize TTY interface
 def initTTY(port):
-    tty = serial.Serial(port=port, baudrate=9600,timeout=128 )
+    tty = serial.Serial(port=port, baudrate=9600,timeout=60 )
     tty.flushInput()
     tty.flushOutput()
     return tty
@@ -42,7 +42,7 @@ def handle_arduino_output(client,tty):
     while tty.inWaiting() > 0:
         sensordata = tty.readline()
         if sensordata is None or len(sensordata) <= 5:
-            continue
+            return
         if sensordata.startswith(str_humidity):
             humidity = float(sensordata[len(str_humidity):])
             sendR3Message(client,"realraum/"+myclientid_+"/relhumidity",{"Location":mylocation_,"Percent":humidity,"Ts":int(time.time())}, retain=True)
@@ -54,7 +54,6 @@ if __name__ == '__main__':
     while True:
         tty = None
         client = None
-        last_get_sensor_data_ts = time.time()
         try:
             tty = initTTY('/dev/ttyUSB1' if len(sys.argv) < 2 else sys.argv[-1])
             ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
