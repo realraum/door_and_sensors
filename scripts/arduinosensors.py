@@ -103,7 +103,7 @@ def onMQTTMessage(client, userdata, msg):
 #Start zmq connection to publish / forward sensor data
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
-    client.connect("mqtt.realraum.at", 1883, 60)
+    client.connect("mqtt.realraum.at", 1883, keepalive=31)
     client.on_message = onMQTTMessage
     client.subscribe([(TOPIC_YAMAHA_IR_CMD,2), (TOPIC_RF433_CMD,2), (TOPIC_RF433_SETDELAY,2)])
     return client
@@ -135,31 +135,29 @@ def handle_arduino_output(client,tty):
             continue
 
 if __name__ == '__main__':
-    while True:
-        tty = None
-        client = None
-        last_get_sensor_data_ts = time.time()
-        try:
-            tty = initTTY()
-            ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
-            ## otherwise we continously try to establish a zmq connection just to close it again
-            client = initMQTT()
-            #client.start_loop()
-            while True:
-                if time.time() - last_get_sensor_data_ts > query_sensor_intervall_:
-                    getAndPublishDHT11SensorValues(client)
-                    tty.write(b'?')  # query illumination sensor
-                    #tty.write(b'*')  # query temp sensor
-                    last_get_sensor_data_ts = time.time()
-                handle_arduino_output(client,tty)
-                client.loop()
+    tty = None
+    client = None
+    last_get_sensor_data_ts = time.time()
+    try:
+        tty = initTTY()
+        ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
+        ## otherwise we continously try to establish a zmq connection just to close it again
+        client = initMQTT()
+        #client.start_loop()
+        while True:
+            if time.time() - last_get_sensor_data_ts > query_sensor_intervall_:
+                getAndPublishDHT11SensorValues(client)
+                tty.write(b'?')  # query illumination sensor
+                #tty.write(b'*')  # query temp sensor
+                last_get_sensor_data_ts = time.time()
+            handle_arduino_output(client,tty)
+            client.loop()
 
-        except Exception as e:
-            traceback.print_exc()
-        finally:
-            if tty:
-                tty.close()
-            if isinstance(client,mqtt.Client):
-                #client_stop_loop()
-                client.disconnect()
-            time.sleep(5)
+    except Exception as e:
+        traceback.print_exc()
+    finally:
+        if tty:
+            tty.close()
+        if isinstance(client,mqtt.Client):
+            #client_stop_loop()
+            client.disconnect()
