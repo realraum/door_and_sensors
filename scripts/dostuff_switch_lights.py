@@ -21,52 +21,57 @@ def decodeR3Message(topic, data):
         return ("",{})
 
 def touchURL(url):
-  try:
-    urllib.request.urlcleanup()
-    f = urllib.request.urlopen(url)
-    rq_response = f.read()
-    #print("touchURL: url: "+url)
-    f.close()
-    return rq_response
-  except Exception as e:
-    print("touchURL: "+str(e))
+    try:
+        urllib.request.urlcleanup()
+        f = urllib.request.urlopen(url)
+        rq_response = f.read()
+        #print("touchURL: url: "+url)
+        f.close()
+        return rq_response
+    except Exception as e:
+        print("touchURL: "+str(e))
+        return None
 
 def onMqttMessage(client, userdata, msg):
-  global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_
-  try:
-      (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
-      #print("Got data: " + topic + ":"+ str(dictdata))
-      if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
-        last_havesunlight_state_ = bool(dictdata["HaveSunlight"])
-        if msg.retain:
-          return # do not act on retained messages
-        # if people are present and the sun is down, switch on CX Lights
-        if last_status:
-          if dictdata["HaveSunlight"] == False:
-            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
-          elif dictdata["Event"] == "Sunrise":
-            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
-      elif topic.endswith("/presence") and "Present" in dictdata:
-        if msg.retain:
-          return # do not act on retained messages
-        if dictdata["Present"] and last_status != dictdata["Present"]:
-          #someone just arrived
-          #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
-    #boiler always on when someone is here
-          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
-          if isTheSunDown():
-            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
-          # doppelt hält besser, für die essentiellen dinge
-          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
-        last_status=dictdata["Present"]
-        if not last_status:
-          #everybody left
-          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
-          time.sleep(2)
-          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
-          time.sleep(2)
-          # doppelt hält besser, für die essentiellen dinge
-          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
+    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_
+    try:
+        (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
+        #print("Got data: " + topic + ":"+ str(dictdata))
+        if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
+            last_havesunlight_state_ = bool(dictdata["HaveSunlight"])
+            if msg.retain:
+                return # do not act on retained messages
+            if last_status == False:
+                return # no use switching lights if nobody is here
+            # if people are present and the sun is down, switch on CX Lights
+            if dictdata["HaveSunlight"] == False:
+                touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
+            elif dictdata["Event"] == "Sunrise":
+                touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
+        elif topic.endswith("/presence") and "Present" in dictdata:
+            if msg.retain:
+                last_status=dictdata["Present"]
+                return # do not act on retained messages
+            # if something changed
+            if last_status != dictdata["Present"]:
+                last_status=dictdata["Present"]
+                if dictdata["Present"] == True:
+                    #someone just arrived
+                    #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
+                    #boiler always on when someone is here
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
+                    if isTheSunDown():
+                        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
+                    # doppelt hält besser, für die essentiellen dinge
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
+                else:
+                    #everybody left
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
+                    time.sleep(2)
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
+                    time.sleep(2)
+                    # doppelt hält besser, für die essentiellen dinge
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
     except Exception as ex:
         print("onMqttMessage: "+str(ex))
         traceback.print_exc(file=sys.stdout)
