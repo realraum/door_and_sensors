@@ -23,7 +23,7 @@ def decodeR3Message(topic, data):
 def touchURL(url):
     try:
         urllib.request.urlcleanup()
-        f = urllib.request.urlopen(url)
+        f = urllib.request.urlopen(url,timeout=2)
         rq_response = f.read()
         #print("touchURL: url: "+url)
         f.close()
