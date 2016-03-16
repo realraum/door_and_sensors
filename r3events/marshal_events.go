@@ -79,6 +79,10 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(TempSensorSpike)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
+	case TOPIC_META_HUMIDITYSPIKE:
+		newevent := new(HumiditySensorSpike)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
 	case TOPIC_META_DUSTSPIKE:
 		newevent := new(DustSensorSpike)
 		err = json.Unmarshal(data, newevent)
@@ -133,7 +137,7 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		event = *newevent
 	default:
 		event = nil
-		err = errors.New("cannot unmarshal unknown type")
+		err = errors.New("cannot unmarshal unknown topic") // we'll never see this error, it only tells the next if-check that we want to give the next switch a try
 	}
 	if event != nil && err == nil {
 		return
@@ -182,7 +186,7 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		event = *newevent
 	default:
 		event = nil
-		err = errors.New("cannot unmarshal unknown type")
+		err = errors.New("cannot unmarshal unknown type or topic")
 	}
 	return
 }

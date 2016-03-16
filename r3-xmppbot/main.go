@@ -109,18 +109,18 @@ func main() {
 
 	mqtt_subscription_filters := []string{
 		"realraum/+/" + r3events.TYPE_TEMP,
-		"realraum/+/illumination",
+		"realraum/+/" + r3events.TYPE_ILLUMINATION,
 		"realraum/metaevt/#",
 		"realraum/+/" + r3events.TYPE_LOCK,
 		"realraum/+/" + r3events.TYPE_AJAR,
 		"realraum/+/" + r3events.TYPE_MANUALLOCK,
 		r3events.TOPIC_FRONTDOOR_CMDEVT,
 		r3events.TOPIC_FRONTDOOR_PROBLEM,
-		"realraum/+/overtemp",
+		"realraum/+/" + r3events.TYPE_TEMPOVER,
 		"realraum/+/" + r3events.TYPE_DOOMBUTTON,
-		"realraum/+/gasalert",
-		"realraum/+/sensorlost",
-		"realraum/+/powerloss",
+		"realraum/+/" + r3events.TYPE_GASALERT,
+		"realraum/+/" + r3events.TYPE_SENSORLOST,
+		"realraum/+/" + r3events.TYPE_POWERLOSS,
 		"realraum/" + r3events.CLIENTID_IRCBOT + "/#"}
 	incoming_message_chan := ps.Sub("mqttrawmessages")
 	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters, time.Duration(7)*time.Minute)

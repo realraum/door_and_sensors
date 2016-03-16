@@ -57,17 +57,17 @@ func main() {
 	// --- receive and distribute events ---
 	ticker := time.NewTicker(time.Duration(6) * time.Minute)
 	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{
-		"realraum/+/temperature",
-		"realraum/+/illumination",
-		"realraum/+/relhumidity",
-		"realraum/metaevt/#",
-		r3events.TOPIC_R3 + r3events.CLIENTID_BACKDOOR + "/+",
-		r3events.TOPIC_R3 + r3events.CLIENTID_FRONTDOOR + "/+",
-		"realraum/+/overtemp",
-		"realraum/+/boredoombuttonpressed",
-		"realraum/+/gasalert",
-		"realraum/+/powerloss",
-		"realraum/lasercutter/cardpresent",
+		r3events.TOPIC_META_PRESENCE,
+		"realraum/+/" + r3events.TYPE_TEMP,
+		"realraum/+/" + r3events.TYPE_ILLUMINATION,
+		"realraum/+/" + r3events.TYPE_RELHUMIDITY,
+		"realraum/+/" + r3events.TYPE_LOCK,
+		"realraum/+/" + r3events.TYPE_AJAR,
+		"realraum/+/" + r3events.TYPE_TEMPOVER,
+		"realraum/+/" + r3events.TYPE_DOOMBUTTON,
+		"realraum/+/" + r3events.TYPE_GASALERT,
+		"realraum/+/" + r3events.TYPE_POWERLOSS,
+		r3events.TOPIC_LASER_CARD,
 		r3events.TOPIC_IRCBOT_FOODETA})
 	for {
 		select {
