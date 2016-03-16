@@ -37,63 +37,60 @@ def touchURL(url):
 
 def onMqttMessage(client, userdata, msg):
   global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence
-  if msg.retain:
-    return # do not act on retained messages
-  (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
-  #print("Got data: " + topic + ":"+ str(dictdata))
-  if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
-    # if people are present and the sun is down, switch on CX Lights
-    if last_status:
-      if dictdata["HaveSunlight"] == False:
-        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
-      elif dictdata["Event"] == "Sunrise":
-        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
-  elif topic.endswith("/presence") and "Present" in dictdata:
-    if dictdata["Present"] and last_status != dictdata["Present"]:
-      #someone just arrived
-      #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
-#boiler always on when someone is here
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
-      if isTheSunDown():
-        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
-      # doppelt hält besser, für die essentiellen dinge
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
-    last_status=dictdata["Present"]
-    if not last_status:
-      #everybody left
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
-      time.sleep(2)
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
-      time.sleep(2)
-      # doppelt hält besser, für die essentiellen dinge
-      touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
+  try:
+      if msg.retain:
+        return # do not act on retained messages
+      (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
+      #print("Got data: " + topic + ":"+ str(dictdata))
+      if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
+        # if people are present and the sun is down, switch on CX Lights
+        if last_status:
+          if dictdata["HaveSunlight"] == False:
+            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1")
+          elif dictdata["Event"] == "Sunrise":
+            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
+      elif topic.endswith("/presence") and "Present" in dictdata:
+        if dictdata["Present"] and last_status != dictdata["Present"]:
+          #someone just arrived
+          #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
+    #boiler always on when someone is here
+          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
+          if isTheSunDown():
+            touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
+          # doppelt hält besser, für die essentiellen dinge
+          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
+        last_status=dictdata["Present"]
+        if not last_status:
+          #everybody left
+          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
+          time.sleep(2)
+          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
+          time.sleep(2)
+          # doppelt hält besser, für die essentiellen dinge
+          touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
+    except Exception as ex:
+        print("onMqttMessage: "+str(ex))
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(1)
 
-while True:
+
+if __name__ == "__main__":
     last_status=None
     last_user=None
     unixts_panic_button=None
     unixts_last_movement=0
     unixts_last_presence=0
-    try:
-        client = mqtt.Client(client_id=os.path.basename(sys.argv[0]))
-        client.on_connect = lambda client, userdata, flags, rc: client.subscribe([
-            ("realraum/metaevt/presence",1),
-            ("realraum/metaevt/duskordawn",1),
-            ])
-        client.on_message = onMqttMessage
-        client.connect("mqtt.realraum.at", 1883, keepalive=45)
+    client = mqtt.Client(client_id=os.path.basename(sys.argv[0]))
+    client.on_connect = lambda client, userdata, flags, rc: client.subscribe([
+        ("realraum/metaevt/presence",1),
+        ("realraum/metaevt/duskordawn",1),
+        ])
+    client.on_message = onMqttMessage
+    client.connect("mqtt.realraum.at", 1883, keepalive=45)
 
-        # Blocking call that processes network traffic, dispatches callbacks and
-        # handles reconnecting.
-        # Other loop*() functions are available that give a threaded interface and a
-        # manual interface.
-        client.loop_forever()
+    # Blocking call that processes network traffic, dispatches callbacks and
+    # handles reconnecting.
+    # Other loop*() functions are available that give a threaded interface and a
+    # manual interface.
+    client.loop_forever()
 
-    except Exception as ex:
-        print("main: "+str(ex))
-        traceback.print_exc(file=sys.stdout)
-        try:
-          client.disconnect()
-        except:
-          pass
-        time.sleep(5)
