@@ -26,7 +26,7 @@ def decodeR3Payload(payload):
 #Start zmq connection to publish / forward sensor data
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
-    client.connect("mqtt.realraum.at", 1883, 60)
+    client.connect("mqtt.realraum.at", 1883, keepalive=70)
     return client
 
 #Initialize TTY interface
@@ -39,37 +39,34 @@ def initTTY(port):
 def handle_arduino_output(client,tty):
     str_humidity = b'Humidity (%): '
     str_temperature = b'Temperature (C): '
-    while tty.inWaiting() > 0:
-        sensordata = tty.readline()
-        if sensordata is None or len(sensordata) <= 5:
-            return
-        if sensordata.startswith(str_humidity):
-            humidity = float(sensordata[len(str_humidity):])
-            sendR3Message(client,"realraum/"+myclientid_+"/relhumidity",{"Location":mylocation_,"Percent":humidity,"Ts":int(time.time())}, retain=True)
-        elif sensordata.startswith(str_temperature):
-            temp = float(sensordata[len(str_temperature):])
-            sendR3Message(client,"realraum/"+myclientid_+"/temperature",{"Location":mylocation_,"Value":temp,"Ts":int(time.time())}, retain=True)
+    sensordata = tty.readline()
+    if sensordata is None or len(sensordata) <= 5:
+        return
+    if sensordata.startswith(str_humidity):
+        humidity = float(sensordata[len(str_humidity):])
+        sendR3Message(client,"realraum/"+myclientid_+"/relhumidity",{"Location":mylocation_,"Percent":humidity,"Ts":int(time.time())}, retain=True)
+    elif sensordata.startswith(str_temperature):
+        temp = float(sensordata[len(str_temperature):])
+        sendR3Message(client,"realraum/"+myclientid_+"/temperature",{"Location":mylocation_,"Value":temp,"Ts":int(time.time())}, retain=True)
 
 if __name__ == '__main__':
-    while True:
-        tty = None
-        client = None
-        try:
-            tty = initTTY('/dev/ttyUSB1' if len(sys.argv) < 2 else sys.argv[-1])
-            ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
-            ## otherwise we continously try to establish a zmq connection just to close it again
-            client = initMQTT()
-            #client.start_loop()
-            while True:
-                handle_arduino_output(client,tty)
-                client.loop()
+    tty = None
+    client = None
+    try:
+        tty = initTTY('/dev/ttyUSB1' if len(sys.argv) < 2 else sys.argv[-1])
+        ## if e.g. ttyUSB0 is not available, then code must not reach this line !!
+        ## otherwise we continously try to establish a zmq connection just to close it again
+        client = initMQTT()
+        #client.start_loop()
+        while True:
+            handle_arduino_output(client,tty)
+            client.loop()
 
-        except Exception as e:
-            traceback.print_exc()
-        finally:
-            if tty:
-                tty.close()
-            if isinstance(client,mqtt.Client):
-                #client_stop_loop()
-                client.disconnect()
-            time.sleep(5)
+    except Exception as e:
+        traceback.print_exc()
+    finally:
+        if tty:
+            tty.close()
+        if isinstance(client,mqtt.Client):
+            #client_stop_loop()
+            client.disconnect()
