@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys
+import sys, os
 #import threading
 import time
 import traceback
@@ -75,13 +75,13 @@ while True:
     unixts_last_movement=0
     unixts_last_presence=0
     try:
-        client = mqtt.Client()
+        client = mqtt.Client(client_id=os.path.basename(sys.argv[0]))
         client.on_connect = lambda client, userdata, flags, rc: client.subscribe([
             ("realraum/metaevt/presence",1),
             ("realraum/metaevt/duskordawn",1),
             ])
         client.on_message = onMqttMessage
-        client.connect("mqtt.realraum.at", 1883, 60)
+        client.connect("mqtt.realraum.at", 1883, keepalive=45)
 
         # Blocking call that processes network traffic, dispatches callbacks and
         # handles reconnecting.
