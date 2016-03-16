@@ -7,15 +7,11 @@ import traceback
 import paho.mqtt.client as mqtt
 import json
 import urllib.request, urllib.parse, urllib.error
-import ephem
+
+last_havesunlight_state_ = False
 
 def isTheSunDown():
-    ephemobs=ephem.Observer()
-    ephemobs.lat='47.06'
-    ephemobs.lon='15.45'
-    ephemsun=ephem.Sun()
-    ephemsun.compute()
-    return ephemobs.date > ephemobs.previous_setting(ephemsun) and ephemobs.date < ephemobs.next_rising(ephemsun)
+    return not last_havesunlight_state_
 
 def decodeR3Message(topic, data):
     try:
@@ -36,13 +32,14 @@ def touchURL(url):
     print("touchURL: "+str(e))
 
 def onMqttMessage(client, userdata, msg):
-  global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence
+  global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_
   try:
-      if msg.retain:
-        return # do not act on retained messages
       (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
       #print("Got data: " + topic + ":"+ str(dictdata))
       if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
+        last_havesunlight_state_ = bool(dictdata["HaveSunlight"])
+        if msg.retain:
+          return # do not act on retained messages
         # if people are present and the sun is down, switch on CX Lights
         if last_status:
           if dictdata["HaveSunlight"] == False:
@@ -50,6 +47,8 @@ def onMqttMessage(client, userdata, msg):
           elif dictdata["Event"] == "Sunrise":
             touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0")
       elif topic.endswith("/presence") and "Present" in dictdata:
+        if msg.retain:
+          return # do not act on retained messages
         if dictdata["Present"] and last_status != dictdata["Present"]:
           #someone just arrived
           #power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
