@@ -8,18 +8,19 @@ import sys
 
 ######## r3 ############
 
+
 def sendR3Message(client, structname, datadict):
     client.publish(structname, json.dumps(datadict))
 
-#Start zmq connection to publish / forward sensor data
+# Start zmq connection to publish / forward sensor data
 client = mqtt.Client()
 client.connect("mqtt.realraum.at", 1883, 60)
 
-#listen for sensor data and forward them
+# listen for sensor data and forward them
 if len(sys.argv) < 3:
-    sendR3Message(client,"realraum/metaevt/presence",{"Present":True,"Ts":int(time.time())})
+    sendR3Message(client, "realraum/metaevt/presence",
+                  {"Present": True, "Ts": int(time.time())})
 else:
     client.publish(sys.argv[1], sys.argv[2])
 client.loop(timeout=1.0, max_packets=1)
 client.disconnect()
-

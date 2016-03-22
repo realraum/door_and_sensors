@@ -10,16 +10,19 @@ import time
 import paho.mqtt.client as mqtt
 ########################
 
+
 def decodeR3Message(multipart_msg):
     try:
         return (multipart_msg[0], json.loads(multipart_msg[1]))
     except Exception as e:
-        logging.debug("decodeR3Message:"+str(e))
-        return ("",{})
+        logging.debug("decodeR3Message:" + str(e))
+        return ("", {})
 
 # The callback for when the client receives a CONNACK response from the server.
+
+
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+    print("Connected with result code " + str(rc))
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
@@ -27,12 +30,14 @@ def on_connect(client, userdata, flags, rc):
     # client.subscribe("$SYS/#")
 
 # The callback for when a PUBLISH message is received from the server.
+
+
 def on_message(client, userdata, msg):
-    print(msg.topic+": %s (%s)" % (msg.payload, type(msg.payload)))
+    print(msg.topic + ": %s (%s)" % (msg.payload, type(msg.payload)))
     #(structname, dictdata) = decodeR3Message(data)
     #print("Got data: " + structname + ":"+ str(dictdata))
 
-to_subscribe="#"
+to_subscribe = "#"
 if len(sys.argv) > 1:
     to_subscribe = sys.argv[1]
 
