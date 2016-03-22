@@ -103,12 +103,12 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 		case r3events.UPSPowerUpdate:
 			if event.OnBattery {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! UPS reports power has been lost. Battery at %d%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! UPS reports power has been lost. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 			} else if event.PercentBattery < 100 {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("UPS reports power restored. Battery at %d%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("UPS reports power restored. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 			}
 		case r3events.TempOverThreshold:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! Temperature %s exceeded limit at %f°C (%s)", event.Location, event.Value, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! Temperature %s exceeded limit at %.2f°C (%s)", event.Location, event.Value, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 		case r3events.SensorLost:
 			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Mhhh. Apparently sensor %s disappeared. (last seen: %s, usual average update interval: %ds) (%s)", event.Topic, time.Unix(event.LastSeen, 0).String(), event.UsualInterval, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
 		case r3events.IlluminationSensorUpdate:

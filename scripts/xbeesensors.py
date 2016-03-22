@@ -26,12 +26,12 @@ def decodeR3Payload(payload):
 #Start zmq connection to publish / forward sensor data
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
-    client.connect("mqtt.realraum.at", 1883, keepalive=70)
+    client.connect("mqtt.realraum.at", 1883, keepalive=50)
     return client
 
 #Initialize TTY interface
 def initTTY(port):
-    tty = serial.Serial(port=port, baudrate=9600,timeout=60 )
+    tty = serial.Serial(port=port, baudrate=9600,timeout=5 )
     tty.flushInput()
     tty.flushOutput()
     return tty
