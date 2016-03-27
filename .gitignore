@@ -1,0 +1,9 @@
+*.sublime-project
+*.sublime-workspace
+backdoorcx_sensor_node/backdoorcx_sensor_node
+door_client/door_client
+door_daemon/door_daemon
+r3-metaevt-maker/r3-metaevt-maker
+r3-spaceapistatus/r3-spaceapistatus
+r3-xmppbot/r3-xmppbot
+scripts/secret/
