@@ -50,15 +50,17 @@ func serialReader(out chan<- SerialLine, serial *sio.Port) {
 	linescanner := bufio.NewScanner(serial)
 	linescanner.Split(bufio.ScanLines)
 	for linescanner.Scan() {
-		if err := linescanner.Err(); err != nil {
-			panic(err.Error())
-		}
 		text := strings.Fields(linescanner.Text())
 		if len(text) == 0 {
 			continue
 		}
 		out <- text
 	}
+	if err := linescanner.Err(); err != nil {
+		Syslog_.Print("serialReader Error", err)
+	}
+	Debug_.Print("serialReader exited")
+	close(out)
 }
 
 func OpenAndHandleSerial(filename string, serspeed uint) (chan string, chan SerialLine, error) {
