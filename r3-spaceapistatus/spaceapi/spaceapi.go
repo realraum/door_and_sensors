@@ -137,6 +137,30 @@ func MakeLasercutterHotSensor(name, where string, value bool) SpaceInfo {
 	return SpaceInfo{"ext_lasercutter_hot": listofwhats}
 }
 
+func MakeVoltageSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
+	listofwhats := make([]SpaceInfo, 1)
+	listofwhats[0] = SpaceInfo{
+		"value":       value,
+		"unit":        unit,
+		"location":    where,
+		"name":        name,
+		"description": "Voltage",
+		"timestamp":   timestamp}
+	return SpaceInfo{"ext_voltage": listofwhats}
+}
+
+func MakeBatteryChargeSensor(name, where, unit string, percentcharge float64, timestamp int64) SpaceInfo {
+	listofwhats := make([]SpaceInfo, 1)
+	listofwhats[0] = SpaceInfo{
+		"value":       percentcharge,
+		"unit":        unit,
+		"location":    where,
+		"name":        name,
+		"description": "Charge of battery",
+		"timestamp":   timestamp}
+	return SpaceInfo{"ext_batterycharge": listofwhats}
+}
+
 func (nsi SpaceInfo) MergeInSensor(sensorinfo SpaceInfo) {
 	if nsi["sensors"] == nil {
 		nsi["sensors"] = SpaceInfo{}

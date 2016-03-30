@@ -20,7 +20,7 @@ type spaceState struct {
 }
 
 var (
-  spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png", "https://realraum.at/logo-re_open_100x100.png", "https://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
+	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png", "https://realraum.at/logo-re_open_100x100.png", "https://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria")
 	statusstate     *spaceState        = new(spaceState)
 	re_querystresc_ *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 )
@@ -119,6 +119,11 @@ func EventToWeb(events chan interface{}) {
 			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value, event.Ts))
 		case r3events.RelativeHumiditySensorUpdate:
 			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+		case r3events.Voltage:
+			spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@%s", event.Location), event.Location, "V", event.Value, event.Ts))
+			if event.Min != event.Max {
+				spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+			}
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
 			publishStateToWeb()

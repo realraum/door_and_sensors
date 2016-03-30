@@ -59,6 +59,7 @@ func main() {
 	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{
 		r3events.TOPIC_META_PRESENCE,
 		"realraum/+/" + r3events.TYPE_TEMP,
+		"realraum/+/" + r3events.TYPE_VOLTAGE,
 		"realraum/+/" + r3events.TYPE_ILLUMINATION,
 		"realraum/+/" + r3events.TYPE_RELHUMIDITY,
 		"realraum/+/" + r3events.TYPE_LOCK,

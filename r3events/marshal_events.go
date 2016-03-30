@@ -184,6 +184,10 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(SensorLost)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
+	case TYPE_VOLTAGE:
+		newevent := new(Voltage)
+		err = json.Unmarshal(data, newevent)
+		event = *newevent
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown type or topic")

@@ -11,6 +11,7 @@ import sys
 
 myclientid_ = "xbee"
 mylocation_ = "Outside"
+mylocation1_ = "Cellar"
 rf433_send_delay_s_ = 0.0
 
 def sendR3Message(client, topic, datadict, qos=0, retain=False):
@@ -36,28 +37,55 @@ def initTTY(port):
     tty.flushOutput()
     return tty
 
+def publishHumidity(client, datastr, location):
+    humidity = float(datastr)
+    sendR3Message(client,
+        "realraum/" + myclientid_ + "/relhumidity",
+            {"Location": location, "Percent": humidity, "Ts": int(time.time())},
+         retain=True)
+
+def publishTemperature(client, datastr, location):
+    temp = float(datastr)
+    sendR3Message(client,
+                  "realraum/" + myclientid_ + "/temperature",
+                  {"Location": location,
+                   "Value": temp,
+                   "Ts": int(time.time())},
+                  retain=True)
+
+def publishVoltage(client, datastr, location):
+    volt = float(datastr)
+    minv=3.15
+    maxv=4.2
+    sendR3Message(client,
+                  "realraum/" + myclientid_ + "/voltage",
+                  {"Location": location,
+                   "Value": volt,
+                   "Min": minv,
+                   "Max": maxv,
+                   "Percent": 100.0 * ((volt - minv) / (maxv-minv)),
+                   "Ts": int(time.time())},
+                  retain=True)
+
 def handle_arduino_output(client, tty):
     str_humidity = b'Humidity (%): '
     str_temperature = b'Temperature (C): '
+    str_humidity1 = b'Humidity 1 (%): '
+    str_temperature1 = b'Temperature 1 (C): '
+    str_voltage1 = b'Battery Voltage 1 (V): '
     sensordata = tty.readline()
     if sensordata is None or len(sensordata) <= 5:
         return
     if sensordata.startswith(str_humidity):
-        humidity = float(sensordata[len(str_humidity):])
-        sendR3Message(client,
-                      "realraum/" + myclientid_ + "/relhumidity",
-                      {"Location": mylocation_,
-                       "Percent": humidity,
-                       "Ts": int(time.time())},
-                      retain=True)
+        publishHumidity(client, sensordata[len(str_humidity):], mylocation_)
     elif sensordata.startswith(str_temperature):
-        temp = float(sensordata[len(str_temperature):])
-        sendR3Message(client,
-                      "realraum/" + myclientid_ + "/temperature",
-                      {"Location": mylocation_,
-                       "Value": temp,
-                       "Ts": int(time.time())},
-                      retain=True)
+        publishTemperature(client, sensordata[len(str_temperature):], mylocation_)
+    elif sensordata.startswith(str_humidity1):
+        publishHumidity(client, sensordata[len(str_humidity1):], mylocation1_)
+    elif sensordata.startswith(str_temperature1):
+        publishTemperature(client, sensordata[len(str_temperature1):], mylocation1_)
+    elif sensordata.startswith(str_voltage1):
+        publishVoltage(client, sensordata[len(str_voltage1):], mylocation1_)
 
 if __name__ == '__main__':
     tty = None

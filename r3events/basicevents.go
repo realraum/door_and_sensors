@@ -68,6 +68,16 @@ type RelativeHumiditySensorUpdate struct {
 	Percent  float64
 	Ts       int64
 }
+
+type Voltage struct {
+	Location string
+	Value    float64
+	Min      float64 //optional
+	Max      float64 //optional
+	Percent  float64 //optional
+	Ts       int64
+}
+
 type UPSPowerUpdate struct {
 	OnBattery      bool
 	PercentBattery float64
