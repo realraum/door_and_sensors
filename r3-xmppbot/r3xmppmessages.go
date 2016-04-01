@@ -46,7 +46,7 @@ func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpres
 
 // gets r3events and sends corresponding XMPP messages and XMPP Presence/Status Updates
 func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presence_events_chan chan<- interface{}, watchdog_timeout time.Duration) {
-	button_msg := "Dooom ! The button has been pressed ! Propably someone is bored and in need of company ! ;-)"
+	button_msg := "Dooom ! The button has been pressed ! Probably someone is bored and in need of company ! ;-)"
 	defer func() {
 		if x := recover(); x != nil {
 			//defer ist called _after_ EventToXMPP function has returned. Thus we recover after returning from this function.

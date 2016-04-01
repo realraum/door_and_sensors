@@ -10,8 +10,8 @@ import sys
 ######## r3 ZMQ ############
 
 myclientid_ = "xbee"
-mylocation_ = "Outside"
-mylocation1_ = "Cellar"
+mylocation0_ = "Outside"
+mylocation1_ = "WC"
 rf433_send_delay_s_ = 0.0
 
 def sendR3Message(client, topic, datadict, qos=0, retain=False):
@@ -55,31 +55,34 @@ def publishTemperature(client, datastr, location):
 
 def publishVoltage(client, datastr, location):
     volt = float(datastr)
-    minv=3.15
-    maxv=4.2
+    minv=3.0
+    maxv=3.90
     sendR3Message(client,
                   "realraum/" + myclientid_ + "/voltage",
                   {"Location": location,
                    "Value": volt,
                    "Min": minv,
                    "Max": maxv,
-                   "Percent": 100.0 * ((volt - minv) / (maxv-minv)),
+                   "Percent": min(round(100.0 * ((volt - minv) / (maxv-minv)),2),100.0),
                    "Ts": int(time.time())},
                   retain=True)
 
 def handle_arduino_output(client, tty):
-    str_humidity = b'Humidity (%): '
-    str_temperature = b'Temperature (C): '
+    str_humidity0 = b'Humidity 0 (%): '
+    str_temperature0 = b'Temperature 0 (C): '
+    str_voltage0 = b'Battery Voltage 0 (V): '
     str_humidity1 = b'Humidity 1 (%): '
     str_temperature1 = b'Temperature 1 (C): '
     str_voltage1 = b'Battery Voltage 1 (V): '
     sensordata = tty.readline()
     if sensordata is None or len(sensordata) <= 5:
         return
-    if sensordata.startswith(str_humidity):
-        publishHumidity(client, sensordata[len(str_humidity):], mylocation_)
-    elif sensordata.startswith(str_temperature):
-        publishTemperature(client, sensordata[len(str_temperature):], mylocation_)
+    if sensordata.startswith(str_humidity0):
+        publishHumidity(client, sensordata[len(str_humidity0):], mylocation0_)
+    elif sensordata.startswith(str_temperature0):
+        publishTemperature(client, sensordata[len(str_temperature0):], mylocation0_)
+    elif sensordata.startswith(str_voltage0):
+        publishVoltage(client, sensordata[len(str_voltage0):], mylocation0_)
     elif sensordata.startswith(str_humidity1):
         publishHumidity(client, sensordata[len(str_humidity1):], mylocation1_)
     elif sensordata.startswith(str_temperature1):
