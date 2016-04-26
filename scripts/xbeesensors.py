@@ -94,7 +94,7 @@ if __name__ == '__main__':
     tty = None
     client = None
     try:
-        tty = initTTY('/dev/ttyUSB1' if len(sys.argv) < 2 else sys.argv[-1])
+        tty = initTTY('/dev/ttyXBEE' if len(sys.argv) < 2 else sys.argv[-1])
         # if e.g. ttyUSB0 is not available, then code must not reach this line !!
         # otherwise we continously try to establish a zmq connection just to
         # close it again
