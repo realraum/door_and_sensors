@@ -16,7 +16,7 @@ TOPIC_YAMAHA_IR_CMD = "action/yamahastereo/ircmd"
 TOPIC_RF433_CMD = "action/rf433/sendcode3byte"
 TOPIC_RF433_SETDELAY = "action/rf433/setdelay"
 query_sensor_intervall_ = 20
-dht_sensordata_file_ = "/tmp/dht11data.txt"
+#dht_sensordata_file_ = "/tmp/dht11data.txt"
 
 yamaha_arudino_cmds_ = {
     "ymhpoweroff": b":",
@@ -66,28 +66,28 @@ def decodeR3Payload(payload):
 # * * * * * /root/Adafruit_Python_DHT/examples/AdafruitDHT.py 11 30 > /tmp/dht11data.txt.new && mv /tmp/dht11data.txt.new /tmp/dht11data.txt
 
 
-def getAndPublishDHT11SensorValues(client):
-    data = ""
-    ts = 0
-    try:
-        ts = int(os.path.getmtime(dht_sensordata_file_))
-        with open(dht_sensordata_file_, "r") as dhtf:
-            data = dhtf.read()
-    except:
-        return
-
-    if data[:0 + 5] == "Temp=":
-        temp = float(data[5:5 + 4])
-        sendR3Message(client, "realraum/" + myclientid_ + "/temperature",
-                      {"Location": "LoTHR", "Value": temp, "Ts": ts}, retain=True)
-    if data[12:12 + 9] == "Humidity=":
-        humidity = float(data[21:21 + 4])
-        sendR3Message(client,
-                      "realraum/" + myclientid_ + "/relhumidity",
-                      {"Location": "LoTHR",
-                       "Percent": humidity,
-                       "Ts": ts},
-                      retain=True)
+# def getAndPublishDHT11SensorValues(client):
+#     data = ""
+#     ts = 0
+#     try:
+#         ts = int(os.path.getmtime(dht_sensordata_file_))
+#         with open(dht_sensordata_file_, "r") as dhtf:
+#             data = dhtf.read()
+#     except:
+#         return
+# 
+#     if data[:0 + 5] == "Temp=":
+#         temp = float(data[5:5 + 4])
+#         sendR3Message(client, "realraum/" + myclientid_ + "/temperature",
+#                       {"Location": "LoTHR", "Value": temp, "Ts": ts}, retain=True)
+#     if data[12:12 + 9] == "Humidity=":
+#         humidity = float(data[21:21 + 4])
+#         sendR3Message(client,
+#                       "realraum/" + myclientid_ + "/relhumidity",
+#                       {"Location": "LoTHR",
+#                        "Percent": humidity,
+#                        "Ts": ts},
+#                       retain=True)
 
 
 def onMQTTMessage(client, userdata, msg):
@@ -173,7 +173,7 @@ if __name__ == '__main__':
         # client.start_loop()
         while True:
             if time.time() - last_get_sensor_data_ts > query_sensor_intervall_:
-                getAndPublishDHT11SensorValues(client)
+            #    getAndPublishDHT11SensorValues(client)
                 tty.write(b'?')  # query illumination sensor
                 # tty.write(b'*')  # query temp sensor
                 last_get_sensor_data_ts = time.time()
