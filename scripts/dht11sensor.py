@@ -3,15 +3,14 @@
 
 import json
 import time
-import serial
 import paho.mqtt.client as mqtt
 import traceback
-import subprocess
 import os.path
 ######## r3 ZMQ ############
 
 myclientid_ = "smallkiosk"
 dht_sensordata_file_ = "/tmp/dht11data.txt"
+query_sensor_intervall_ = 60
 
 def sendR3Message(client, topic, datadict, qos=0, retain=False):
     client.publish(topic, json.dumps(datadict), qos, retain)
@@ -58,9 +57,6 @@ def getAndPublishDHT11SensorValues(client):
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
     client.connect("mqtt.realraum.at", 1883, keepalive=31)
-    client.on_message = onMQTTMessage
-    client.subscribe([(TOPIC_YAMAHA_IR_CMD, 2),
-                      (TOPIC_RF433_CMD, 2), (TOPIC_RF433_SETDELAY, 2)])
     return client
 
 
