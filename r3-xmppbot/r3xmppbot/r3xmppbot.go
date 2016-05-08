@@ -90,16 +90,20 @@ const (
 	ShowFreeForChat  string = "chat"
 )
 
+const XMPP_MAX_ERROR_COUNT = 49
+
 type JidData struct {
-	Online bool
-	Wants  R3JIDDesire
+	Online     bool
+	Wants      R3JIDDesire
+	ErrorCount int64
 }
 
 type JabberEvent struct {
-	JID       string
-	Online    bool
-	Wants     R3JIDDesire
-	StatusNow bool
+	JID          string
+	Online       bool
+	Wants        R3JIDDesire
+	StatusNow    bool
+	ErrorOccured bool
 }
 
 type XMPPMsgEvent struct {
@@ -213,7 +217,7 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				return
 			}
 			Debug_.Printf("handleEventsforXMPP<-jabber_events: %T %+v", je, je)
-			simple_jid := removeJIDResource(je.JID)
+			simple_jid := removeResourceFromJIDString(je.JID)
 			jid_data, jid_in_map := botdata.realraum_jids_[simple_jid]
 
 			//send status if requested, even if user never changed any settings and thus is not in map
@@ -221,6 +225,7 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				xmppout <- botdata.makeXMPPMessage(je.JID, last_status_msg, nil)
 			}
 
+			// if user is already known
 			if jid_in_map {
 				//if R3OnlineOnlyWithRecapInfo, we want a status update when coming online
 				if last_status_msg != nil && !jid_data.Online && je.Online && jid_data.Wants == R3OnlineOnlyWithRecapInfo {
@@ -230,17 +235,27 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				if je.Wants > R3NoChange {
 					jid_data.Wants = je.Wants
 				}
+
+				if je.ErrorOccured {
+					jid_data.ErrorCount++
+					if jid_data.ErrorCount > XMPP_MAX_ERROR_COUNT {
+						jid_data.Wants = R3NeverInfo
+					}
+				}
+
+				//save data
 				botdata.realraum_jids_[simple_jid] = jid_data
 				botdata.realraum_jids_.saveTo(botdata.config_file_)
 			} else if je.Wants > R3NoChange {
-				botdata.realraum_jids_[simple_jid] = JidData{je.Online, je.Wants}
+				//save data
+				botdata.realraum_jids_[simple_jid] = JidData{Online: je.Online, Wants: je.Wants}
 				botdata.realraum_jids_.saveTo(botdata.config_file_)
 			}
 		}
 	}
 }
 
-func removeJIDResource(jid string) string {
+func removeResourceFromJIDString(jid string) string {
 	var jidjid xmpp.JID
 	jidjid.Set(jid)
 	jidjid.Resource = ""
@@ -269,19 +284,19 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 	if botdata.isAuthenticated(inmsg.GetHeader().From) {
 		switch bodytext_lc_cmd {
 		case "on":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3OnlineOnlyInfo, false}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3OnlineOnlyInfo, false, false}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Receive r3 status updates while online.", "Your New Status")
 		case "off":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3NeverInfo, false}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3NeverInfo, false, false}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Do not receive anything.", "Your New Status")
 		case "on_with_recap":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3OnlineOnlyWithRecapInfo, false}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3OnlineOnlyWithRecapInfo, false, false}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Receive r3 status updates while and current status on coming, online.", "Your New Status")
 		case "on_while_offline":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3AlwaysInfo, false}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3AlwaysInfo, false, false}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Receive all r3 status updates, even if you are offline.", "Your New Status")
 		case "debug":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3DebugInfo, false}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3DebugInfo, false, false}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Debug mode enabled", "Your New Status")
 		case "bye", "quit", "logout":
 			botdata.jid_lastauthtime_[inmsg.GetHeader().From] = 0
@@ -289,7 +304,7 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 		case "open", "close":
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Sorry, I'm just weak software, not strong enough to operate the door for you.", nil)
 		case "status":
-			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3NoChange, true}
+			jabber_events <- JabberEvent{inmsg.GetHeader().From, true, R3NoChange, true, false}
 		case "time":
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, time.Now().String(), nil)
 		case "ping":
@@ -356,9 +371,9 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <-chan xmpp.Stanza, xmp
 			if stanza.Type == "error" || stanza.Error != nil {
 				Syslog_.Printf("XMPP %T Error: %s", stanza, stanza)
 				if stanza.Error.Type == "cancel" {
-					// asume receipient not reachable -> disable
+					// asume receipient not reachable -> increase error count
 					Syslog_.Printf("Error reaching %s. Disabling user, please reenable manually", stanza.From)
-					jabber_events <- JabberEvent{stanza.From, false, R3NeverInfo, false}
+					jabber_events <- JabberEvent{JID: stanza.From, Wants: R3NoChange, ErrorOccured: true, Online: false}
 					continue
 				}
 				if handleStanzaError() {
@@ -385,17 +400,17 @@ func (botdata *XmppBot) handleIncomingXMPPStanzas(xmppin <-chan xmpp.Stanza, xmp
 			switch stanza.GetHeader().Type {
 			case "subscribe":
 				xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "subscribed", "", "")
-				jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}
+				jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false, false}
 				xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "subscribe", "", "")
 			case "unsubscribe", "unsubscribed":
-				jabber_events <- JabberEvent{stanza.GetHeader().From, false, R3NeverInfo, false}
+				jabber_events <- JabberEvent{stanza.GetHeader().From, false, R3NeverInfo, false, false}
 				botdata.jid_lastauthtime_[stanza.GetHeader().From] = 0 //logout
 				xmppout <- botdata.makeXMPPPresence(stanza.GetHeader().From, "unsubscribe", "", "")
 			case "unavailable":
-				jabber_events <- JabberEvent{stanza.GetHeader().From, false, R3NoChange, false}
+				jabber_events <- JabberEvent{stanza.GetHeader().From, false, R3NoChange, false, false}
 				botdata.jid_lastauthtime_[stanza.GetHeader().From] = 0 //logout
 			default:
-				jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false}
+				jabber_events <- JabberEvent{stanza.GetHeader().From, true, R3NoChange, false, false}
 			}
 
 		case *xmpp.Iq:
@@ -437,7 +452,7 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 	botdata.password_ = password
 	botdata.auth_timeout_ = 3600 * 2
 
-	botdata.config_file_ = path.Join(state_save_dir, "r3xmpp."+removeJIDResource(loginjid)+".json")
+	botdata.config_file_ = path.Join(state_save_dir, "r3xmpp."+removeResourceFromJIDString(loginjid)+".json")
 
 	xmpp.TlsConfig = tls.Config{InsecureSkipVerify: insecuretls}
 	botdata.realraum_jids_.loadFrom(botdata.config_file_)
