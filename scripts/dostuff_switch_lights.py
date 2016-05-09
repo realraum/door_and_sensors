@@ -65,15 +65,15 @@ def onMqttMessage(client, userdata, msg):
                 if dictdata["Present"] == True:
                     # someone just arrived
                     # power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
-                    # boiler always on when someone is here
+                    # boiler needs power, so always off. to be switched on manuall when needed
                     touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=1")
+                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0")
                     if isTheSunDown():
                         touchURL(
                             "http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=1&labortisch=1")
+                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1")
                 else:
                     # everybody left
                     touchURL(
