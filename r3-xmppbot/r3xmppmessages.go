@@ -54,8 +54,10 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 		}
 	}()
 
-	//make sure watchdog time is
+	//the watchdog timer is watching for hanging for loops
 	watchdog := time.AfterFunc(watchdog_timeout, func() { panic("Event2Xmpp Watchdog timed out") })
+	//make sure we don't panic when we exit EventToXMPP for other reasons
+	defer watchdog.Stop()
 
 	var present, frontlock bool = false, true
 	var last_buttonpress, light_lothr int64 = 0, 0
