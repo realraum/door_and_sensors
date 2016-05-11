@@ -158,6 +158,7 @@ func (data RealraumXmppNotifierConfig) loadFrom(filepath string) {
 		return
 	}
 	for to, jiddata := range data {
+		//set status to offline. We're going to get current online status of everyone who is currently online at reconnect
 		jiddata.Online = false
 		data[to] = jiddata
 	}
@@ -173,6 +174,11 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 		for _ = range jabber_events {
 		} //cleanout jabber_events queue
 	}()
+
+	// the settle period is the time during which we receive precence updates from the jabber server right after connecting
+	// presence states we want to remember but not act upon with a recap-message
+	settletimer := time.NewTimer(900 * time.Millisecond)
+	withinSettlePeriod := true
 
 	for {
 		select {
@@ -212,6 +218,8 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				return
 			}
 
+		case <-settletimer.C:
+			withinSettlePeriod = false
 		case je, je_still_open := <-jabber_events:
 			if !je_still_open {
 				return
@@ -228,7 +236,7 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 			// if user is already known
 			if jid_in_map {
 				//if R3OnlineOnlyWithRecapInfo, we want a status update when coming online
-				if last_status_msg != nil && !jid_data.Online && je.Online && jid_data.Wants == R3OnlineOnlyWithRecapInfo {
+				if last_status_msg != nil && !withinSettlePeriod && !jid_data.Online && je.Online && jid_data.Wants == R3OnlineOnlyWithRecapInfo {
 					xmppout <- botdata.makeXMPPMessage(je.JID, last_status_msg, nil)
 				}
 				jid_data.Online = je.Online
