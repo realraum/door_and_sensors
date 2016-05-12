@@ -67,13 +67,13 @@ def onMqttMessage(client, userdata, msg):
                     # power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
                     touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0")
+                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0&boilerolga=1")
                     if isTheSunDown():
                         touchURL(
                             "http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1")
+                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1&boilerolga=1")
                 else:
                     # everybody left
                     touchURL(
@@ -83,7 +83,7 @@ def onMqttMessage(client, userdata, msg):
                     time.sleep(2)
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0")
+                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0&boilerolga=0")
     except Exception as ex:
         print("onMqttMessage: " + str(ex))
         traceback.print_exc(file=sys.stdout)
