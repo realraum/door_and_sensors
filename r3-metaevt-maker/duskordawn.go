@@ -54,6 +54,12 @@ func (h *eventHeap) Peek() *upcomingEvent {
 	}
 }
 
+//Time when light does not reach CX in r3 anymore
+func r3CXDark(now time.Time) time.Time {
+	sunset := astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.SUNSET)
+	return sunset.Add(time.Duration(-95 * time.Minute))
+}
+
 func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
 	for {
 		now := time.Now()
@@ -63,6 +69,7 @@ func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
 		heap.Push(eventheap, upcomingEvent{"CivilDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DAWN)})
 		heap.Push(eventheap, upcomingEvent{"NauticalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DAWN)})
 		heap.Push(eventheap, upcomingEvent{"AstronomicalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.ASTRONOMICAL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"r3CXDark", false, r3CXDark(now)})
 		heap.Push(eventheap, upcomingEvent{"Sunset", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.SUNSET)})
 		heap.Push(eventheap, upcomingEvent{"CivilDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DUSK)})
 		heap.Push(eventheap, upcomingEvent{"NauticalDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DUSK)})
