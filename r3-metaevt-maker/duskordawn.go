@@ -54,22 +54,19 @@ func (h *eventHeap) Peek() *upcomingEvent {
 	}
 }
 
-//Time when light does not reach CX in r3 anymore
-func r3CXDark(now time.Time) time.Time {
-	sunset := astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.SUNSET)
-	return sunset.Add(time.Duration(-95 * time.Minute))
-}
-
 func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
 	for {
 		now := time.Now()
 		eventheap := new(eventHeap)
 		heap.Init(eventheap)
-		heap.Push(eventheap, upcomingEvent{"Sunrise", true, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.SUNRISE)})
-		heap.Push(eventheap, upcomingEvent{"CivilDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DAWN)})
-		heap.Push(eventheap, upcomingEvent{"NauticalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DAWN)})
 		heap.Push(eventheap, upcomingEvent{"AstronomicalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.ASTRONOMICAL_DAWN)})
-		heap.Push(eventheap, upcomingEvent{"r3CXDark", false, r3CXDark(now)})
+		heap.Push(eventheap, upcomingEvent{"NauticalDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"CivilDawn", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DAWN)})
+		heap.Push(eventheap, upcomingEvent{"Sunrise", false, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.SUNRISE)})
+		heap.Push(eventheap, upcomingEvent{"GoldenHour", true, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.GOLDEN_HOUR)})
+		heap.Push(eventheap, upcomingEvent{"CityIndoorLights", true, astrotime.NextDawn(now, LATITUDE, LONGITUDE, astrotime.CITY_INDOOR_LIGHTS)})
+		heap.Push(eventheap, upcomingEvent{"CityIndoorLights", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.CITY_INDOOR_LIGHTS)})
+		heap.Push(eventheap, upcomingEvent{"GoldenHour", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.GOLDEN_HOUR)})
 		heap.Push(eventheap, upcomingEvent{"Sunset", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.SUNSET)})
 		heap.Push(eventheap, upcomingEvent{"CivilDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.CIVIL_DUSK)})
 		heap.Push(eventheap, upcomingEvent{"NauticalDusk", false, astrotime.NextDusk(now, LATITUDE, LONGITUDE, astrotime.NAUTICAL_DUSK)})
