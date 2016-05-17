@@ -279,6 +279,20 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                               "Ts": ts})
         unreachable_count += 1
 
+def onMQTTDisconnect(mqttc, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection.")
+        while True:
+            time.sleep(5)
+            print("Attempting reconnect")
+            try:
+                mqttc.reconnect()
+                break
+            except ConnectionRefusedError:
+                continue
+    else:
+        print("Clean disconnect.")
+        sys.exit()
 
 ############ Main Routine ############
 
@@ -295,6 +309,7 @@ if __name__ == '__main__':
     # Start mqtt connection to publish / forward sensor data
     client = mqtt.Client()
     client.connect(uwscfg.mqtt_brokerhost, int(uwscfg.mqtt_brokerport), 60)
+    client.on_disconnect = onMQTTDisconnect
 
     # listen for sensor data and forward them
     interval_s = float(uwscfg.sensor_sampleinterval)

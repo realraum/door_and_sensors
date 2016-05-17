@@ -24,10 +24,26 @@ def decodeR3Payload(payload):
         print("Error decodeR3Payload:" + str(e))
         return {}
 
+def onMQTTDisconnect(mqttc, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection.")
+        while True:
+            time.sleep(5)
+            print("Attempting reconnect")
+            try:
+                mqttc.reconnect()
+                break
+            except ConnectionRefusedError:
+                continue
+    else:
+        print("Clean disconnect.")
+        sys.exit()
+
 # Start zmq connection to publish / forward sensor data
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
     client.connect("mqtt.realraum.at", 1883, keepalive=50)
+    client.on_disconnect = onMQTTDisconnect
     return client
 
 # Initialize TTY interface

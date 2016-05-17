@@ -89,6 +89,20 @@ def onMqttMessage(client, userdata, msg):
         traceback.print_exc(file=sys.stdout)
         sys.exit(1)
 
+def onMQTTDisconnect(mqttc, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection.")
+        while True:
+            time.sleep(5)
+            print("Attempting reconnect")
+            try:
+                mqttc.reconnect()
+                break
+            except ConnectionRefusedError:
+                continue
+    else:
+        print("Clean disconnect.")
+        sys.exit()
 
 if __name__ == "__main__":
     last_status = None
@@ -103,6 +117,7 @@ if __name__ == "__main__":
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
+    client.on_disconnect = onMQTTDisconnect
 
     # Blocking call that processes network traffic, dispatches callbacks and
     # handles reconnecting.

@@ -111,13 +111,30 @@ def onMQTTMessage(client, userdata, msg):
             rf433_send_delay_s_ == float(data["DelayMs"]) / 1000.0
 
 
+def onMQTTDisconnect(mqttc, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection.")
+        while True:
+            time.sleep(5)
+            print("Attempting reconnect")
+            try:
+                mqttc.reconnect()
+                break
+            except ConnectionRefusedError:
+                continue
+    else:
+        print("Clean disconnect.")
+        sys.exit()
+
 # Start zmq connection to publish / forward sensor data
 def initMQTT():
     client = mqtt.Client(client_id=myclientid_)
+    client.on_connect = lambda client, userdata, flags, rc: client.subscribe(
+        [(TOPIC_YAMAHA_IR_CMD, 2), (TOPIC_RF433_CMD, 2), (TOPIC_RF433_SETDELAY, 2)]
+    )
     client.connect("mqtt.realraum.at", 1883, keepalive=31)
     client.on_message = onMQTTMessage
-    client.subscribe([(TOPIC_YAMAHA_IR_CMD, 2),
-                      (TOPIC_RF433_CMD, 2), (TOPIC_RF433_SETDELAY, 2)])
+    client.on_disconnect = onMQTTDisconnect
     return client
 
 # Initialize TTY interface
