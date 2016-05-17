@@ -36,7 +36,8 @@ class UWSConfig:
         self.config_parser.add_section('notify')
         self.config_parser.set('notify', 'emails', "oskar@realraum.at")
         self.config_parser.set('notify', 'xmpps', "xro@realraum.at")
-        self.config_parser.set('notify', 'smsgroups', "olgacore xro")
+        self.config_parser.set('notify', 'smsgroups', "olgafreezer")
+        self.config_parser.set('notify', 'warnholdoff', "7")  # notify_warnholdoff  #number of sampleintervalls to wait until sending sms
         self.config_parser.add_section('sensor')
         self.config_parser.set('sensor', 'sampleinterval', "15")
         self.config_parser.set('sensor', 'publishinterval', "59")
@@ -46,6 +47,7 @@ class UWSConfig:
         self.config_parser.set('sensor', 'tempjsonkey', "temp")
         self.config_parser.set('sensor', 'warnjsonkey', "warnabove")
         self.config_parser.set('sensor', 'locjsonkey', "desc")
+        self.config_parser.set('sensor', 'bellconfigjsonkey', "bell")
         self.config_mtime = 0
         if not self.configfile is None:
             try:
@@ -174,13 +176,21 @@ def getJSON(url):
 
 unreachable_count = 0
 warned_about = defaultdict(bool)
+warn_holdoff = defaultdict(bool)
 last_publish_ts = defaultdict(int)
+last_mutepress = 0
 
 
 def queryTempMonitorAndForward(uwscfg, mqttclient):
-    global unreachable_count, warned_about
+    global unreachable_count, warned_about, warn_holdoff, last_mutepress
     jsondict = getJSON(uwscfg.sensor_uri)
     ts = int(time.time())
+    bell_muted = False
+    if "config" in jsondict:
+        if "bell" in jsondict["config"]:
+            bell_muted = jsondict["config"]["bell"] == "muted"
+            if bell_muted:
+                last_mutepress = time.time()
     if "sensors" in jsondict:
         unreachable_count = 0
         for tsd in jsondict["sensors"]:
@@ -194,8 +204,12 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
             except:
                 warntemp = 9999
             if temp > warntemp:
-                print("ALARM ALARM %d" % tsd["busid"])
+                print("ALARM @ Sensor %d, bell_muted: %s, warn_holdoff: %d/%d, warning sent out: %d" % (tsd["busid"],bell_muted,warn_holdoff[loc],int(uwscfg.notify_warnholdoff),warned_about[loc]))
+                if bell_muted:
+                    warned_about[loc] = True
                 if not loc in warned_about or warned_about[loc] == False:
+                    warn_holdoff[loc] += 1
+                if warn_holdoff[loc] > int(uwscfg.notify_warnholdoff):
                     warned_about[loc] = True
                     msg = "Sensor #%d aka %s is @%f degC" % (
                         tsd["busid"], tsd["desc"], tsd["temp"])
@@ -212,6 +226,7 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                     sendEmail(uwscfg.notify_emails.split(" "), msg)
             else:
                 warned_about[loc] = False
+                warn_holdoff[loc] = 0
 
             if ts - last_publish_ts[loc] > int(uwscfg.sensor_publishinterval):
                 #print("%s: %f %s" % (loc,tsd[uwscfg.sensor_tempjsonkey], tsd["unit"]))
@@ -223,9 +238,7 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                               retain=True)
                 last_publish_ts[loc] = ts
     else:
-        if unreachable_count >= int(
-                uwscfg.sensor_warnunreachablelimit) and unreachable_count < 2 * int(
-                uwscfg.sensor_warnunreachablelimit):
+        if unreachable_count >= int(uwscfg.sensor_warnunreachablelimit) and unreachable_count < 2 * int(uwscfg.sensor_warnunreachablelimit):
             # if unreachable and before we send error SMS
             # we switch off the power socket that powers the sensor box
             # and then switch it on the next time
@@ -251,14 +264,14 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                               retain=False)
         elif unreachable_count == 2 * int(uwscfg.sensor_warnunreachablelimit):
             timestr = time.strftime("%c")
-            sendSMS(
-                ["xro"],
-                "OLGA Frige Sensor remains unreachable (%s)" %
-                timestr)
-            sendEmail(
-                uwscfg.notify_emails.split(" "),
-                "OLGA Frige Sensor remains unreachable (%s)" %
-                timestr)
+            msg = "OLGAfreezer now unreachable (%s)" % timestr
+            if any(warned_about.values()):
+                msg += " while Alert active."
+            mutepress_s_ago = time.time() - last_mutepress
+            if  mutepress_s_ago < 300:
+                msg += " after mute pressed %ds ago" % mutepress_s_ago
+            sendSMS(["xro"], msg)
+            sendEmail(uwscfg.notify_emails.split(" "), msg)
             sendR3Message(mqttclient,
                           "realraum/olgafreezer/sensorlost",
                           {"Topic": "realraum/olgafreezer/temperature",
