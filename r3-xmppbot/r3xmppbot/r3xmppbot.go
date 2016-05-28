@@ -453,6 +453,10 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 	var err error
 	botdata := new(XmppBot)
 
+	connect_timeout := time.AfterFunc(20*time.Second, func() {
+		panic("NewStartedBot: connection timeout reached, no error or reply from goexmpp lib ... exiting")
+	})
+
 	botdata.realraum_jids_ = make(map[string]JidData, 1)
 	botdata.jid_lastauthtime_ = make(map[string]int64, 1)
 	botdata.my_jid_ = loginjid
@@ -493,6 +497,9 @@ func NewStartedBot(loginjid, loginpwd, password, state_save_dir string, insecure
 			delete(botdata.realraum_jids_, entry.Jid)
 		}
 	}
+
+	connect_timeout.Stop() // if we reach here, connection should have succeeded
+	Syslog_.Println("NewStartedBot established connection")
 
 	presence_events := make(chan interface{}, 1)
 	jabber_events := make(chan JabberEvent, 1)
