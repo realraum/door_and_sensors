@@ -53,8 +53,10 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if dictdata["HaveSunlight"] == False:
                 touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1&bluebar=1&couchred=1&couchwhite=1")
-            elif dictdata["Event"] == "Sunrise":
+                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"rainbow\",\"arg\":2}")
+            elif dictdata["Event"] == "CivilDawn":
                 touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0&bluebar=0&couchred=0&couchwhite=0")
+                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"off\",\"arg\":0}")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
                 last_status = dictdata["Present"]
