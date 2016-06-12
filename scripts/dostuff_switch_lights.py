@@ -12,11 +12,15 @@ import urllib.parse
 import urllib.error
 
 last_havesunlight_state_ = False
-
+sunlight_change_direction_counter_ = 0;
 
 def isTheSunDown():
     return not last_havesunlight_state_
 
+# note that during dusk / dawn several events are fired, so we have this function to 
+# easily limit our light change attempts to 2 at 0 and 1
+def didSunChangeRecently():
+    return sunlight_change_direction_counter_ <= 1
 
 def decodeR3Message(topic, data):
     try:
@@ -40,23 +44,28 @@ def touchURL(url):
 
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_
+    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
         if topic.endswith("/duskordawn") and "HaveSunlight" in dictdata:
+            if msg.retain or last_havesunlight_state_ != bool(dictdata["HaveSunlight"]):
+                sunlight_change_direction_counter_ = 0
+            else:
+                sunlight_change_direction_counter_ += 1
             last_havesunlight_state_ = bool(dictdata["HaveSunlight"])
             if msg.retain:
                 return  # do not act on retained messages
             if not last_status:
                 return  # no use switching lights if nobody is here
             # if people are present and the sun is down, switch on CX Lights
-            if dictdata["HaveSunlight"] == False:
-                touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1&bluebar=1&couchred=1&couchwhite=1")
-                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"rainbow\",\"arg\":2}")
-            elif dictdata["Event"] == "CivilDawn":
-                touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0&bluebar=0&couchred=0&couchwhite=0")
-                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"off\",\"arg\":0}")
+            if didSunChangeRecently():
+                if isTheSunDown():
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1&bluebar=1&couchred=1&couchwhite=1")
+                    client.publish("action/PipeLEDs/pattern","{\"pattern\":\"rainbow\",\"arg\":2}")
+                else:
+                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0&bluebar=0&couchred=0&couchwhite=0")
+                    client.publish("action/PipeLEDs/pattern","{\"pattern\":\"off\",\"arg\":0}")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
                 last_status = dictdata["Present"]

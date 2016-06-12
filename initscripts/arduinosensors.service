@@ -5,6 +5,7 @@ Description=Arduino Sensors Bridge
 Nice=19
 Type=simple
 Restart=always
+RestartSec=5
 WorkingDirectory=/home/pi/bin/
 ExecStart=/home/pi/bin/arduinosensors.py
 SyslogIdentifier=arduinosensors
