@@ -13,7 +13,6 @@ import urllib.error
 
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
-boredoomcount_ = 0
 
 def isTheSunDown():
     return not last_havesunlight_state_
@@ -45,7 +44,7 @@ def touchURL(url):
 
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, boredoomcount_
+    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -63,10 +62,8 @@ def onMqttMessage(client, userdata, msg):
             if didSunChangeRecently():
                 if isTheSunDown():
                     touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1&bluebar=1&couchred=1&couchwhite=1")
-                    client.publish("action/PipeLEDs/pattern","{\"pattern\":\"rainbow\",\"arg\":3}")
                 else:
                     touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0&bluebar=0&couchred=0&couchwhite=0")
-                    client.publish("action/PipeLEDs/pattern","{\"pattern\":\"off\",\"arg\":0}")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
                 last_status = dictdata["Present"]
@@ -97,11 +94,7 @@ def onMqttMessage(client, userdata, msg):
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0&boilerolga=0")
         elif topic.endswith("/boredoombuttonpressed"):
-            if boredoomcount_ == 0:
-                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"uspol\",\"arg\":1}")
-            else:
-                client.publish("action/PipeLEDs/pattern","{\"pattern\":\"movingspots\",\"arg\":%d}" % (3*boredoomcount_))
-            boredoomcount_ = (boredoomcount_ +1) % 4 #more than 5 spots is not supported
+            pass
 
     except Exception as ex:
         print("onMqttMessage: " + str(ex))
