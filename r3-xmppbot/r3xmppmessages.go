@@ -92,27 +92,27 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 			frontlock = event.Locked
 		case r3events.DoorAjarUpdate:
 			if last_frontdoor_ajar.Shut != event.Shut {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Frontdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar."), time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Frontdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar."), time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3DebugInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoFrontdoorUpdates}
 			}
 			last_frontdoor_ajar = event
 		case r3events.BackdoorAjarUpdate:
 			//ignore persistant messages resends we get if mqtt reconnects
 			if last_backdoor_ajar.Ts != event.Ts {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar!"), time.Unix(event.Ts, 0).String()), DistributeLevel: standard_distribute_level, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Backdoor is %s  (%s)", IfThenElseStr(event.Shut, "now shut.", "ajar!"), time.Unix(event.Ts, 0).String()), DistributeLevel: standard_distribute_level, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoBackdoorUpdates}
 			}
 			last_backdoor_ajar = event
 		case r3events.GasLeakAlert:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! GasLeak Detected !!! (%s)", time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoGasAlertUpdates}
 		case r3events.UPSPowerUpdate:
 			if event.OnBattery {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! UPS reports power has been lost. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! UPS reports power has been lost. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoSensorUpdates}
 			} else if event.PercentBattery < 100 {
-				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("UPS reports power restored. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+				xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("UPS reports power restored. Battery at %.1f%% (%s)", event.PercentBattery, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoSensorUpdates}
 			}
 		case r3events.TempOverThreshold:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! Temperature %s exceeded limit at %.2f°C (%s)", event.Location, event.Value, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("ALERT !! Temperature %s exceeded limit at %.2f°C (%s)", event.Location, event.Value, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoFreezerAlarmUpdates}
 		case r3events.SensorLost:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Mhhh. Apparently sensor %s disappeared. (last seen: %s, usual average update interval: %ds) (%s)", event.Topic, time.Unix(event.LastSeen, 0).String(), event.UsualInterval, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Mhhh. Apparently sensor %s disappeared. (last seen: %s, usual average update interval: %ds) (%s)", event.Topic, time.Unix(event.LastSeen, 0).String(), event.UsualInterval, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3NeverInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoSensorUpdates}
 		case r3events.IlluminationSensorUpdate:
 			light_lothr = event.Value
 		case r3events.TempSensorUpdate:
@@ -122,7 +122,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 		case r3events.BoreDoomButtonPressEvent:
 			last_buttonpress = event.Ts
 			xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: standard_distribute_level}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: button_msg, DistributeLevel: standard_distribute_level, RelevantFilter: r3xmppbot.JDFieldNoButtonUpdates}
 		case r3events.TimeTick:
 			// update presence text with sensor and button info
 			xmpp_presence_events_chan <- composePresence(present, temp_cx, light_lothr, last_buttonpress)
@@ -131,7 +131,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 				return
 			}
 		case r3events.DoorProblemEvent:
-			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)", event.Problem, event.Severity, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false}
+			xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: fmt.Sprintf("Door Problem: %s. SeverityLevel: %d (%s)", event.Problem, event.Severity, time.Unix(event.Ts, 0).String()), DistributeLevel: r3xmppbot.R3OnlineOnlyInfo, RememberAsStatus: false, RelevantFilter: r3xmppbot.JDFieldNoFrontdoorUpdates}
 		}
 	}
 }

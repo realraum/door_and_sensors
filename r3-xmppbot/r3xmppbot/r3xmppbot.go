@@ -8,6 +8,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	"time"
 
@@ -95,17 +96,16 @@ const (
 const XMPP_MAX_ERROR_COUNT = 49
 
 const (
-	JDFieldOnline              = "Online"
-	JDFieldWants               = "Wants              "
-	JDFieldFrontdoorUpdates    = "FrontdoorUpdates"
-	JDFieldBackdoorUpdates     = "BackdoorUpdates"
-	JDFieldSensorUpdates       = "SensorUpdates"
-	JDFieldButtonUpdates       = "ButtonUpdates"
-	JDFieldFreezerAlarmUpdates = "FreezerAlarmUpdates"
-	JDFieldGasAlertUpdates     = "GasAlertUpdates"
-	JDFieldFoodOrderUpdates    = "FoodOrderUpdates"
-	JDFieldErrorCount          = "ErrorCount"
-	JEvtStatusNow              = "StatusNow"
+	JDFieldOnline                = "Online"
+	JDFieldWants                 = "Wants"
+	JDFieldNoFrontdoorUpdates    = "NoFrontdoorUpdates"
+	JDFieldNoBackdoorUpdates     = "NoBackdoorUpdates"
+	JDFieldNoSensorUpdates       = "NoSensorUpdates"
+	JDFieldNoButtonUpdates       = "NoButtonUpdates"
+	JDFieldNoFreezerAlarmUpdates = "NoFreezerAlarmUpdates"
+	JDFieldNoGasAlertUpdates     = "NoGasAlertUpdates"
+	JDFieldNoFoodOrderUpdates    = "NoFoodOrderUpdates"
+	JEvtStatusNow                = "StatusNow"
 )
 
 type JidData struct {
@@ -135,6 +135,7 @@ type XMPPMsgEvent struct {
 	Msg              string
 	DistributeLevel  R3JIDDesire
 	RememberAsStatus bool
+	RelevantFilter   string
 }
 
 type XMPPStatusEvent struct {
@@ -232,6 +233,16 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				}
 				for to, jiddata := range botdata.realraum_jids_ {
 					if jiddata.Wants >= pec.DistributeLevel && ((jiddata.Wants >= R3OnlineOnlyInfo && jiddata.Online) || jiddata.Wants >= R3AlwaysInfo) {
+						//is this message relevant to some filter we implement
+						if len(pec.RelevantFilter) > 0 {
+							jiddata_reflection := reflect.ValueOf(jiddata).Elem()
+							f := jiddata_reflection.FieldByName(pec.RelevantFilter)
+							//if Field nambe by string RelevantFilter exists and is true (aka filterd out)
+							if f.IsValid() && f.Bool() == true {
+								//skip this user for this message
+								continue
+							}
+						}
 						xmppout <- botdata.makeXMPPMessage(to, pec.Msg, nil)
 					}
 				}
@@ -302,9 +313,29 @@ func (botdata *XmppBot) isAuthenticated(jid string) bool {
 }
 
 const help_text_ string = "\n*auth*<password>* ...Enables you to use more commands.\n*time* ...Returns bot time."
-const help_text_auth string = "You are authorized to use the following commands:\n*off* ...You will no longer receive notifications.\n*on* ...You will be notified of r3 status changes while you are online.\n*on_with_recap* ...Like *on* but additionally you will receive the current status when you come online.\n*on_while_offline* ...You will receive all r3 status changes, wether you are online or offline.\n*status* ...Use it to query the current status.\n*time* ...Returns bot time.\n*bye* ...Logout."
+const help_text_auth string = `You are authorized to use the following commands:
+*off* ...You will no longer receive notifications.
+*on* ...You will be notified of r3 status changes while you are online.
+*on_with_recap* ...Like *on* but additionally you will receive the current status when you come online.
+*on_while_offline* ...You will receive all r3 status changes, wether you are online or offline.
+*status* ...Use it to query the current status.
+*time* ...Returns bot time.\n*bye* ...Logout.
+*backdoorajarinfo <on|off>* ...Filters out backdoor updates
+*frontdoorajarinfo <on|off>* ...Filters out frontdoor updates
+*buttoninfo <on|off>* ...Filters out doom-button broadcasts
+*foodinfo <on|off>* ...Filters out food order broadcasts
+*sensorinfo <on|off>* ...Filters out sensor updates`
 
-//~ var re_msg_auth_    *regexp.Regexp     = regexp.MustCompile("auth\s+(\S+)")
+func (botdata *XmppBot) handleIncomingMessage_SubOptionHelper(suboption, fromjid, jdfieldoption, plainname string, xmppout chan<- xmpp.Stanza, jabber_events chan JidDataUpdate) {
+	switch strings.ToLower(suboption) {
+	case "on", "1", "ein", "ja":
+		xmppout <- botdata.makeXMPPMessage(fromjid, plainname+" updates now enabled", "FilterOptions")
+		jabber_events <- JidDataUpdate{fromjid, JidDataUpdatesMap{JDFieldOnline: true, jdfieldoption: false}} //filter out: false
+	case "off", "0", "aus", "nein":
+		xmppout <- botdata.makeXMPPMessage(fromjid, plainname+" updates now disabled", "FilterOptions")
+		jabber_events <- JidDataUpdate{fromjid, JidDataUpdatesMap{JDFieldOnline: true, jdfieldoption: true}} //filter out: true
+	}
+}
 
 func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout chan<- xmpp.Stanza, jabber_events chan JidDataUpdate) {
 	if inmsg.Body == nil || inmsg.GetHeader() == nil {
@@ -317,14 +348,16 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 	bodytext_lc_cmd := strings.ToLower(bodytext_args[0])
 	if botdata.isAuthenticated(inmsg.GetHeader().From) {
 		switch bodytext_lc_cmd {
-		case "backdoorinfo":
-			switch strings.ToLower(bodytext_args[1]) {
-			case "on", "1", "ein", "ja":
-				xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "You will receive updates about the backdoor", "Your New Status")
-				jabber_events <- JidDataUpdate{inmsg.GetHeader().From, JidDataUpdatesMap{JDFieldOnline: true, JDFieldWants: R3OnlineOnlyInfo}}
-			case "off", "0", "aus", "nein":
-				xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "You will no longer receive updates about the backdoor", "Your New Status")
-			}
+		case "backdoorajarinfo":
+			botdata.handleIncomingMessage_SubOptionHelper(bodytext_args[1], inmsg.GetHeader().From, JDFieldNoBackdoorUpdates, "backdoor ajar", xmppout, jabber_events)
+		case "frontdoorajarinfo":
+			botdata.handleIncomingMessage_SubOptionHelper(bodytext_args[1], inmsg.GetHeader().From, JDFieldNoFrontdoorUpdates, "frontdoor ajar", xmppout, jabber_events)
+		case "buttoninfo":
+			botdata.handleIncomingMessage_SubOptionHelper(bodytext_args[1], inmsg.GetHeader().From, JDFieldNoButtonUpdates, "button", xmppout, jabber_events)
+		case "foodinfo":
+			botdata.handleIncomingMessage_SubOptionHelper(bodytext_args[1], inmsg.GetHeader().From, JDFieldNoFoodOrderUpdates, "food order", xmppout, jabber_events)
+		case "sensorinfo":
+			botdata.handleIncomingMessage_SubOptionHelper(bodytext_args[1], inmsg.GetHeader().From, JDFieldNoSensorUpdates, "sensor", xmppout, jabber_events)
 		case "on":
 			jabber_events <- JidDataUpdate{inmsg.GetHeader().From, JidDataUpdatesMap{JDFieldOnline: true, JDFieldWants: R3OnlineOnlyInfo}}
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Receive r3 status updates while online.", "Your New Status")
