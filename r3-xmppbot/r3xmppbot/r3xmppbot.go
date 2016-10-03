@@ -106,6 +106,7 @@ const (
 	JDFieldNoGasAlertUpdates     = "NoGasAlertUpdates"
 	JDFieldNoFoodOrderUpdates    = "NoFoodOrderUpdates"
 	JEvtStatusNow                = "StatusNow"
+	JEvtSettingsNow              = "ShowMeMySettingsNow"
 )
 
 type JidData struct {
@@ -188,6 +189,38 @@ func (data RealraumXmppNotifierConfig) loadFrom(filepath string) {
 		jiddata.Online = false
 		data[to] = jiddata
 	}
+}
+
+func formatJidDataAsUserReadableString(jid_data *JidData) string {
+	rv := "Messaging you: "
+	switch jid_data.Wants {
+	case R3NeverInfo:
+		rv += "Never"
+	case R3OnlineOnlyInfo:
+		rv += "When you are online"
+	case R3OnlineOnlyWithRecapInfo:
+		rv += "When you are online and when you come online"
+	case R3AlwaysInfo:
+		rv += "Always, weather on- or offline"
+	case R3DebugInfo:
+		rv += "Always and with debugging stuff on top of it"
+	}
+	rv += "\nFilter Settings:"
+	onoffstr := func(x bool) string {
+		if x {
+			return "Filtered out"
+		} else {
+			return "Want to receive"
+		}
+	}
+	rv += "\n\tBackdoor Ajar: " + onoffstr(jid_data.NoBackdoorUpdates)
+	rv += "\n\tFrontdoor Ajar: " + onoffstr(jid_data.NoFrontdoorUpdates)
+	rv += "\n\tSensor Errors/Updates: " + onoffstr(jid_data.NoSensorUpdates)
+	rv += "\n\tDoomButton Events: " + onoffstr(jid_data.NoButtonUpdates)
+	rv += "\n\tFreezer Temperatur Alarm: " + onoffstr(jid_data.NoFreezerAlarmUpdates)
+	rv += "\n\tGas Alarm: " + onoffstr(jid_data.NoGasAlertUpdates)
+	rv += "\n\tFoodorder Invites: " + onoffstr(jid_data.NoFoodOrderUpdates)
+	return rv
 }
 
 func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence_events <-chan interface{}, jabber_events <-chan JidDataUpdate) {
@@ -283,6 +316,11 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				if last_status_msg != nil && !withinSettlePeriod && !user_previously_online && user_now_online && jid_data.Wants == R3OnlineOnlyWithRecapInfo {
 					xmppout <- botdata.makeXMPPMessage(je.JID, last_status_msg, nil)
 				}
+
+				if _, settings_now := je.Updates[JEvtSettingsNow]; settings_now {
+					xmppout <- botdata.makeXMPPMessage(je.JID, formatJidDataAsUserReadableString(&jid_data), nil)
+				}
+
 				//save data
 				botdata.realraum_jids_[simple_jid] = jid_data
 				botdata.realraum_jids_.saveTo(botdata.config_file_)
@@ -319,6 +357,7 @@ const help_text_auth string = `You are authorized to use the following commands:
 *on_with_recap* ...Like *on* but additionally you will receive the current status when you come online.
 *on_while_offline* ...You will receive all r3 status changes, wether you are online or offline.
 *status* ...Use it to query the current status.
+*settings* ...Display your current settings
 *time* ...Returns bot time.\n*bye* ...Logout.
 *backdoorajarinfo <on|off>* ...Filters out backdoor updates
 *frontdoorajarinfo <on|off>* ...Filters out frontdoor updates
@@ -380,6 +419,8 @@ func (botdata *XmppBot) handleIncomingMessageDialog(inmsg xmpp.Message, xmppout 
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, "Sorry, I'm just weak software, not strong enough to operate the door for you.", nil)
 		case "status":
 			jabber_events <- JidDataUpdate{inmsg.GetHeader().From, JidDataUpdatesMap{JDFieldOnline: true, JEvtStatusNow: true}}
+		case "settings":
+			jabber_events <- JidDataUpdate{inmsg.GetHeader().From, JidDataUpdatesMap{JDFieldOnline: true, JEvtSettingsNow: true}}
 		case "time":
 			xmppout <- botdata.makeXMPPMessage(inmsg.GetHeader().From, time.Now().String(), nil)
 		case "ping":
