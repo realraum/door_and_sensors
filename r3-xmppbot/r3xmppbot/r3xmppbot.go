@@ -266,9 +266,9 @@ func (botdata *XmppBot) handleEventsforXMPP(xmppout chan<- xmpp.Stanza, presence
 				}
 				for to, jiddata := range botdata.realraum_jids_ {
 					if jiddata.Wants >= pec.DistributeLevel && ((jiddata.Wants >= R3OnlineOnlyInfo && jiddata.Online) || jiddata.Wants >= R3AlwaysInfo) {
-						//is this message relevant to some filter we implement
+						//is this message relevant to some filter we implement?
 						if len(pec.RelevantFilter) > 0 {
-							jiddata_reflection := reflect.ValueOf(jiddata).Elem()
+							jiddata_reflection := reflect.ValueOf(jiddata)
 							f := jiddata_reflection.FieldByName(pec.RelevantFilter)
 							//if Field nambe by string RelevantFilter exists and is true (aka filterd out)
 							if f.IsValid() && f.Bool() == true {
