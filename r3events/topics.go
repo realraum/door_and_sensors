@@ -16,6 +16,7 @@ const (
 	CLIENTID_XBEE                string = "xbee"
 	CLIENTID_IRCBOT              string = "ircchanbot"
 	CLIENTID_LIGHTCTRL           string = "GoLightCtrl"
+	CLIENTID_PIPELEDS            string = "PipeLEDs"
 	ACTDESTID_RF433              string = "rf433"
 	ACTDESTID_YAMAHA             string = "yamahastereo"
 	TYPE_LOCK                    string = "lock"
@@ -75,4 +76,6 @@ const (
 	ACT_RF433_SEND               string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/sendcode3byte"
 	ACT_RF433_SETDELAY           string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/setdelay"
 	ACT_YAMAHA_SEND              string = TOPIC_ACTIONS + ACTDESTID_YAMAHA + "/ircmd"
+	ACT_PIPELEDS_RESTART         string = TOPIC_ACTIONS + CLIENTID_PIPELEDS + "/restart"
+	ACT_PIPELEDS_PATTERN         string = TOPIC_ACTIONS + CLIENTID_PIPELEDS + "/pattern"
 )

@@ -123,21 +123,6 @@ type LaserCutter struct {
 	Ts    int64
 }
 
-type YamahaIRCmd struct {
-	Cmd string
-	Ts  int64
-}
-
-type SendRF433Code struct {
-	Code [3]byte
-	Ts   int64
-}
-
-type SetRF433Delay struct {
-	Location string
-	DelayMs  int64
-}
-
 type FoodOrderRequest struct {
 	Who        string
 	Preference string
