@@ -246,6 +246,13 @@ func (nsi SpaceInfo) AddProjectsURLs(projecturls []string) SpaceInfo {
 	return nsi
 }
 
+func (nsi SpaceInfo) AddBaseExt(key, value string) SpaceInfo {
+	if nsi[key] == nil {
+		nsi[key] = value
+	}
+	return nsi
+}
+
 func (nsi SpaceInfo) SetSpaceContactInfo(channel, info string, is_issue_report_channel bool) SpaceInfo {
 	if nsi["contact"] == nil {
 		nsi["contact"] = make([]SpaceInfo, 1)
@@ -315,8 +322,8 @@ func (nsi SpaceInfo) SetSpaceContactIssueMail(info string, is_issue_report_chann
 	return nsi.SetSpaceContactInfo("issue_mail", info, is_issue_report_channel)
 }
 
-func (nsi SpaceInfo) AddSpaceFeed(feedtype, url string) SpaceInfo {
-	newfeed := SpaceInfo{"url": url}
+func (nsi SpaceInfo) AddSpaceFeed(feedtype, url, typestr string) SpaceInfo {
+	newfeed := SpaceInfo{"url": url, "type": typestr}
 	if nsi["feeds"] == nil {
 		nsi["feeds"] = SpaceInfo{feedtype: newfeed}
 	} else {
