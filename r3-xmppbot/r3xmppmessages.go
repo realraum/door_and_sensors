@@ -15,11 +15,13 @@ func composeDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, door
 	if frontshut.Shut == false && frontshut.Ts < doorcmd.Ts {
 		ajarstring = " (still ajar)"
 	}
+	var frominside bool = doorcmd.Using == "Button" || (len(doorcmd.Command) > 10 && doorcmd.Command[len(doorcmd.Command)-10:] == "frominside")
+	var whounknown bool = len(doorcmd.Who) == 0 || doorcmd.Who == "-"
 	if ts-doorcmd.Ts < 30 {
-		if len(doorcmd.Who) == 0 || doorcmd.Who == "-" {
-			return fmt.Sprintf("The%s frontdoor was %s by %s at %s.", ajarstring, IfThenElseStr(locked, "locked", "unlocked"), doorcmd.Using, time.Unix(ts, 0).String())
+		if whounknown {
+			return fmt.Sprintf("The%s frontdoor was %s by %s %sat %s.", ajarstring, IfThenElseStr(locked, "locked", "unlocked"), doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), time.Unix(ts, 0).String())
 		} else {
-			return fmt.Sprintf("%s %s the%s frontdoor by %s at %s.", doorcmd.Who, IfThenElseStr(locked, "locked", "unlocked"), ajarstring, doorcmd.Using, time.Unix(ts, 0).String())
+			return fmt.Sprintf("%s %s the%s frontdoor by %s %sat %s.", doorcmd.Who, IfThenElseStr(locked, "locked", "unlocked"), ajarstring, doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), time.Unix(ts, 0).String())
 		}
 	} else {
 		return fmt.Sprintf("The%s frontdoor was %s manually at %s.", ajarstring, IfThenElseStr(locked, "locked", "unlocked"), time.Unix(ts, 0).String())

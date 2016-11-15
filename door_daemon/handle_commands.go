@@ -13,10 +13,13 @@ type DoorCmdHandler struct {
 }
 
 var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
-	"open":   DoorCmdHandler{checkCmdDoorControl, "o"},
-	"close":  DoorCmdHandler{checkCmdDoorControl, "c"},
-	"toggle": DoorCmdHandler{checkCmdDoorControl, "t"},
-	"status": DoorCmdHandler{checkCmdNoArgs, "s"},
+	"open":             DoorCmdHandler{checkCmdDoorControl, "o"},
+	"close":            DoorCmdHandler{checkCmdDoorControl, "c"},
+	"toggle":           DoorCmdHandler{checkCmdDoorControl, "t"},
+	"openfrominside":   DoorCmdHandler{checkCmdDoorControl, "o"},
+	"closefrominside":  DoorCmdHandler{checkCmdDoorControl, "c"},
+	"togglefrominside": DoorCmdHandler{checkCmdDoorControl, "t"},
+	"status":           DoorCmdHandler{checkCmdNoArgs, "s"},
 }
 
 // ---------- Talk with Firmware directly in response to stuff it sends ------------
@@ -64,12 +67,12 @@ func WorkaroundFirmware(serial_wr chan string) (in chan SerialLine) {
 // ---------- ZMQ Command Handling Code -------------
 
 func checkCmdDoorControl(tokens SerialLine) error {
-	doorctrl_usage := "syntax: <open|close|toggle> <method> <nickname>"
+	doorctrl_usage := "syntax: <open|close|toggle>[frominside] <method> <nickname>"
 	if len(tokens) < 2 || len(tokens) > 3 {
 		return errors.New(doorctrl_usage)
 	}
 	cmd := tokens[0]
-	if !(cmd == "open" || cmd == "close" || cmd == "toggle") {
+	if !(cmd == "open" || cmd == "close" || cmd == "toggle" || cmd == "openfrominside" || cmd == "closefrominside" || cmd == "togglefrominside") {
 		return errors.New(doorctrl_usage)
 	}
 	method := tokens[1]

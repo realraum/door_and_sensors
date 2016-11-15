@@ -17,6 +17,10 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_t
 	var last_event_indicating_presence, last_frontlock_use, last_manual_lockhandling int64
 	var front_locked, front_shut, back_shut bool = true, true, true
 
+	manualinsidebuttonused := func(ldc *r3events.DoorCommandEvent) bool {
+		return ldc.Using == "Button" || (len(ldc.Command) > 10 && ldc.Command[len(ldc.Command)-10:] == "frominside")
+	}
+
 	events_chan := ps.Sub("r3events")
 	defer ps.Unsub(events_chan, "r3events")
 
@@ -37,7 +41,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_t
 				if last_presence {
 					Syslog_.Printf("Presence: Mhh, SomethingReallyIsMoving{%+v} received but presence still true. Quite still a bunch we have here.", evnt)
 				}
-				if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 && (last_door_cmd == nil || (last_door_cmd.Using != "Button" && last_door_cmd.Ts >= last_manual_lockhandling)) {
+				if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 && (last_door_cmd == nil || (!manualinsidebuttonused(last_door_cmd) && last_door_cmd.Ts >= last_manual_lockhandling)) {
 					new_presence = false
 				}
 			}
@@ -74,8 +78,10 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc *mqtt.Client, movement_t
 			//... skip state check .. we had a definite presence event
 		} else if any_door_unlocked || any_door_ajar {
 			new_presence = true
-		} else if last_door_cmd != nil && (last_door_cmd.Using == "Button" || last_door_cmd.Ts < last_manual_lockhandling) {
-			// if last_door_cmd is set then: if either door was closed using Button or if time of manual lock movement is greater (newer) than timestamp of last_door_cmd
+		} else if last_door_cmd != nil && (manualinsidebuttonused(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
+			// if last_door_cmd is set then: if either door was closed using Button
+			//or if time of manual lock movement is greater (newer) than timestamp of last_door_cmd
+			//or if was closed/opened/toggled with -frominside addition to simulate close/open/toggle from inside
 			new_presence = true
 		} else if evnt_type == "DoorCommandEvent" {
 			//don't set presence to false for just a door command, wait until we receive a LockUpdate

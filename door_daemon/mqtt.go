@@ -84,7 +84,7 @@ func ParseSocketInputLineAndPublish(lines []string, mqttc *mqtt.Client, keynicks
 			return
 		}
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_AJAR, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.DoorAjarUpdate{lines[4] == "shut", ts}))
-	case "open", "close", "toggle", "reset":
+	case "open", "close", "toggle", "reset", "openfrominside", "closefrominside", "togglefrominside":
 		switch len(lines) {
 		case 2:
 			mqttc.Publish(r3events.TOPIC_FRONTDOOR_CMDEVT, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.DoorCommandEvent{Command: lines[0], Using: lines[1], Ts: ts}))
