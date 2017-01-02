@@ -97,10 +97,33 @@ func ParseSocketInputLineAndPublish(lines []string, mqttc mqtt.Client, keynickst
 	}
 }
 
-func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, keystore *KeyNickStore) {
-	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(r3events.CLIENTID_FRONTDOOR)
+func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, keystore *KeyNickStore, runOnMQTTConnect func()) {
+	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(r3events.CLIENTID_FRONTDOOR).SetKeepAlive(49 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
+	options = options.SetConnectionLostHandler(func(c mqtt.Client, err error) { Debug_.Print("ERROR MQTT connection lost:", err) })
 	c := mqtt.NewClient(options)
-	c.Connect()
+	//gooble up all publish_chan stuff for as long as mqtt is not connected
+	shutdown_gobbler_c := make(chan bool, 1)
+	go func() {
+		for {
+			select {
+			case <-publish_chan:
+			case <-shutdown_gobbler_c:
+				runOnMQTTConnect()
+				return
+			}
+		}
+	}()
+	for {
+		tk := c.Connect()
+		tk.Wait() //may wait indefinately, or return immediately if mqttbroker not reachable
+		if tk.Error() == nil {
+			Debug_.Println("Connected to mqtt broker!!")
+			break
+		}
+		Debug_.Println("ERROR connecting to mqtt broker", tk.Error())
+		time.Sleep(5 * time.Minute)
+	}
+	shutdown_gobbler_c <- true
 	for sl := range publish_chan {
 		c.Publish(r3events.TOPIC_FRONTDOOR_RAWFWLINES, MQTT_QOS_REQCONFIRMATION, false, strings.Join(sl, " "))
 		ParseSocketInputLineAndPublish(sl, c, keystore)

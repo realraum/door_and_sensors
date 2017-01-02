@@ -63,8 +63,11 @@ func main() {
 	}
 
 	// Connect to MQTT Broker
-	publish_line_as_event_to_mqtt := make(chan SerialLine, 10)
-	go ConnectChannelToMQTT(publish_line_as_event_to_mqtt, EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), knstore)
+	// once we have connected, get status and distribute to MQTT Broker
+	// Until we are connected, keep channels clean
+	publish_line_as_event_to_mqtt := make(chan SerialLine, 50)
+	run_on_connect := func() { HandleCommand([]string{"status"}, serial_wr, serial_rd) }
+	go ConnectChannelToMQTT(publish_line_as_event_to_mqtt, EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), knstore, run_on_connect)
 
 	// Start Workaround for Door Firmware "bug"
 	workaround_in_chan := WorkaroundFirmware(serial_wr)
@@ -74,7 +77,6 @@ func main() {
 	timeout_timer := time.NewTimer(0)
 	timeout_timer.Stop()
 	waiting_for_reply := lang.NewQueue()
-	HandleCommand([]string{"status"}, serial_wr, serial_rd)
 	for {
 		select {
 		case incoming_ser_line, is_notclosed := <-serial_rd:

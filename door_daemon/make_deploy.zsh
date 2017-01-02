@@ -1,10 +1,12 @@
 #!/bin/zsh
+REMOTE_USER=root
 REMOTE_HOST=torwaechter.mgmt.realraum.at
+REMOTE_DIR=/flash/tuer/
+
 export GO386=387
 export CGO_ENABLED=0
 export GOOS=linux
 export GOARCH=386
 
-ping -W 1 -c 1 $REMOTE_HOST || OPTIONS=(-e "ssh -o ProxyCommand='ssh gw.realraum.at exec nc %h %p'")
-go clean
-go build "$@" -ldflags "-s" && rsync ${OPTIONS[@]} -v --delay-updates --progress ${PWD:t} root@$REMOTE_HOST:/flash/tuer/
+ping -W 1 -c 1 ${REMOTE_HOST} || { OPTIONS=(-o ProxyJump='gw.realraum.at:22000'); RSYNCOPTIONS=(-e "ssh $OPTIONS")}
+go build "$@" -ldflags "-s" && rsync ${RSYNCOPTIONS[@]} -rvp --delay-updates --progress --delete ${PWD:t} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/   && {echo "Restart Daemon? [Yn]"; read -q && ssh ${OPTIONS[@]} ${REMOTE_USER}@$REMOTE_HOST /etc/init.d/tuer_core restart; return 0}
