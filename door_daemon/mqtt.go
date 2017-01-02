@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/realraum/door_and_sensors/r3events"
 )
 
@@ -16,7 +16,7 @@ const MQTT_QOS_4STPHANDSHAKE byte = 2
 
 var re_cardid_ *regexp.Regexp = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
 
-func parseSocketInputLine_State(lines []string, mqttc *mqtt.Client, ts int64) {
+func parseSocketInputLine_State(lines []string, mqttc mqtt.Client, ts int64) {
 	switch lines[0] {
 	case "reset", "closed":
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_LOCK, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.DoorLockUpdate{true, ts}))
@@ -40,7 +40,7 @@ func parseSocketInputLine_State(lines []string, mqttc *mqtt.Client, ts int64) {
 	}
 }
 
-func ParseSocketInputLineAndPublish(lines []string, mqttc *mqtt.Client, keynickstore *KeyNickStore) {
+func ParseSocketInputLineAndPublish(lines []string, mqttc mqtt.Client, keynickstore *KeyNickStore) {
 	ts := time.Now().Unix()
 	if len(lines) < 1 {
 		return
