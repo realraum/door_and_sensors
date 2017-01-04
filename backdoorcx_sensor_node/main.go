@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/realraum/door_and_sensors/r3events"
 )
 
@@ -56,7 +56,7 @@ func SendSMS(groups []string, text string) {
 	stdinpipe.Close()
 }
 
-func ConnectSerialToMQTT(mc *mqtt.Client, timeout time.Duration) {
+func ConnectSerialToMQTT(mc mqtt.Client, timeout time.Duration) {
 	defer func() {
 		if x := recover(); x != nil {
 			Syslog_.Println(x)
