@@ -32,6 +32,25 @@ type SpaceEvent struct {
 	validuntil time.Time
 }
 
+type SpaceStateIcon struct {
+	OpenIconURI  string `json:"open"`
+	CloseIconURI string `json:"closed"`
+}
+
+type SpaceState struct {
+	Open          []bool          `json:"open"`
+	LastChange    int64           `json:"lastchange",omitempty`
+	TriggerPerson string          `json:"trigger_person",omitempty`
+	Message       string          `json:"message",omitempty`
+	Icon          *SpaceStateIcon `json:"icon",omitempty`
+}
+
+type SpaceLocation struct {
+	Address string  `json:"address",omitempty`
+	Lat     float64 `json:"lat",omitempty`
+	Lon     float64 `json:"lon",omitempty`
+}
+
 func MakeTempSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
@@ -376,51 +395,62 @@ func (nsi SpaceInfo) CleanOutdatedSpaceEvents() SpaceInfo {
 	return nsi
 }
 
-func (nsi SpaceInfo) AddSpaceAddress(address string) SpaceInfo {
-	nsi["address"] = address
-	if nsi["location"] != nil {
-		location, ok := nsi["location"].(SpaceInfo)
-		if ok {
-			location["address"] = address
-		}
+func (nsi SpaceInfo) SetSpaceLocation(l SpaceLocation) SpaceInfo {
+	nsi["location"] = l
+	return nsi
+}
+
+func (nsi SpaceInfo) SetSpaceState(state SpaceState) SpaceInfo {
+	state.LastChange = time.Now().Unix()
+	nsi["state"] = state
+	//add fields outside for 0.12 backward compatibility
+	if state.Open != nil && len(state.Open) > 0 {
+		nsi["open"] = state.Open[0]
+	} else {
+		delete(nsi, "open")
+	}
+	if state.LastChange != 0 {
+		nsi["lastchange"] = state.LastChange
+	} else {
+		delete(nsi, "lastchange")
+	}
+	if len(state.Message) > 0 {
+		nsi["message"] = state.Message
+	} else {
+		delete(nsi, "message")
+	}
+	if state.Icon != nil {
+		nsi["icon"] = state.Icon
+	} else {
+		delete(nsi, "icon")
 	}
 	return nsi
 }
 
-func (nsi SpaceInfo) SetStatus(open bool, status string) {
-	nsi["status"] = status
-	nsi["open"] = open
-	nsi["lastchange"] = time.Now().Unix()
-	state, ok := nsi["state"].(SpaceInfo)
+func (nsi SpaceInfo) UpdateSpaceStatus(open bool, status string) SpaceInfo {
+	state, ok := nsi["state"].(SpaceState)
 	if ok {
-		state["message"] = status
-		state["open"] = open
-		state["lastchange"] = nsi["lastchange"]
+		state.Message = status
+		state.Open = []bool{open}
 	}
+	return nsi.SetSpaceState(state)
 }
 
-func NewSpaceInfo(space string, url string, logo string, open_icon string, closed_icon string, lat float64, lon float64) SpaceInfo {
+func (nsi SpaceInfo) UpdateSpaceStatusNotKnown(status string) SpaceInfo {
+	state, ok := nsi["state"].(SpaceState)
+	if ok {
+		state.Message = status
+		state.Open = []bool{}
+	}
+	return nsi.SetSpaceState(state)
+}
+
+func NewSpaceInfo(space string, url string, logo string) SpaceInfo {
 	nsi := map[string]interface{}{
-		"api":        "0.13",
-		"space":      space,
-		"url":        url,
-		"logo":       logo,
-		"open":       false,
-		"lastchange": time.Now().Unix(),
-		"icon": SpaceInfo{
-			"open":   open_icon,
-			"closed": closed_icon,
-		},
-		"state": SpaceInfo{
-			"open":       false,
-			"lastchange": time.Now().Unix(),
-			"icon": SpaceInfo{
-				"open":   open_icon,
-				"closed": closed_icon},
-		},
-		"location": SpaceInfo{
-			"lat": lat,
-			"lon": lon},
+		"api":     "0.13",
+		"space":   space,
+		"url":     url,
+		"logo":    logo,
 		"contact": SpaceInfo{},
 	}
 	return nsi

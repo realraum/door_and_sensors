@@ -20,7 +20,7 @@ type spaceState struct {
 }
 
 var (
-	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png", "https://realraum.at/logo-re_open_100x100.png", "https://realraum.at/logo-re_empty_100x100.png", 47.065554, 15.450435).AddSpaceAddress("Brockmanngasse 15, 8010 Graz, Austria").AddBaseExt("ext_ccc", "chaostreff")
+	spaceapidata    spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png").SetSpaceState(spaceapi.SpaceState{LastChange: time.Now().Unix(), Icon: &spaceapi.SpaceStateIcon{OpenIconURI: "https://realraum.at/logo-re_open_100x100.png", CloseIconURI: "https://realraum.at/logo-re_empty_100x100.png"}}).SetSpaceLocation(spaceapi.SpaceLocation{Address: "Brockmanngasse 15, 8010 Graz, Austria", Lat: 47.065554, Lon: 15.450435}).AddBaseExt("ext_ccc", "chaostreff")
 	statusstate     *spaceState        = new(spaceState)
 	re_querystresc_ *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 )
@@ -52,7 +52,12 @@ func updateStatusString() {
 	} else {
 		spacestatus = "Keiner Da"
 	}
-	spaceapidata.SetStatus(statusstate.present, spacestatus)
+	spaceapidata.UpdateSpaceStatus(statusstate.present, spacestatus)
+}
+
+func publishStateNotKnown() {
+	spaceapidata.UpdateSpaceStatusNotKnown("Status Unknown")
+	publishStateToWeb()
 }
 
 func publishStateToWeb() {

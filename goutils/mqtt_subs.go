@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	mqtt "git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	"github.com/btittelbach/pubsub"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const MQTT_QOS_NOCONFIRMATION byte = 0
@@ -43,7 +43,7 @@ func removeSubscribedTopic(topic string) {
 	Syslog_.Printf("removeSubscribedTopics: %s ", topic)
 }
 
-func mqttOnConnectionHandler(mqttc *mqtt.Client) {
+func mqttOnConnectionHandler(mqttc mqtt.Client) {
 	Syslog_.Print("MQTT connection to broker established. (re)subscribing topics")
 	mqtt_topics_we_subscribed_lock_.RLock()
 	defer mqtt_topics_we_subscribed_lock_.RUnlock()
@@ -56,22 +56,23 @@ func mqttOnConnectionHandler(mqttc *mqtt.Client) {
 	}
 }
 
-func ConnectMQTTBroker(brocker_addr, clientid string) *mqtt.Client {
+func ConnectMQTTBroker(brocker_addr, clientid string) mqtt.Client {
 	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetKeepAlive(30 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
-	options = options.SetClientID(clientid).SetConnectionLostHandler(func(c *mqtt.Client, err error) { Syslog_.Print("ERROR MQTT connection lost:", err) })
+	options = options.SetClientID(clientid).SetConnectionLostHandler(func(c mqtt.Client, err error) { Syslog_.Print("ERROR MQTT connection lost:", err) })
 	options = options.SetOnConnectHandler(mqttOnConnectionHandler)
 	c := mqtt.NewClient(options)
 	tk := c.Connect()
 	tk.Wait()
 	if tk.Error() != nil {
-		Syslog_.Fatal("Error connecting to mqtt broker", tk.Error())
+		Syslog_.Println("Error connecting to mqtt broker", tk.Error())
+		return nil
 	}
 	return c
 }
 
-func SubscribeAndForwardToChannel(mqttc *mqtt.Client, filter string) (channel chan mqtt.Message) {
+func SubscribeAndForwardToChannel(mqttc mqtt.Client, filter string) (channel chan mqtt.Message) {
 	channel = make(chan mqtt.Message, 100)
-	tk := mqttc.Subscribe(filter, 0, func(mqttc *mqtt.Client, msg mqtt.Message) { channel <- msg })
+	tk := mqttc.Subscribe(filter, 0, func(mqttc mqtt.Client, msg mqtt.Message) { channel <- msg })
 	tk.Wait()
 	if tk.Error() != nil {
 		Syslog_.Fatalf("Error subscribing to %s:%s", filter, tk.Error())
@@ -82,13 +83,13 @@ func SubscribeAndForwardToChannel(mqttc *mqtt.Client, filter string) (channel ch
 	return
 }
 
-func SubscribeMultipleAndForwardToChannel(mqttc *mqtt.Client, filters []string) (channel chan mqtt.Message) {
+func SubscribeMultipleAndForwardToChannel(mqttc mqtt.Client, filters []string) (channel chan mqtt.Message) {
 	channel = make(chan mqtt.Message, 100)
 	filtermap := make(map[string]byte, len(filters))
 	for _, topicfilter := range filters {
 		filtermap[topicfilter] = 0 //qos == 0
 	}
-	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc *mqtt.Client, msg mqtt.Message) {
+	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc mqtt.Client, msg mqtt.Message) {
 		Debug_.Printf("forwarding mqtt message to channel %+v", msg)
 		channel <- msg
 	})
@@ -102,8 +103,8 @@ func SubscribeMultipleAndForwardToChannel(mqttc *mqtt.Client, filters []string) 
 	return
 }
 
-func SubscribeAndPublishToPubSub(mqttc *mqtt.Client, ps *pubsub.PubSub, filter string, pstopics ...string) {
-	tk := mqttc.Subscribe(filter, 0, func(mqttc *mqtt.Client, msg mqtt.Message) { ps.Pub(msg, pstopics...) })
+func SubscribeAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub, filter string, pstopics ...string) {
+	tk := mqttc.Subscribe(filter, 0, func(mqttc mqtt.Client, msg mqtt.Message) { ps.Pub(msg, pstopics...) })
 	tk.Wait()
 	if tk.Error() != nil {
 		Syslog_.Fatalf("Error subscribing to %s:%s", filter, tk.Error())
@@ -114,12 +115,12 @@ func SubscribeAndPublishToPubSub(mqttc *mqtt.Client, ps *pubsub.PubSub, filter s
 	return
 }
 
-func SubscribeMultipleAndPublishToPubSub(mqttc *mqtt.Client, ps *pubsub.PubSub, filters []string, pstopics ...string) {
+func SubscribeMultipleAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub, filters []string, pstopics ...string) {
 	filtermap := make(map[string]byte, len(filters))
 	for _, topicfilter := range filters {
 		filtermap[topicfilter] = 0 //qos == 0
 	}
-	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc *mqtt.Client, msg mqtt.Message) {
+	tk := mqttc.SubscribeMultiple(filtermap, func(mqttc mqtt.Client, msg mqtt.Message) {
 		Debug_.Printf("forwarding mqtt message to pubsub %+v", msg)
 		ps.Pub(msg, pstopics...)
 	})
@@ -133,7 +134,7 @@ func SubscribeMultipleAndPublishToPubSub(mqttc *mqtt.Client, ps *pubsub.PubSub, 
 	return
 }
 
-func UnsubscribeMultiple(mqttc *mqtt.Client, topics ...string) {
+func UnsubscribeMultiple(mqttc mqtt.Client, topics ...string) {
 	mqttc.Unsubscribe(topics...)
 	for _, topic := range topics {
 		removeSubscribedTopic(topic)

@@ -6,7 +6,8 @@ import (
 	"flag"
 	"time"
 
-	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+
 	//r3events "github.com/realraum/door_and_sensors/r3events"
 	r3events "../r3events"
 )
@@ -49,7 +50,15 @@ func main() {
 	defer Syslog_.Print("exiting")
 
 	mqttc := ConnectMQTTBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), "r3-spaceapistatus")
-	defer mqttc.Disconnect(20)
+	if mqttc != nil {
+		defer mqttc.Disconnect(20)
+	} else {
+		//MQTT can't be reached....
+		//upload a fallback Status JSON
+		//then exit
+		publishStateNotKnown()
+		return
+	}
 
 	events_to_status_chan := make(chan interface{}, 50)
 	go EventToWeb(events_to_status_chan)
