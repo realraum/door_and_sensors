@@ -8,8 +8,8 @@ import (
 
 	"./r3xmppbot"
 
-	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	pubsub "github.com/btittelbach/pubsub"
+	"github.com/eclipse/paho.mqtt.golang"
 	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
@@ -56,7 +56,7 @@ func init() {
 
 //-------
 
-func RunXMPPBotForever(ps *pubsub.PubSub, mqttc *mqtt.Client, mqtt_subscription_topics []string, watchdog_timeout time.Duration) {
+func RunXMPPBotForever(ps *pubsub.PubSub, mqttc mqtt.Client, mqtt_subscription_topics []string, watchdog_timeout time.Duration) {
 	var xmpperr error
 	var bot *r3xmppbot.XmppBot
 	var xmpp_presence_events_chan chan interface{}
