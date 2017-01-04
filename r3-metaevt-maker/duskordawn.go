@@ -6,8 +6,8 @@ import (
 	"container/heap"
 	"time"
 
-	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	"github.com/btittelbach/astrotime"
+	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/realraum/door_and_sensors/r3events"
 )
 
@@ -72,7 +72,7 @@ func calcNextSolarElevationEvent(now time.Time) upcomingEvent {
 	return *(eventheap.Peek())
 }
 
-func MetaEventRoutine_DuskDawnEventGenerator(mqttc *mqtt.Client) {
+func MetaEventRoutine_DuskDawnEventGenerator(mqttc mqtt.Client) {
 	for {
 		now := time.Now()
 		upcoming_event := calcNextSolarElevationEvent(now)

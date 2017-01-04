@@ -7,8 +7,8 @@ import (
 	//~ "./brain"
 	r3events "../r3events"
 	//r3events "github.com/realraum/door_and_sensors/r3events"
-	"git.eclipse.org/gitroot/paho/org.eclipse.paho.mqtt.golang.git"
 	pubsub "github.com/btittelbach/pubsub"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 type TopicSeen struct {
@@ -19,7 +19,7 @@ type TopicSeen struct {
 	max_interval int64
 }
 
-func MetaEventRoutine_SensorLost(ps *pubsub.PubSub, mqttc *mqtt.Client, topics_to_monitor []string) {
+func MetaEventRoutine_SensorLost(ps *pubsub.PubSub, mqttc mqtt.Client, topics_to_monitor []string) {
 	topicData := make(map[string]TopicSeen, 10)
 
 	events_chan := ps.Sub("seentopics")
