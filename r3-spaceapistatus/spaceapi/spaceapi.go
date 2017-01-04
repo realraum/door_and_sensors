@@ -38,7 +38,7 @@ type SpaceStateIcon struct {
 }
 
 type SpaceState struct {
-	Open          []bool          `json:"open"`
+	Open          *bool           `json:"open",omitempty`
 	LastChange    int64           `json:"lastchange",omitempty`
 	TriggerPerson string          `json:"trigger_person",omitempty`
 	Message       string          `json:"message",omitempty`
@@ -404,8 +404,8 @@ func (nsi SpaceInfo) SetSpaceState(state SpaceState) SpaceInfo {
 	state.LastChange = time.Now().Unix()
 	nsi["state"] = state
 	//add fields outside for 0.12 backward compatibility
-	if state.Open != nil && len(state.Open) > 0 {
-		nsi["open"] = state.Open[0]
+	if state.Open != nil {
+		nsi["open"] = *state.Open
 	} else {
 		delete(nsi, "open")
 	}
@@ -431,7 +431,7 @@ func (nsi SpaceInfo) UpdateSpaceStatus(open bool, status string) SpaceInfo {
 	state, ok := nsi["state"].(SpaceState)
 	if ok {
 		state.Message = status
-		state.Open = []bool{open}
+		state.Open = &open
 	}
 	return nsi.SetSpaceState(state)
 }
@@ -440,7 +440,7 @@ func (nsi SpaceInfo) UpdateSpaceStatusNotKnown(status string) SpaceInfo {
 	state, ok := nsi["state"].(SpaceState)
 	if ok {
 		state.Message = status
-		state.Open = []bool{}
+		state.Open = nil
 	}
 	return nsi.SetSpaceState(state)
 }
