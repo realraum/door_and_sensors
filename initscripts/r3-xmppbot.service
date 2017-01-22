@@ -11,7 +11,8 @@ Type=simple
 Restart=always
 WorkingDirectory=/home/realraum
 EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
-ExecStart=/home/realraum/bin/r3-xmppbot --debug
+#ExecStart=/home/realraum/bin/r3-xmppbot --debug
+ExecStart=/home/realraum/bin/r3-xmppbot
 
 [Install]
 WantedBy=default.target

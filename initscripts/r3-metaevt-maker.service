@@ -11,7 +11,8 @@ Type=simple
 Restart=always
 WorkingDirectory=/home/realraum
 EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
-ExecStart=/home/realraum/bin/r3-metaevt-maker --debug
+#ExecStart=/home/realraum/bin/r3-metaevt-maker --debug
+ExecStart=/home/realraum/bin/r3-metaevt-maker
 
 [Install]
 WantedBy=default.target

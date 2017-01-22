@@ -9,9 +9,11 @@ OnFailure=xmppnotifyxro@r3-spaceapistatus.service
 #Nice=10
 Type=simple
 Restart=always
+RestartSec=60
 WorkingDirectory=/home/realraum
 EnvironmentFile=/home/realraum/.config/realraum/smsgw.env
-ExecStart=/home/realraum/bin/r3-spaceapistatus --debug
+#ExecStart=/home/realraum/bin/r3-spaceapistatus --debug
+ExecStart=/home/realraum/bin/r3-spaceapistatus
 
 [Install]
 WantedBy=default.target
