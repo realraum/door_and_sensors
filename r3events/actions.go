@@ -22,8 +22,8 @@ type RestartPipeLEDs struct {
 
 type SetPipeLEDsPattern struct {
 	Pattern string `json:"pattern"`
-	Arg     *int64 `json:"arg,omitempty"`
-	Arg1    *int64 `json:"arg1,omitempty"`
+	Arg     int64  `json:"arg,omitempty"`
+	Arg1    int64  `json:"arg1,omitempty"`
 }
 
 type LightCtrlActionOnName struct {
