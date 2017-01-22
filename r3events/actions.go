@@ -22,8 +22,8 @@ type RestartPipeLEDs struct {
 
 type SetPipeLEDsPattern struct {
 	Pattern string `json:"pattern"`
-	Arg     int64  `json:"arg,omitempty"`
-	Arg1    int64  `json:"arg1,omitempty"`
+	Arg     *int64 `json:"arg,omitempty"`
+	Arg1    *int64 `json:"arg1,omitempty"`
 }
 
 type LightCtrlActionOnName struct {
@@ -32,15 +32,17 @@ type LightCtrlActionOnName struct {
 }
 
 type FancyLight struct {
-	R    uint16 `json:"r,omitempty"`
-	G    uint16 `json:"g,omitempty"`
-	B    uint16 `json:"b,omitempty"`
-	CW   uint16 `json:"cw,omitempty"`
-	WW   uint16 `json:"ww,omitempty"`
+	R    *uint16 `json:"r,omitempty"`
+	G    *uint16 `json:"g,omitempty"`
+	B    *uint16 `json:"b,omitempty"`
+	CW   *uint16 `json:"cw,omitempty"`
+	WW   *uint16 `json:"ww,omitempty"`
 	Fade struct {
-		Duration uint16 `json:"duration,omitempty"`
+		Duration uint16   `json:"duration,omitempty"`
+		Cc       []string `json:"cc,omitempty"`
 	} `json:"fade,omitempty"`
 	Flash struct {
-		Repetitions uint16 `json:"repetitions,omitempty"`
+		Repetitions uint16   `json:"repetitions,omitempty"`
+		Cc          []string `json:"cc,omitempty"`
 	} `json:"flash,omitempty"`
 }
