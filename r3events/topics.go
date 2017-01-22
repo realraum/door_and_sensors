@@ -78,4 +78,5 @@ const (
 	ACT_YAMAHA_SEND              string = TOPIC_ACTIONS + ACTDESTID_YAMAHA + "/ircmd"
 	ACT_PIPELEDS_RESTART         string = TOPIC_ACTIONS + CLIENTID_PIPELEDS + "/restart"
 	ACT_PIPELEDS_PATTERN         string = TOPIC_ACTIONS + CLIENTID_PIPELEDS + "/pattern"
+	ACT_LIGHTCTRL_NAME           string = TOPIC_ACTIONS + CLIENTID_LIGHTCTRL + "/name"
 )

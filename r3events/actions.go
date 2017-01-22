@@ -20,8 +20,6 @@ type SetRF433Delay struct {
 type RestartPipeLEDs struct {
 }
 
-type SturdyCeilingLight
-
 type SetPipeLEDsPattern struct {
 	Pattern string `json:"pattern"`
 	Arg     int64  `json:"arg,omitempty"`
