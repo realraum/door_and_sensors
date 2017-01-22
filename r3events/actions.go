@@ -28,7 +28,7 @@ type SetPipeLEDsPattern struct {
 	Arg1    int64  `json:"arg1,omitempty"`
 }
 
-type wsDataSwitch struct {
+type LightCtrlActionOnName struct {
 	Name   string
 	Action string
 }
