@@ -23,6 +23,8 @@ const (
 	CLIENTID_CEILING4              string = "ceiling4"
 	CLIENTID_CEILING5              string = "ceiling5"
 	CLIENTID_CEILING6              string = "ceiling6"
+	CLIENTID_CEILING7              string = "ceiling7"
+	CLIENTID_CEILING8              string = "ceiling8"
 	CLIENTID_CEILINGALL            string = "ceilingAll"
 	ACTDESTID_RF433                string = "rf433"
 	ACTDESTID_YAMAHA               string = "yamahastereo"
