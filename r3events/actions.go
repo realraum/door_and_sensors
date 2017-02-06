@@ -42,11 +42,11 @@ type FancyLight struct {
 	B    *uint16 `json:"b,omitempty"`
 	CW   *uint16 `json:"cw,omitempty"`
 	WW   *uint16 `json:"ww,omitempty"`
-	Fade struct {
+	Fade *struct {
 		Duration uint16   `json:"duration,omitempty"`
 		Cc       []string `json:"cc,omitempty"`
 	} `json:"fade,omitempty"`
-	Flash struct {
+	Flash *struct {
 		Repetitions uint16   `json:"repetitions,omitempty"`
 		Cc          []string `json:"cc,omitempty"`
 	} `json:"flash,omitempty"`
