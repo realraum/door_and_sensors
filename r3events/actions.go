@@ -22,13 +22,13 @@ type RestartPipeLEDs struct {
 
 type SetPipeLEDsPattern struct {
 	Pattern          string `json:"pattern,omitempty"`
-	Hue              int64  `json:"hue,omitempty"`
-	Brightness       int64  `json:"brightness,omitempty"`
-	Speed            int64  `json:"speed,omitempty"`
-	EffectBrightness int64  `json:"effectbrightness,omitempty"`
-	EffectHue        int64  `json:"effecthue,omitempty"`
-	Arg              int64  `json:"arg,omitempty"`
-	Arg1             int64  `json:"arg1,omitempty"`
+	Hue              *int64 `json:"hue,omitempty"`
+	Brightness       *int64 `json:"brightness,omitempty"`
+	Speed            *int64 `json:"speed,omitempty"`
+	EffectBrightness *int64 `json:"effectbrightness,omitempty"`
+	EffectHue        *int64 `json:"effecthue,omitempty"`
+	Arg              *int64 `json:"arg,omitempty"`
+	Arg1             *int64 `json:"arg1,omitempty"`
 }
 
 type LightCtrlActionOnName struct {
