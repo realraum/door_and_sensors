@@ -214,16 +214,25 @@ def queryTempMonitorAndForward(uwscfg, mqttclient):
                     msg = "Sensor #%d aka %s is @%f degC" % (
                         tsd["busid"], tsd["desc"], tsd["temp"])
                     # send warnings
-                    sendSMS(uwscfg.notify_smsgroups.split(" "), msg)
-                    sendR3Message(mqttclient,
-                                  "realraum/olgafreezer/overtemp",
-                                  {"Location": loc,
-                                   "Value": temp,
-                                   "Threshold": warntemp,
-                                   "Ts": ts},
-                                  qos=2,
-                                  retain=False)
-                    sendEmail(uwscfg.notify_emails.split(" "), msg)
+                    try:
+                        sendSMS(uwscfg.notify_smsgroups.split(" "), msg)
+                    except Exception as e:
+                        print(e)
+                    try:
+                        sendR3Message(mqttclient,
+                                      "realraum/olgafreezer/overtemp",
+                                      {"Location": loc,
+                                       "Value": temp,
+                                       "Threshold": warntemp,
+                                       "Ts": ts},
+                                      qos=2,
+                                      retain=False)
+                    except Exception as e:
+                        print(e)
+                    try:
+                        sendEmail(uwscfg.notify_emails.split(" "), msg)
+                    except Exception as e:
+                        print(e)
             else:
                 warned_about[loc] = False
                 warn_holdoff[loc] = 0
