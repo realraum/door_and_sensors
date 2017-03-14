@@ -48,6 +48,7 @@ def onLoop(client):
     ## if more than 10 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 600.0:
         last_masha_movement_ = 0
+        client.publish("action/GoLightCtrl/name",'{"Name":"mashadecke","Action":"off"}')
         touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?mashadecke=0")
 
 
@@ -92,18 +93,20 @@ def onMqttMessage(client, userdata, msg):
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0&boilerolga=1")
                     if isTheSunDown():
                         touchURL(
-                            "http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling3=1&ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1")
+                            "http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1&floodtesla=1")
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1&boilerolga=1")
                 else:
                     # everybody left
+                    client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"fade":{}}')
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
                     time.sleep(2)
                     touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
                     time.sleep(2)
                     # doppelt hält besser, für die essentiellen dinge
+                    client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0}')
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0&boilerolga=0")
         elif topic.endswith("realraum/mashaesp/movement"):
