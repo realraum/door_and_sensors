@@ -13,6 +13,8 @@ import urllib.error
 
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
+last_masha_movement_ = 0
+keep_running_ = True
 
 def isTheSunDown():
     return not last_havesunlight_state_
@@ -42,6 +44,17 @@ def touchURL(url):
         print("touchURL: " + str(e))
         return None
 
+def onLoop(client):
+    ## if more than 10 minutes no movement in masha ... switch off light
+    if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 600.0:
+        last_masha_movement_ = 0
+        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?mashadecke=0")
+
+
+def signal_handler(self, signal, frame):
+    global keep_running_
+    print('You pressed Ctrl+C!',file=sys.stderr)
+    keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
     global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_
@@ -93,6 +106,8 @@ def onMqttMessage(client, userdata, msg):
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0&boilerolga=0")
+        elif topic.endswith("realraum/mashaesp/movement"):
+            last_masha_movement_=time.time()
         elif topic.endswith("/boredoombuttonpressed"):
             pass
 
@@ -136,4 +151,7 @@ if __name__ == "__main__":
     # handles reconnecting.
     # Other loop*() functions are available that give a threaded interface and a
     # manual interface.
-    client.loop_forever()
+    while keep_running_:
+        client.loop()
+        onLoop(client)
+        time.sleep(0.2)

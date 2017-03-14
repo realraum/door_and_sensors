@@ -43,11 +43,16 @@ type FancyLight struct {
 	CW   *uint16 `json:"cw,omitempty"`
 	WW   *uint16 `json:"ww,omitempty"`
 	Fade *struct {
-		Duration uint16   `json:"duration,omitempty"`
+		Duration uint32   `json:"duration,omitempty"`
 		Cc       []string `json:"cc,omitempty"`
 	} `json:"fade,omitempty"`
 	Flash *struct {
 		Repetitions uint16   `json:"repetitions,omitempty"`
+		Period      uint16   `json:"period,omitempty"`
 		Cc          []string `json:"cc,omitempty"`
 	} `json:"flash,omitempty"`
+}
+
+type CeilingScript struct {
+	Script string `json:"script"`
 }
