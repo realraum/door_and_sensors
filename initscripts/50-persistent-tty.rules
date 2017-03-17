@@ -3,9 +3,7 @@ SUBSYSTEM=="tty", DRIVERS=="pl2303", SYMLINK+="ttySMSGW", OWNER="smsd", GROUP="d
 
 SUBSYSTEM=="tty", ATTRS{serial}=="A600dKpw", SYMLINK+="ttyXBEE", OWNER="realraum", GROUP="dialout"
 
-SUBSYSTEM=="usb", KERNEL=="ttyACM*", ATTRS{product}=="usb-ajar", SYMLINK+="backdoor", OWNER="realraum", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{product}=="spreadspace usb-ajar example", SYMLINK+="ttyBackdoor", OWNER="realraum", GROUP="dialout"
 
 
-#, RUN+="/etc/init.d/uc_sensor_node_zmq start" 
-#SUBSYSTEMS=="usb", KERNEL=="ttyACM*", ATTRS{product}=="usb-ajar", SYMLINK+="backdoor", OWNER="realraum", GROUP="dialout", ACTION=="remove", RUN+="/etc/init.d/uc_sensor_node_zmq stop"
-#SUBSYSTEMS=="usb", KERNEL=="ttyUSB*", ENV{ID_VENDOR_ID}=="067b", ENV{ID_MODEL_ID}=="2303", SYMLINK+="ttySMSGW", OWNER="smsd", GROUP="dialout"
+

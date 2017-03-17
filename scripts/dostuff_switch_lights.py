@@ -45,6 +45,7 @@ def touchURL(url):
         return None
 
 def onLoop(client):
+    global last_masha_movement_
     ## if more than 10 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 600.0:
         last_masha_movement_ = 0
