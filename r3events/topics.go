@@ -16,6 +16,7 @@ const (
 	CLIENTID_XBEE                  string = "xbee"
 	CLIENTID_IRCBOT                string = "ircchanbot"
 	CLIENTID_LIGHTCTRL             string = "GoLightCtrl"
+	CLIENTID_WEBFRONT              string = "GoMQTTWebFront"
 	CLIENTID_PIPELEDS              string = "PipeLEDs"
 	CLIENTID_CEILING1              string = "ceiling1"
 	CLIENTID_CEILING2              string = "ceiling2"
