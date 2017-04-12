@@ -100,6 +100,7 @@ def onMqttMessage(client, userdata, msg):
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1&boilerolga=1")
                 else:
                     # everybody left
+                    client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"fade":{}}')
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
