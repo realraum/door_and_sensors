@@ -94,7 +94,7 @@ def onMqttMessage(client, userdata, msg):
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0&boilerolga=1")
                     if isTheSunDown():
                         touchURL(
-                            "http://licht.realraum.at/cgi-bin/mswitch.cgi?ceiling4=1&ceiling1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1&floodtesla=1")
+                            "http://licht.realraum.at/cgi-bin/mswitch.cgi?basiclight4=1&basiclight1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1&floodtesla=1")
                     # doppelt hält besser, für die essentiellen dinge
                     touchURL(
                         "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1&boilerolga=1")
