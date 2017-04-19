@@ -44,13 +44,24 @@ def touchURL(url):
         print("touchURL: " + str(e))
         return None
 
+def switchname(client,name,action):
+    if not isinstance(action,str):
+        action = "on" if action else "off"
+    if '"' in action:
+        return
+    if isinstance(name,list):
+        for n in name:
+            client.publish("action/GoLightCtrl/"+n,'{"Action":"'+action+'"}');
+    else:
+        client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}');
+
+
 def onLoop(client):
     global last_masha_movement_
     ## if more than 10 minutes no movement in masha ... switch off light
-    if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 600.0:
+    if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
-        client.publish("action/GoLightCtrl/name",'{"Name":"mashadecke","Action":"off"}')
-        touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?mashadecke=0")
+        switchname(client,["mashadecke"],"off")
 
 
 def signal_handler(self, signal, frame):
@@ -76,9 +87,9 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
                 if isTheSunDown():
-                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=1&bluebar=1&couchred=1&couchwhite=1")
+                    switchname(client,["cxleds","bluebar","couchred","couchwhite"],"on")
                 else:
-                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?cxleds=0&bluebar=0&couchred=0&couchwhite=0")
+                    switchname(client,["cxleds","bluebar","couchred","couchwhite"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
                 last_status = dictdata["Present"]
@@ -90,27 +101,24 @@ def onMqttMessage(client, userdata, msg):
                     # someone just arrived
                     # power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
-                    touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=1&cxleds=1&boiler=0&boilerolga=1")
+                    switchname(client,["labortisch","cxleds","boiler","boilerolga"],"on")
                     if isTheSunDown():
-                        touchURL(
-                            "http://licht.realraum.at/cgi-bin/mswitch.cgi?basiclight4=1&basiclight1=1&couchred=1&bluebar=1&couchwhite=1&abwasch=1&floodtesla=1")
+                        switchname(client,["floodtesla","cxleds","bluebar","couchred","couchwhite"],"on")
+                        client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
+                        # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
+                        # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
-                    touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?boiler=0&labortisch=1&boilerolga=1")
+                    switchname(client,["labortisch","boiler","boilerolga"],"on")
                 else:
                     # everybody left
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"fade":{}}')
-                    touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?couchred=0&all=0")
-                    time.sleep(2)
-                    touchURL("http://licht.realraum.at/cgi-bin/mswitch.cgi?all=0")
-                    time.sleep(2)
+                    switchname(client,["abwasch","couchwhite","couchred","all"],"off")
+                    time.sleep(4)
+                    switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0}')
-                    touchURL(
-                        "http://licht.realraum.at/cgi-bin/mswitch.cgi?labortisch=0&boiler=0&boilerolga=0")
+                    switchname(client,["labortisch","boiler","boilerolga"],"off")
         elif topic.endswith("realraum/mashaesp/movement"):
             last_masha_movement_=time.time()
         elif topic.endswith("/boredoombuttonpressed"):
@@ -147,6 +155,7 @@ if __name__ == "__main__":
         ("realraum/metaevt/presence", 1),
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
+        ("realraum/mashaesp/movement",1)
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
