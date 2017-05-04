@@ -32,11 +32,17 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 		Syslog_.Println("Error: Failed to parse ssh private key:", err.Error())
 		return nil, err
 	}
+	// hostpubkey, err := ssh.ParsePublicKey([]byte(EnvironOrDefault("TUER_STATUSPUSH_SSH_REMOTEHOSTKEY", "")))
+	// if err != nil {
+	// 	Syslog_.Fatalf("could not parse ssh remote host pubkey: %s", err.Error())
+	// }
 	config := &ssh.ClientConfig{
 		User: EnvironOrDefault("TUER_STATUSPUSH_SSH_USER", DEFAULT_TUER_STATUSPUSH_SSH_USER),
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //FIXME: verify against vex HostKey provided via EnvironOrDefault path
+		// HostKeyCallback: ssh.FixedHostKey(hostpubkey),
 		Timeout: 4 * time.Second,
 	}
 	client, err := ssh.Dial("tcp", EnvironOrDefault("TUER_STATUSPUSH_SSH_HOST_PORT", DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT), config)
@@ -49,6 +55,10 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 
 func goCreateSSHSessions() {
 	timeout_tmr := time.NewTimer(0)
+	select {
+	case <-timeout_tmr.C:
+	default:
+	}
 NEXTSREQ:
 	for sreq := range session_request_chan_ {
 		var err error
