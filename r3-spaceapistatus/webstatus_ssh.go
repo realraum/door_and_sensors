@@ -54,11 +54,6 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 }
 
 func goCreateSSHSessions() {
-	timeout_tmr := time.NewTimer(0)
-	select {
-	case <-timeout_tmr.C:
-	default:
-	}
 NEXTSREQ:
 	for sreq := range session_request_chan_ {
 		var err error
@@ -73,8 +68,9 @@ NEXTSREQ:
 			}
 			session_chan := make(chan *ssh.Session)
 			err_chan := make(chan error)
-			timeout_tmr.Reset(4 * time.Second)
+			timeout_tmr := time.NewTimer(4 * time.Second)
 			go func() {
+				defer recover()
 				session, err := ssh_webstatus_client_.NewSession()
 				if err == nil {
 					session_chan <- session
