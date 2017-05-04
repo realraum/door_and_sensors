@@ -72,26 +72,38 @@ func publishStateToWeb() {
 	if session == nil {
 		return
 	}
+
 	defer session.Close()
 
-	stdinp, err := session.StdinPipe()
-	if err != nil {
-		Syslog_.Println("Error: Failed to create ssh stdin pipe:", err.Error())
-		return
-	}
-	defer stdinp.Close()
+	timeout_tmr := time.NewTimer(4 * time.Second)
+	done_chan := make(chan bool)
 
-	if err := session.Start("set"); err != nil {
-		Syslog_.Println("Error: Failed to run ssh command:", err.Error())
-		return
-	}
-	written, err := stdinp.Write(jsondata_b)
-	if err != nil {
-		Syslog_.Println("Error: Failed to publish status info", err.Error())
-		return
-	}
+	go func() {
+		defer func() { done_chan <- true }()
+		stdinp, err := session.StdinPipe()
+		if err != nil {
+			Syslog_.Println("Error: Failed to create ssh stdin pipe:", err.Error())
+			return
+		}
+		defer stdinp.Close()
 
-	Syslog_.Printf("updated status.json (sent %d bytes)", written)
+		if err := session.Start("set"); err != nil {
+			Syslog_.Println("Error: Failed to run ssh command:", err.Error())
+			return
+		}
+		written, err := stdinp.Write(jsondata_b)
+		if err != nil {
+			Syslog_.Println("Error: Failed to publish status info", err.Error())
+			return
+		}
+		Syslog_.Printf("updated status.json (sent %d bytes)", written)
+	}()
+
+	select {
+	case <-done_chan:
+	case <-timeout_tmr.C:
+		Syslog_.Printf("Error: publishStateToWeb timed out")
+	}
 }
 
 func EventToWeb(events chan interface{}) {
