@@ -61,6 +61,7 @@ def onLoop(client):
     ## if more than 10 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
+        #print(last_masha_movement_)
         switchname(client,["mashadecke"],"off")
 
 
@@ -70,7 +71,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_
+    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_movement_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -121,6 +122,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["labortisch","boiler","boilerolga"],"off")
         elif topic.endswith("realraum/mashaesp/movement"):
             last_masha_movement_=time.time()
+            #print(last_masha_movement_)
         elif topic.endswith("/boredoombuttonpressed"):
             pass
 
@@ -155,7 +157,7 @@ if __name__ == "__main__":
         ("realraum/metaevt/presence", 1),
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
-        ("realraum/mashaesp/movement",1)
+        ("realraum/mashaesp/movement",1),
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
