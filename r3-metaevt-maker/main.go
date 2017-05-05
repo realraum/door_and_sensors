@@ -48,11 +48,13 @@ func init() {
 var topics_monitor_if_sensors_disappear = []string{
 	r3events.TOPIC_PILLAR_RELHUMIDITY,
 	r3events.TOPIC_PILLAR_TEMP,
+	r3events.TOPIC_SMALLKIOSK_TEMP,
 	//r3events.TOPIC_OLGAFREEZER_TEMP, //already sent by olga_freezer_sensordata_forwarder.py
 	r3events.TOPIC_BACKDOOR_TEMP,
 	r3events.TOPIC_GW_STATS,
 	r3events.TOPIC_XBEE_TEMP,
-	r3events.TOPIC_XBEE_RELHUMIDITY}
+	r3events.TOPIC_XBEE_RELHUMIDITY,
+}
 
 var topics_needed_for_presenceevent = []string{
 	r3events.TOPIC_META_REALMOVE,

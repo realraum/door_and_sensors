@@ -109,6 +109,7 @@ func main() {
 
 	mqtt_subscription_filters := []string{
 		"realraum/+/" + r3events.TYPE_TEMP,
+		r3events.TOPIC_XBEE_TEMP,
 		"realraum/+/" + r3events.TYPE_ILLUMINATION,
 		"realraum/metaevt/#",
 		"realraum/+/" + r3events.TYPE_LOCK,

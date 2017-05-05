@@ -10,8 +10,8 @@ import sys
 ######## r3 ZMQ ############
 
 myclientid_ = "xbee"
-mylocation0_ = "Outside"
-mylocation1_ = "WC"
+mylocation1_ = "MaSha"
+mylocation0_ = "WC"
 rf433_send_delay_s_ = 0.0
 
 def sendR3Message(client, topic, datadict, qos=0, retain=False):
@@ -56,14 +56,14 @@ def initTTY(port):
 def publishHumidity(client, datastr, location):
     humidity = float(datastr)
     sendR3Message(client,
-        "realraum/" + myclientid_ + "/relhumidity",
+        "realraum/" + myclientid_ + "/" + location + "/relhumidity",
             {"Location": location, "Percent": humidity, "Ts": int(time.time())},
          retain=True)
 
 def publishTemperature(client, datastr, location):
     temp = float(datastr)
     sendR3Message(client,
-                  "realraum/" + myclientid_ + "/temperature",
+                  "realraum/" + myclientid_ + "/" + location + "/temperature",
                   {"Location": location,
                    "Value": temp,
                    "Ts": int(time.time())},
@@ -74,7 +74,7 @@ def publishVoltage(client, datastr, location):
     minv=3.0
     maxv=3.90
     sendR3Message(client,
-                  "realraum/" + myclientid_ + "/voltage",
+                  "realraum/" + myclientid_ + "/" + location + "/voltage",
                   {"Location": location,
                    "Value": volt,
                    "Min": minv,
