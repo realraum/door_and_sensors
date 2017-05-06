@@ -9,7 +9,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var ssh_webstatus_client_ *ssh.Client
 var session_request_chan_ chan session_request
 
 type session_request struct {
@@ -54,24 +53,25 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 }
 
 func goCreateSSHSessions() {
+	var ssh_webstatus_client *ssh.Client
 NEXTSREQ:
 	for sreq := range session_request_chan_ {
 		var err error
 		for attempts := 2; attempts > 0; attempts-- {
-			if ssh_webstatus_client_ == nil {
-				ssh_webstatus_client_, err = connectWebStatusSSHConnection()
-				if err != nil || ssh_webstatus_client_ == nil {
+			if ssh_webstatus_client == nil {
+				ssh_webstatus_client, err = connectWebStatusSSHConnection()
+				if err != nil || ssh_webstatus_client == nil {
 					Syslog_.Println("Error: Failed to connect to ssh daemon:", err.Error())
-					ssh_webstatus_client_ = nil
+					ssh_webstatus_client = nil
 					continue
 				}
 			}
 			session_chan := make(chan *ssh.Session)
 			err_chan := make(chan error)
-			timeout_tmr := time.NewTimer(4 * time.Second)
+			timeout_tmr := time.NewTimer(6 * time.Second)
 			go func() {
 				defer recover()
-				session, err := ssh_webstatus_client_.NewSession()
+				session, err := ssh_webstatus_client.NewSession()
 				if err == nil {
 					session_chan <- session
 				} else {
@@ -81,10 +81,10 @@ NEXTSREQ:
 			select {
 			case <-timeout_tmr.C:
 				Syslog_.Println("Error: Failed to create ssh session in time")
-				ssh_webstatus_client_ = nil
+				ssh_webstatus_client = nil
 			case err = <-err_chan:
 				Syslog_.Println("Error: Failed to create ssh session:", err.Error())
-				ssh_webstatus_client_ = nil
+				ssh_webstatus_client = nil
 			case session := <-session_chan:
 				sreq.Future <- session
 				close(sreq.Future)
