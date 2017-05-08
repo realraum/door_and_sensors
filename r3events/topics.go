@@ -37,6 +37,7 @@ const (
 	CLIENTID_BASICLIGHT7           string = "basiclight7"
 	CLIENTID_BASICLIGHT8           string = "basiclight8"
 	CLIENTID_BASICLIGHTALL         string = "basiclightAll"
+	CLIENTID_CEILINGSCRIPTS        string = "ceilingscripts"
 	ACTDESTID_RF433                string = "rf433"
 	ACTDESTID_YAMAHA               string = "yamahastereo"
 	TYPE_LOCK                      string = "lock"
@@ -105,4 +106,5 @@ const (
 	ACT_PIPELEDS_PATTERN           string = TOPIC_ACTIONS + CLIENTID_PIPELEDS + "/pattern"
 	ACT_LIGHTCTRL_NAME             string = TOPIC_ACTIONS + CLIENTID_LIGHTCTRL + "/name"
 	ACT_ALLFANCYLIGHT_PLEASEREPEAT string = TOPIC_ACTIONS + CLIENTID_CEILINGALL + "/" + TYPE_PLEASEREPEAT
+	ACT_ACTIVATE_SCRIPT            string = TOPIC_ACTIONS + CLIENTID_CEILINGSCRIPTS + "/activatescript"
 )
