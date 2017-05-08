@@ -3,6 +3,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -42,7 +43,7 @@ func connectWebStatusSSHConnection() (*ssh.Client, error) {
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //FIXME: verify against vex HostKey provided via EnvironOrDefault path
 		// HostKeyCallback: ssh.FixedHostKey(hostpubkey),
-		Timeout: 4 * time.Second,
+		Timeout: 3 * time.Second,
 	}
 	client, err := ssh.Dial("tcp", EnvironOrDefault("TUER_STATUSPUSH_SSH_HOST_PORT", DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT), config)
 	if err != nil {
@@ -58,24 +59,31 @@ NEXTSREQ:
 	for sreq := range session_request_chan_ {
 		var err error
 		for attempts := 2; attempts > 0; attempts-- {
-			if ssh_webstatus_client == nil {
-				ssh_webstatus_client, err = connectWebStatusSSHConnection()
-				if err != nil || ssh_webstatus_client == nil {
-					Syslog_.Println("Error: Failed to connect to ssh daemon:", err.Error())
-					ssh_webstatus_client = nil
-					continue
-				}
-			}
 			session_chan := make(chan *ssh.Session)
 			err_chan := make(chan error)
 			timeout_tmr := time.NewTimer(6 * time.Second)
 			go func() {
-				defer recover()
+				defer func() {
+					if x := recover(); x != nil {
+						err_chan <- fmt.Errorf("recovered from %s", x)
+					}
+				}()
+				if ssh_webstatus_client == nil {
+					ssh_webstatus_client, err = connectWebStatusSSHConnection()
+					if err != nil || ssh_webstatus_client == nil {
+						Syslog_.Println("Error: Failed to connect to ssh daemon:", err.Error())
+						ssh_webstatus_client = nil
+						err_chan <- err
+						return
+					}
+				}
 				session, err := ssh_webstatus_client.NewSession()
 				if err == nil {
 					session_chan <- session
+					return
 				} else {
 					err_chan <- err
+					return
 				}
 			}()
 			select {
@@ -84,6 +92,7 @@ NEXTSREQ:
 				ssh_webstatus_client = nil
 			case err = <-err_chan:
 				Syslog_.Println("Error: Failed to create ssh session:", err.Error())
+				ssh_webstatus_client.Close()
 				ssh_webstatus_client = nil
 			case session := <-session_chan:
 				sreq.Future <- session
