@@ -38,6 +38,7 @@ const (
 	CLIENTID_BASICLIGHT8           string = "basiclight8"
 	CLIENTID_BASICLIGHTALL         string = "basiclightAll"
 	CLIENTID_CEILINGSCRIPTS        string = "ceilingscripts"
+	CLIENTID_COUCHRED              string = "couchred"
 	ACTDESTID_RF433                string = "rf433"
 	ACTDESTID_YAMAHA               string = "yamahastereo"
 	TYPE_LOCK                      string = "lock"
@@ -58,6 +59,7 @@ const (
 	TYPE_DUSKORDAWN                string = "duskordawn"
 	TYPE_VOLTAGE                   string = "voltage"
 	TYPE_LIGHT                     string = "light"
+	TYPE_POWER                     string = "power"
 	TYPE_DEFAULTLIGHT              string = "defaultlight"
 	TYPE_PLEASEREPEAT              string = "pleaserepeat"
 	TOPIC_FRONTDOOR_LOCK           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK

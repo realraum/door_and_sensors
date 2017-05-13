@@ -55,6 +55,17 @@ def switchname(client,name,action):
     else:
         client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}');
 
+def switchsonoff(client,name,action):
+    if not isinstance(action,str):
+        action = "on" if action else "off"
+    if '"' in action:
+        return
+    if isinstance(name,list):
+        for n in name:
+            client.publish("action/%s/power" % n, action);
+    else:
+        client.publish("action/%s/power" % name, action);
+
 
 def onLoop(client):
     global last_masha_movement_
@@ -88,9 +99,11 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
                 if isTheSunDown():
-                    switchname(client,["cxleds","bluebar","couchred","couchwhite"],"on")
+                    switchname(client,["cxleds","bluebar","couchwhite"],"on")
+                    switchsonoff(client,["couchred"],"on")
                 else:
-                    switchname(client,["cxleds","bluebar","couchred","couchwhite"],"off")
+                    switchname(client,["cxleds","bluebar","couchwhite"],"off")
+                    switchsonoff(client,["couchred"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
                 last_status = dictdata["Present"]
@@ -104,7 +117,8 @@ def onMqttMessage(client, userdata, msg):
                     # boiler needs power, so always off. to be switched on manuall when needed
                     switchname(client,["labortisch","cxleds","boiler","boilerolga"],"on")
                     if isTheSunDown():
-                        switchname(client,["floodtesla","cxleds","bluebar","couchred","couchwhite"],"on")
+                        switchname(client,["floodtesla","cxleds","bluebar","couchwhite"],"on")
+                        switchsonoff(client,["couchred"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
@@ -114,7 +128,8 @@ def onMqttMessage(client, userdata, msg):
                     # everybody left
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"fade":{}}')
-                    switchname(client,["abwasch","couchwhite","couchred","all"],"off")
+                    switchname(client,["abwasch","couchwhite","all"],"off")
+                    switchsonoff(client,["couchred"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
