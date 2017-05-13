@@ -82,6 +82,7 @@ NEXTSREQ:
 					session_chan <- session
 					return
 				} else {
+					ssh_webstatus_client.Close()
 					err_chan <- err
 					return
 				}
@@ -92,7 +93,6 @@ NEXTSREQ:
 				ssh_webstatus_client = nil
 			case err = <-err_chan:
 				Syslog_.Println("Error: Failed to create ssh session:", err.Error())
-				ssh_webstatus_client.Close()
 				ssh_webstatus_client = nil
 			case session := <-session_chan:
 				sreq.Future <- session
