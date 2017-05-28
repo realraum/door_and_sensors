@@ -113,9 +113,10 @@ def onMqttMessage(client, userdata, msg):
                 last_status = dictdata["Present"]
                 if dictdata["Present"] == True:
                     # someone just arrived
-                    # power to labortisch so people can switch on the individual lights (and switch off after everybody leaves)
+                    # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
-                    switchname(client,["labortisch","cxleds","boiler","boilerolga"],"on")
+                    switchname(client,["cxleds","boiler","boilerolga"],"on")
+                    switchsonoff(client,["tesla"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","cxleds","bluebar","couchwhite"],"on")
                         switchsonoff(client,["couchred"],"on")
@@ -123,18 +124,18 @@ def onMqttMessage(client, userdata, msg):
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
-                    switchname(client,["labortisch","boiler","boilerolga"],"on")
+                    switchname(client,["boiler","boilerolga"],"on")
                 else:
                     # everybody left
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","all"],"off")
-                    switchsonoff(client,["couchred"],"off")
+                    switchsonoff(client,["couchred","tesla"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0}')
-                    switchname(client,["labortisch","boiler","boilerolga"],"off")
+                    switchname(client,["boiler","boilerolga"],"off")
         elif topic.endswith("realraum/mashaesp/movement"):
             last_masha_movement_=time.time()
             #print(last_masha_movement_)
