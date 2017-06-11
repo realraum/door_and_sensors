@@ -17,7 +17,7 @@ type session_request struct {
 }
 
 func init() {
-	session_request_chan_ = make(chan session_request)
+	session_request_chan_ = make(chan session_request, 10)
 	go goCreateSSHSessions()
 }
 
@@ -59,8 +59,8 @@ NEXTSREQ:
 	for sreq := range session_request_chan_ {
 		var err error
 		for attempts := 2; attempts > 0; attempts-- {
-			session_chan := make(chan *ssh.Session)
-			err_chan := make(chan error)
+			session_chan := make(chan *ssh.Session, 3)
+			err_chan := make(chan error, 3)
 			timeout_tmr := time.NewTimer(6 * time.Second)
 			go func() {
 				defer func() {
@@ -107,7 +107,7 @@ NEXTSREQ:
 }
 
 func getWebStatusSSHSession() (session *ssh.Session) {
-	mysession := make(chan *ssh.Session)
+	mysession := make(chan *ssh.Session, 1)
 	session_request_chan_ <- session_request{mysession}
 	return <-mysession
 }

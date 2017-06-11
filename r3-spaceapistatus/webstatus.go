@@ -76,7 +76,7 @@ func publishStateToWeb() {
 	defer session.Close()
 
 	timeout_tmr := time.NewTimer(4 * time.Second)
-	done_chan := make(chan bool)
+	done_chan := make(chan bool, 2)
 
 	go func() {
 		defer func() { done_chan <- true }()

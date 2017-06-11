@@ -60,7 +60,7 @@ func main() {
 		return
 	}
 
-	events_to_status_chan := make(chan interface{}, 50)
+	events_to_status_chan := make(chan interface{}, 80)
 	go EventToWeb(events_to_status_chan)
 
 	// --- receive and distribute events ---
@@ -82,6 +82,17 @@ func main() {
 		r3events.TOPIC_LASER_CARD,
 		r3events.TOPIC_IRCBOT_FOODETA})
 	for {
+		if len(events_to_status_chan) > 72 {
+			Syslog_.Println("events_to_status_chan is nearly full, dropping events, cleaning it out")
+		CLEANFOR:
+			for {
+				select {
+				case <-events_to_status_chan:
+				default:
+					break CLEANFOR
+				}
+			}
+		}
 		select {
 		case msg := <-incoming_message_chan:
 			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
