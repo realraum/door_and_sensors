@@ -141,3 +141,11 @@ type FoodOrderETA struct {
 	ETA        int64
 	Ts         int64
 }
+
+type VentilationState struct {
+	Damper1 string
+	Damper2 string
+	Damper3 string
+	Fan     string
+	Ts      int64
+}
