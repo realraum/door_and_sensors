@@ -91,6 +91,18 @@ func MakeHumiditySensor(name, where, unit string, value float64, timestamp int64
 	return SpaceInfo{"humidity": listofwhats}
 }
 
+func MakeBarometerSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
+	listofwhats := make([]SpaceInfo, 1)
+	listofwhats[0] = SpaceInfo{
+		"value":       value,
+		"unit":        unit,
+		"location":    where,
+		"name":        name,
+		"description": "relative humidity level",
+		"timestamp":   timestamp}
+	return SpaceInfo{"barometer": listofwhats}
+}
+
 func MakePowerConsumptionSensor(name, where, unit string, value, timestamp int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{

@@ -141,6 +141,8 @@ func EventToWeb(events chan interface{}) {
 			if event.Min != event.Max {
 				spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
 			}
+		case r3events.PressureUpdate:
+			spaceapidata.MergeInSensor(spaceapi.MakeBarometerSensor(fmt.Sprintf("Barometer@%s", event.Location), event.Location, "hPa", event.HPa, event.Ts))
 		case r3events.GasLeakAlert:
 			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
 			publishStateToWeb()
