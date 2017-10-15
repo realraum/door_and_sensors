@@ -86,7 +86,7 @@ func MakeHumiditySensor(name, where, unit string, value float64, timestamp int64
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "relative humidity level",
+		"description": "Barometer Pressure",
 		"timestamp":   timestamp}
 	return SpaceInfo{"humidity": listofwhats}
 }
