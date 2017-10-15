@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"time"
 
@@ -35,6 +36,24 @@ func init() {
 	flag.BoolVar(&enable_syslog_, "syslog", false, "enable logging to syslog")
 	flag.BoolVar(&enable_debug_, "debug", false, "enable debug output")
 	flag.Parse()
+}
+
+//-------
+
+func TranslateSonOffSensor(msg mqtt.Message, events_to_status_chan chan<- interface{}) bool {
+	ts := time.Now().Unix()
+	switch msg.Topic() {
+	case r3events.TOPIC_COUCHRED_SENSOR:
+		var newevent r3events.SonOffSensor
+		err := json.Unmarshal(msg.Payload(), &newevent)
+		if err == nil {
+			events_to_status_chan <- r3events.PressureUpdate{Location: r3events.CLIENTID_COUCHRED, HPa: newevent.BMP280.Pressure, Ts: ts}
+			events_to_status_chan <- r3events.TempSensorUpdate{Location: r3events.CLIENTID_COUCHRED, Value: newevent.BMP280.Temperature, Ts: ts}
+		}
+	default:
+		return false
+	}
+	return true
 }
 
 //-------
@@ -79,8 +98,11 @@ func main() {
 		"realraum/+/" + r3events.TYPE_DOOMBUTTON,
 		"realraum/+/" + r3events.TYPE_GASALERT,
 		"realraum/+/" + r3events.TYPE_POWERLOSS,
+		"realraum/+/" + r3events.TYPE_PRESSURE,
+		r3events.TOPIC_COUCHRED_SENSOR,
 		r3events.TOPIC_LASER_CARD,
 		r3events.TOPIC_IRCBOT_FOODETA})
+
 	for {
 		if len(events_to_status_chan) > 72 {
 			Syslog_.Println("events_to_status_chan is nearly full, dropping events, cleaning it out")
@@ -95,6 +117,9 @@ func main() {
 		}
 		select {
 		case msg := <-incoming_message_chan:
+			if TranslateSonOffSensor(msg, events_to_status_chan) {
+				continue
+			}
 			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			if err == nil {
 				events_to_status_chan <- evnt

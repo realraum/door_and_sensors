@@ -69,12 +69,6 @@ type RelativeHumiditySensorUpdate struct {
 	Ts       int64
 }
 
-type Pressure struct {
-	Location string
-	HPa      float64
-	Ts       int64
-}
-
 type PressureUpdate struct {
 	Location string
 	HPa      float64

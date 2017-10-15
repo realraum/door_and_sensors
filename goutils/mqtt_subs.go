@@ -70,6 +70,18 @@ func ConnectMQTTBroker(brocker_addr, clientid string) mqtt.Client {
 	return c
 }
 
+func SubscribeAndAttachCallback(mqttc mqtt.Client, filter string, callback mqtt.MessageHandler) {
+	tk := mqttc.Subscribe(filter, 0, callback)
+	tk.Wait()
+	if tk.Error() != nil {
+		Syslog_.Fatalf("Error subscribing to %s:%s", filter, tk.Error())
+	} else {
+		Syslog_.Printf("SubscribeAndForwardToChannel successfull")
+		addSubscribedTopics(tk.(*mqtt.SubscribeToken).Result())
+	}
+	return
+}
+
 func SubscribeAndForwardToChannel(mqttc mqtt.Client, filter string) (channel chan mqtt.Message) {
 	channel = make(chan mqtt.Message, 100)
 	tk := mqttc.Subscribe(filter, 0, func(mqttc mqtt.Client, msg mqtt.Message) { channel <- msg })
