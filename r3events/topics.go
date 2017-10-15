@@ -65,6 +65,7 @@ const (
 	TYPE_PLEASEREPEAT              string = "pleaserepeat"
 	TYPE_VENTILATIONSTATE          string = "ventstate"
 	TYPE_SONOFFSENSOR              string = "SENSOR"
+	TYPE_PRESSURE                  string = "pressure"
 	TOPIC_FRONTDOOR_LOCK           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_FRONTDOOR_AJAR           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_AJAR
 	TOPIC_FRONTDOOR_CMDEVT         string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_CMDEVT
