@@ -77,7 +77,7 @@ type Pressure struct {
 
 type PressureUpdate struct {
 	Location string
-	Percent  float64
+	HPa      float64
 	Ts       int64
 }
 
