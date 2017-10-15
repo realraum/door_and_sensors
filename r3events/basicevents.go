@@ -69,7 +69,7 @@ type RelativeHumiditySensorUpdate struct {
 	Ts       int64 `json:",omitempty"`
 }
 
-type PressureUpdate struct {
+type BarometerUpdate struct {
 	Location string
 	HPa      float64
 	Ts       int64 `json:",omitempty"`

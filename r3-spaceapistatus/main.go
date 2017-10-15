@@ -47,7 +47,7 @@ func TranslateSonOffSensor(msg mqtt.Message, events_to_status_chan chan<- interf
 		var newevent r3events.SonOffSensor
 		err := json.Unmarshal(msg.Payload(), &newevent)
 		if err == nil {
-			events_to_status_chan <- r3events.PressureUpdate{Location: r3events.CLIENTID_COUCHRED, HPa: newevent.BMP280.Pressure, Ts: ts}
+			events_to_status_chan <- r3events.BarometerUpdate{Location: r3events.CLIENTID_COUCHRED, HPa: newevent.BMP280.Pressure, Ts: ts}
 			events_to_status_chan <- r3events.TempSensorUpdate{Location: r3events.CLIENTID_COUCHRED, Value: newevent.BMP280.Temperature, Ts: ts}
 		}
 	default:
@@ -98,7 +98,7 @@ func main() {
 		"realraum/+/" + r3events.TYPE_DOOMBUTTON,
 		"realraum/+/" + r3events.TYPE_GASALERT,
 		"realraum/+/" + r3events.TYPE_POWERLOSS,
-		"realraum/+/" + r3events.TYPE_PRESSURE,
+		"realraum/+/" + r3events.TYPE_BAROMETER,
 		r3events.TOPIC_COUCHRED_SENSOR,
 		r3events.TOPIC_LASER_CARD,
 		r3events.TOPIC_IRCBOT_FOODETA})

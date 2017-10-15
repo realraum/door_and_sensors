@@ -314,6 +314,13 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 			newevent.Ts = time.Now().Unix()
 		}
 		event = *newevent
+	case TYPE_BAROMETER:
+		newevent := new(BarometerUpdate)
+		err = json.Unmarshal(data, newevent)
+		if newevent.Ts <= 0 {
+			newevent.Ts = time.Now().Unix()
+		}
+		event = *newevent
 	case TYPE_VENTILATIONSTATE:
 		newevent := new(VentilationState)
 		err = json.Unmarshal(data, newevent)
