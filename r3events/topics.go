@@ -64,6 +64,7 @@ const (
 	TYPE_DEFAULTLIGHT              string = "defaultlight"
 	TYPE_PLEASEREPEAT              string = "pleaserepeat"
 	TYPE_VENTILATIONSTATE          string = "ventstate"
+	TYPE_SONOFFSENSOR              string = "SENSOR"
 	TOPIC_FRONTDOOR_LOCK           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_FRONTDOOR_AJAR           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_AJAR
 	TOPIC_FRONTDOOR_CMDEVT         string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_CMDEVT
@@ -104,6 +105,7 @@ const (
 	TOPIC_IRCBOT_FOODINVITE        string = TOPIC_R3 + CLIENTID_IRCBOT + "/foodorderinvite"
 	TOPIC_IRCBOT_FOODETA           string = TOPIC_R3 + CLIENTID_IRCBOT + "/foodordereta"
 	TOPIC_VENTILATION              string = TOPIC_R3 + CLIENTID_VENTILATION + "/" + TYPE_VENTILATIONSTATE
+	TOPIC_COUCHRED_SENSOR          string = TOPIC_R3 + CLIENTID_COUCHRED + "/" + TYPE_SONOFFSENSOR
 	ACT_RF433_SEND                 string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/sendcode3byte"
 	ACT_RF433_SETDELAY             string = TOPIC_ACTIONS + ACTDESTID_RF433 + "/setdelay"
 	ACT_YAMAHA_SEND                string = TOPIC_ACTIONS + ACTDESTID_YAMAHA + "/ircmd"

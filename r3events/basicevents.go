@@ -69,6 +69,12 @@ type RelativeHumiditySensorUpdate struct {
 	Ts       int64
 }
 
+type PressureUpdate struct {
+	Location string
+	Percent  float64
+	Ts       int64
+}
+
 type Voltage struct {
 	Location string
 	Value    float64
@@ -148,4 +154,15 @@ type VentilationState struct {
 	Damper3 string
 	Fan     string
 	Ts      int64
+}
+
+type SonOffSensorBMP280 struct {
+	Temperature float64
+	Pressure    float64
+}
+
+type SonOffSensor struct {
+	Time     string
+	TempUnit string
+	BMP280   SonOffSensorBMP280
 }
