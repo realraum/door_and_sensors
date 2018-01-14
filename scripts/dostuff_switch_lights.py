@@ -116,7 +116,7 @@ def onMqttMessage(client, userdata, msg):
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
                     switchname(client,["cxleds","boilerolga"],"on")
-                    switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
+                    switchsonoff(client,["tesla","lothrboiler","olgaboiler","logo"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","cxleds","bluebar","couchwhite"],"on")
                         switchsonoff(client,["couchred"],"on")
@@ -130,7 +130,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","all"],"off")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler"],"off")
+                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","logo"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
