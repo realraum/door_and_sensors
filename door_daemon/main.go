@@ -24,7 +24,7 @@ const (
 	DEFAULT_TUER_DOORCMD_SOCKETPATH string = "/run/tuer/door_cmd.unixpacket"
 	DEFAULT_R3_MQTT_BROKER          string = "tcp://mqtt.realraum.at:1883"
 	DEFAULT_TUER_TTY_PATH           string = "/dev/door"
-	DEFAULT_TUER_KEYSFILE_PATH      string = "/flash/keys"
+	DEFAULT_TUER_KEYSFILE_PATH      string = "/flash/keys/keys"
 )
 
 func init() {
@@ -50,7 +50,7 @@ func main() {
 	go StartRPCServer(send_me_cmds, EnvironOrDefault("TUER_DOORCMD_SOCKETPATH", DEFAULT_TUER_DOORCMD_SOCKETPATH))
 	defer os.Remove(EnvironOrDefault("TUER_DOORCMD_SOCKETPATH", DEFAULT_TUER_DOORCMD_SOCKETPATH))
 
-	knstore, err := NewKeyNickStore(EnvironOrDefault("DEFAULT_TUER_KEYSFILE_PATH", DEFAULT_TUER_KEYSFILE_PATH))
+	knstore, err := NewKeyNickStore(EnvironOrDefault("TUER_KEYSFILE_PATH", DEFAULT_TUER_KEYSFILE_PATH))
 	if err != nil {
 		panic(err) // todo: or not
 	}
