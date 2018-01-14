@@ -4,7 +4,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/codegangsta/martini"
+	"github.com/codegangsta/negroni"
 )
 
 func webServeSpaceAPI(w http.ResponseWriter, r *http.Request) {
@@ -18,10 +18,12 @@ func webServeSpaceAPI(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func goRunMartini() {
-	m := martini.Classic()
-	m.Get("/", webServeSpaceAPI)
-	m.Get("/status.json", webServeSpaceAPI)
-	m.Get("/spaceapi.json", webServeSpaceAPI)
-	m.RunOnAddr(EnvironOrDefault("SPACEAPI_HTTP_INTERFACE", DEFAULT_SPACEAPI_HTTP_INTERFACE))
+func goRunWebserver() {
+	n := negroni.Classic()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", webServeSpaceAPI)
+	mux.HandleFunc("/status.json", webServeSpaceAPI)
+	mux.HandleFunc("/spaceapi.json", webServeSpaceAPI)
+	n.UseHandler(mux)
+	http.ListenAndServe(EnvironOrDefault("SPACEAPI_HTTP_INTERFACE", DEFAULT_SPACEAPI_HTTP_INTERFACE), n)
 }

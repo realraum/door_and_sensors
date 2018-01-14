@@ -25,6 +25,7 @@ const (
 	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "www-data"
 	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:2342"
 	DEFAULT_R3_MQTT_BROKER                string = "tcp://mqtt.realraum.at:1883"
+	DEFAULT_SPACEAPI_HTTP_INTERFACE       string = ":8080"
 )
 
 var (
@@ -81,6 +82,7 @@ func main() {
 
 	events_to_status_chan := make(chan interface{}, 80)
 	go EventToWeb(events_to_status_chan)
+	go goRunWebserver()
 
 	// --- receive and distribute events ---
 	ticker := time.NewTicker(time.Duration(6) * time.Minute)
