@@ -149,11 +149,13 @@ type FoodOrderETA struct {
 }
 
 type VentilationState struct {
-	Damper1 string
-	Damper2 string
-	Damper3 string
-	Fan     string
-	Ts      int64 `json:",omitempty"`
+	Damper1   string
+	Damper2   string
+	Damper3   string
+	Fan       string
+	OLGALock  bool
+	LaserLock bool
+	Ts        int64 `json:",omitempty"`
 }
 
 type SonOffSensorBMP280 struct {
