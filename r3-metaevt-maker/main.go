@@ -37,6 +37,7 @@ var (
 
 const (
 	DEFAULT_R3_MQTT_BROKER string = "tcp://mqtt.realraum.at:1883"
+	PS_R3EVENTS            string = "r3events"
 )
 
 func init() {
@@ -60,6 +61,7 @@ var topics_needed_for_presenceevent = []string{
 	r3events.TOPIC_META_REALMOVE,
 	"realraum/+/movement",
 	"realraum/frontdoor/+",
+	"realraum/flatdoor/+",
 	"realraum/+/ajar",
 	"realraum/+/boredoombuttonpressed",
 }
@@ -90,9 +92,9 @@ func main() {
 	Debug_.Println(mqtt_subscription_filters)
 	got_events_chan := SubscribeMultipleAndForwardToChannel(mqttc, mqtt_subscription_filters)
 	for msg := range got_events_chan {
-		evnt, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
+		evnt, err := UnmarshalMQTTMsg(msg)
 		if err == nil {
-			ps.Pub(evnt, "r3events")
+			ps.Pub(evnt, PS_R3EVENTS)
 			ps.Pub(msg.Topic(), "seentopics")
 		}
 	}

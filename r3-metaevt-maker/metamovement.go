@@ -23,14 +23,14 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, mqttc mqtt.Client, granularity
 	var last_movement, last_movement1, last_movement2, last_movement3 int64
 	var confidence uint8
 	movement_window := ring.New(granularity + 1)
-	events_chan := ps.Sub("r3events")
-	defer ps.Unsub(events_chan, "r3events")
+	events_chan := ps.Sub(PS_R3EVENTS)
+	defer ps.Unsub(events_chan, PS_R3EVENTS)
 	myticker := time.NewTicker(time.Duration(gran_duration) * time.Second)
 
 	for {
 		select {
 		case event := <-events_chan:
-			switch event.(type) {
+			switch event.(r3MQTTMsg).event.(type) {
 			case r3events.MovementSensorUpdate:
 				if movement_window.Value == nil {
 					movement_window.Value = uint32(1)

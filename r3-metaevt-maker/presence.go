@@ -15,21 +15,35 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 	var last_door_cmd *r3events.DoorCommandEvent
 	var last_presence bool
 	var last_event_indicating_presence, last_frontlock_use, last_manual_lockhandling int64
-	var front_locked, front_shut, back_shut bool = true, true, true
+	var front_shut, back_shut bool = true, true
+	const frontdoor_key = "frontdoor"
+	locked := map[string]bool{frontdoor_key: true, "flatdoor": true}
 
-	manualinsidebuttonused := func(ldc *r3events.DoorCommandEvent) bool {
+	anyDoorAjar := func() bool { return !(front_shut && back_shut) }
+
+	areAllDoorsLocked := func() bool {
+		for _, v := range locked {
+			if v == false {
+				return false
+			}
+		}
+		return true
+	}
+
+	manualInsideButtonUsed := func(ldc *r3events.DoorCommandEvent) bool {
 		return ldc.Using == "Button" || (len(ldc.Command) > 10 && ldc.Command[len(ldc.Command)-10:] == "frominside")
 	}
 
-	events_chan := ps.Sub("r3events")
-	defer ps.Unsub(events_chan, "r3events")
+	events_chan := ps.Sub(PS_R3EVENTS)
+	defer ps.Unsub(events_chan, PS_R3EVENTS)
 
-	for event := range events_chan {
-		Debug_.Printf("Presence prior: %t : %T %+v", last_presence, event, event)
+	for r3eventi := range events_chan {
+		r3event := r3eventi.(r3MQTTMsg)
+		Debug_.Printf("Presence prior: %t : %T %+v", last_presence, r3event.event, r3event.event)
 		new_presence := last_presence
 		ts := time.Now().Unix()
-		evnt_type := r3events.NameOfStruct(event)
-		switch evnt := event.(type) {
+		evnt_type := r3events.NameOfStruct(r3event.event)
+		switch evnt := r3event.event.(type) {
 		case r3events.SomethingReallyIsMoving:
 			if evnt.Movement {
 				//ignore movements that happened just after locking door
@@ -41,7 +55,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 				if last_presence {
 					Syslog_.Printf("Presence: Mhh, SomethingReallyIsMoving{%+v} received but presence still true. Quite still a bunch we have here.", evnt)
 				}
-				if front_locked && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 && (last_door_cmd == nil || (!manualinsidebuttonused(last_door_cmd) && last_door_cmd.Ts >= last_manual_lockhandling)) {
+				if areAllDoorsLocked() && front_shut && back_shut && evnt.Confidence >= 90 && last_event_indicating_presence > 1800 && (last_door_cmd == nil || (!manualInsideButtonUsed(last_door_cmd) && last_door_cmd.Ts >= last_manual_lockhandling)) {
 					new_presence = false
 				}
 			}
@@ -54,11 +68,19 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 			last_manual_lockhandling = evnt.Ts
 			last_event_indicating_presence = evnt.Ts
 		case r3events.DoorLockUpdate:
-			front_locked = evnt.Locked
-			last_frontlock_use = evnt.Ts
-			last_event_indicating_presence = evnt.Ts
+			key := r3event.msg.Topic()
+			if len(r3event.topic) > 2 {
+				key = r3event.topic[1]
+			}
+			if locked[key] != evnt.Locked {
+				last_event_indicating_presence = evnt.Ts
+			}
+			locked[key] = evnt.Locked
+			if key == "frontdoor" {
+				last_frontlock_use = evnt.Ts
+			}
 		case r3events.DoorAjarUpdate:
-			if front_shut == false && evnt.Shut && front_locked && evnt.Ts-last_frontlock_use > 2 {
+			if front_shut == false && evnt.Shut && locked[frontdoor_key] && evnt.Ts-last_frontlock_use > 2 {
 				Syslog_.Print("Presence: ignoring frontdoor ajar event, since obviously someone is fooling around with the microswitch while the door is still open")
 			} else {
 				front_shut = evnt.Shut
@@ -71,14 +93,11 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 			continue
 		}
 
-		any_door_unlocked := (front_locked == false)
-		any_door_ajar := !(front_shut && back_shut)
-
 		if new_presence != last_presence {
 			//... skip state check .. we had a definite presence event
-		} else if any_door_unlocked || any_door_ajar {
+		} else if !areAllDoorsLocked() || anyDoorAjar() {
 			new_presence = true
-		} else if last_door_cmd != nil && (manualinsidebuttonused(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
+		} else if last_door_cmd != nil && (manualInsideButtonUsed(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
 			// if last_door_cmd is set then: if either door was closed using Button
 			//or if time of manual lock movement is greater (newer) than timestamp of last_door_cmd
 			//or if was closed/opened/toggled with -frominside addition to simulate close/open/toggle from inside
