@@ -30,7 +30,7 @@ func MetaEventRoutine_Movement(ps *pubsub.PubSub, mqttc mqtt.Client, granularity
 	for {
 		select {
 		case event := <-events_chan:
-			switch event.(r3MQTTMsg).event.(type) {
+			switch event.(r3events.R3MQTTMsg).Event.(type) {
 			case r3events.MovementSensorUpdate:
 				if movement_window.Value == nil {
 					movement_window.Value = uint32(1)

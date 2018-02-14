@@ -97,7 +97,7 @@ func ConnectSerialToMQTT(mc mqtt.Client, timeout time.Duration) {
 				payload := r3events.MarshalEvent2ByteOrPanic(r3events.TempSensorUpdate{Location: "CX", Ts: time.Now().Unix(), Value: temp})
 				tk = mc.Publish(r3events.TOPIC_BACKDOOR_TEMP, 0, true, payload)
 			case "BackdoorInfo(ajar):":
-				payload := r3events.MarshalEvent2ByteOrPanic(r3events.BackdoorAjarUpdate{Shut: incoming_ser_line[1] == "shut", Ts: time.Now().Unix()})
+				payload := r3events.MarshalEvent2ByteOrPanic(r3events.DoorAjarUpdate{Shut: incoming_ser_line[1] == "shut", Ts: time.Now().Unix()})
 				tk = mc.Publish(r3events.TOPIC_BACKDOOR_AJAR, 2, true, payload)
 			case "GasLeakAlert":
 				if time.Now().Sub(gasleak_last_time) >= gasleak_min_interval {

@@ -3,13 +3,11 @@ package main
 
 import (
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/btittelbach/pubsub"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/realraum/door_and_sensors/r3events"
 )
 
 const MQTT_QOS_NOCONFIRMATION byte = 0
@@ -23,22 +21,6 @@ var mqtt_topics_we_subscribed_lock_ sync.RWMutex
 
 func init() {
 	mqtt_topics_we_subscribed_ = make(map[string]byte, 1)
-}
-
-type r3MQTTMsg struct {
-	msg   mqtt.Message
-	topic []string
-	event interface{}
-}
-
-func UnmarshalMQTTMsg(msg mqtt.Message) (*r3MQTTMsg, error) {
-	r3evnt, err := r3events.UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
-	r3msg := &r3MQTTMsg{
-		msg:   msg,
-		topic: strings.Split(msg.Topic(), "/"),
-		event: r3evnt,
-	}
-	return r3msg, err
 }
 
 func addSubscribedTopics(subresult map[string]byte) {

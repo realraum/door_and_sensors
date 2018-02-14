@@ -115,67 +115,92 @@ func publishStateToWeb() {
 	}
 }
 
-func EventToWeb(events chan interface{}) {
-	for eventinterface := range events {
-		Debug_.Printf("EventToWeb: %T %+v", eventinterface, eventinterface)
-		switch event := eventinterface.(type) {
-		case r3events.TimeTick:
+func EventToWeb(events chan *r3events.R3MQTTMsg) {
+	ticker := time.NewTicker(time.Duration(6) * time.Minute)
+	for {
+		select {
+
+		case <-ticker.C:
 			spaceapidata.CleanOutdatedSpaceEvents()
 			spaceapidata.CleanOutdatedSensorData(15 * time.Minute)
 			publishStateToWeb()
-		case r3events.PresenceUpdate:
-			statusstate.present = event.Present
-			publishStateToWeb()
-		case r3events.BackdoorAjarUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
-			publishStateToWeb()
-		case r3events.DoorAjarUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
-			publishStateToWeb()
-		case r3events.DoorLockUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Türschloß", event.Locked))
-			publishStateToWeb()
-		case r3events.BoreDoomButtonPressEvent:
-			statusstate.buttonpress_until = event.Ts + 3600
-			spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed", event.Ts, 4*time.Hour)
-			publishStateToWeb()
-		case r3events.TempSensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp@%s", event.Location), event.Location, event.Value, event.Ts))
-		case r3events.IlluminationSensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value, event.Ts))
-		case r3events.RelativeHumiditySensorUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
-		case r3events.Voltage:
-			spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@%s", event.Location), event.Location, "V", event.Value, event.Ts))
-			if event.Min != event.Max {
-				spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
-			}
-		case r3events.BarometerUpdate:
-			spaceapidata.MergeInSensor(spaceapi.MakeBarometerSensor(fmt.Sprintf("Barometer@%s", event.Location), event.Location, "hPa", event.HPa, event.Ts))
-		case r3events.GasLeakAlert:
-			spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
-			publishStateToWeb()
-		case r3events.TempOverThreshold:
-			spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value), event.Ts, 24*time.Hour)
-			publishStateToWeb()
-		case r3events.UPSPowerUpdate:
-			if event.PercentBattery < 100 {
-				if event.OnBattery {
-					spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
-				} else {
-					spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power resumed. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+
+		case r3msg := <-events:
+			Debug_.Printf("EventToWeb: %T %+v", r3msg, r3msg)
+			eventinterface := r3msg.Event
+			switch event := eventinterface.(type) {
+			case r3events.PresenceUpdate:
+				statusstate.present = event.Present
+				publishStateToWeb()
+			case r3events.DoorAjarUpdate:
+				if len(r3msg.Topic) < 3 {
+					continue
 				}
+				switch r3msg.Topic[1] {
+				case r3events.CLIENTID_FRONTDOOR:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
+				case r3events.CLIENTID_BACKDOOR:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
+				default:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("UnknownAjarSensor", "Unbekannter Türkontakt", event.Shut))
+				}
+				publishStateToWeb()
+			case r3events.DoorLockUpdate:
+				if len(r3msg.Topic) < 3 {
+					continue
+				}
+				switch r3msg.Topic[1] {
+				case r3events.CLIENTID_FRONTDOOR:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterLock", "Haupttürschloß", event.Locked))
+				case r3events.CLIENTID_W2FRONTDOOR:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("Wohnung2Lock", "Zweitwohungtürschloß", event.Locked))
+				default:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("UnknownLock", "Unbekanntes Türschloß", event.Locked))
+				}
+
+				publishStateToWeb()
+			case r3events.BoreDoomButtonPressEvent:
+				statusstate.buttonpress_until = event.Ts + 3600
+				spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed", event.Ts, 4*time.Hour)
+				publishStateToWeb()
+			case r3events.TempSensorUpdate:
+				spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp@%s", event.Location), event.Location, event.Value, event.Ts))
+			case r3events.IlluminationSensorUpdate:
+				spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value, event.Ts))
+			case r3events.RelativeHumiditySensorUpdate:
+				spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+			case r3events.Voltage:
+				spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@%s", event.Location), event.Location, "V", event.Value, event.Ts))
+				if event.Min != event.Max {
+					spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+				}
+			case r3events.BarometerUpdate:
+				spaceapidata.MergeInSensor(spaceapi.MakeBarometerSensor(fmt.Sprintf("Barometer@%s", event.Location), event.Location, "hPa", event.HPa, event.Ts))
+			case r3events.GasLeakAlert:
+				spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
+				publishStateToWeb()
+			case r3events.TempOverThreshold:
+				spaceapidata.AddSpaceEvent("TemperatureLimitExceeded", "alert", fmt.Sprintf("Temperature %s has exceeded limit at %f °C", event.Location, event.Value), event.Ts, 24*time.Hour)
+				publishStateToWeb()
+			case r3events.UPSPowerUpdate:
+				if event.PercentBattery < 100 {
+					if event.OnBattery {
+						spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power loss. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+					} else {
+						spaceapidata.AddSpaceEvent("PowerLoss", "alert", fmt.Sprintf("UPS reports power resumed. Battery at %d%%.", event.PercentBattery), event.Ts, 24*time.Hour)
+					}
+				}
+				publishStateToWeb()
+			case r3events.LaserCutter:
+				spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
+				publishStateToWeb()
+			case r3events.FoodOrderETA:
+				//TODO: remember food orders TSofInvite and overwrite with new ETA if the same or add additonal if new
+				unixeta := time.Unix(event.ETA, 0)
+				timestr := unixeta.Format("15:04")
+				spaceapidata.AddSpaceEvent("Food Order ETA: "+timestr, "food", fmt.Sprintf("Food will arrive at %s", timestr), event.Ts, unixeta.Sub(time.Now()))
+				publishStateToWeb()
 			}
-			publishStateToWeb()
-		case r3events.LaserCutter:
-			spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
-			publishStateToWeb()
-		case r3events.FoodOrderETA:
-			//TODO: remember food orders TSofInvite and overwrite with new ETA if the same or add additonal if new
-			unixeta := time.Unix(event.ETA, 0)
-			timestr := unixeta.Format("15:04")
-			spaceapidata.AddSpaceEvent("Food Order ETA: "+timestr, "food", fmt.Sprintf("Food will arrive at %s", timestr), event.Ts, unixeta.Sub(time.Now()))
-			publishStateToWeb()
 		}
 	}
 }

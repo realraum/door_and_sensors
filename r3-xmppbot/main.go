@@ -127,19 +127,13 @@ func main() {
 	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters, time.Duration(7)*time.Minute)
 
 	// --- receive and distribute events ---
-	ticker := time.NewTicker(time.Duration(6) * time.Minute)
-	for {
-		select {
-		case msg := <-incoming_message_chan:
-			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
-			if err == nil {
-				ps.Pub(evnt, "r3events")
-			} else {
-				Syslog_.Printf("Error Unmarshalling Event", err)
-				Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
-			}
-		case <-ticker.C:
-			ps.Pub(r3events.TimeTick{time.Now().Unix()}, "updateinterval")
+	for msg := range incoming_message_chan {
+		evnt, err := r3events.R3ifyMQTTMsg(msg.(mqtt.Message))
+		if err == nil {
+			ps.Pub(evnt, "r3events")
+		} else {
+			Syslog_.Printf("Error Unmarshalling Event", err)
+			Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 		}
 	}
 }

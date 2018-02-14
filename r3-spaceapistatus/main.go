@@ -41,15 +41,15 @@ func init() {
 
 //-------
 
-func TranslateSonOffSensor(msg mqtt.Message, events_to_status_chan chan<- interface{}) bool {
+func TranslateSonOffSensor(msg mqtt.Message, events_to_status_chan chan<- *r3events.R3MQTTMsg) bool {
 	ts := time.Now().Unix()
 	switch msg.Topic() {
 	case r3events.TOPIC_COUCHRED_SENSOR:
 		var newevent r3events.SonOffSensor
 		err := json.Unmarshal(msg.Payload(), &newevent)
 		if err == nil {
-			events_to_status_chan <- r3events.BarometerUpdate{Location: r3events.CLIENTID_COUCHRED, HPa: newevent.BMP280.Pressure, Ts: ts}
-			events_to_status_chan <- r3events.TempSensorUpdate{Location: r3events.CLIENTID_COUCHRED, Value: newevent.BMP280.Temperature, Ts: ts}
+			events_to_status_chan <- &r3events.R3MQTTMsg{Event: r3events.BarometerUpdate{Location: r3events.CLIENTID_COUCHRED, HPa: newevent.BMP280.Pressure, Ts: ts}, Msg: msg, Topic: r3events.SplitTopic(msg.Topic())}
+			events_to_status_chan <- &r3events.R3MQTTMsg{Event: r3events.TempSensorUpdate{Location: r3events.CLIENTID_COUCHRED, Value: newevent.BMP280.Temperature, Ts: ts}, Msg: msg, Topic: r3events.SplitTopic(msg.Topic())}
 		}
 	default:
 		return false
@@ -80,12 +80,11 @@ func main() {
 		return
 	}
 
-	events_to_status_chan := make(chan interface{}, 80)
+	events_to_status_chan := make(chan *r3events.R3MQTTMsg, 80)
 	go EventToWeb(events_to_status_chan)
 	go goRunWebserver()
 
 	// --- receive and distribute events ---
-	ticker := time.NewTicker(time.Duration(6) * time.Minute)
 	incoming_message_chan := SubscribeMultipleAndForwardToChannel(mqttc, []string{
 		r3events.TOPIC_META_PRESENCE,
 		"realraum/+/" + r3events.TYPE_TEMP,
@@ -117,21 +116,17 @@ func main() {
 				}
 			}
 		}
-		select {
-		case msg := <-incoming_message_chan:
+		for msg := range incoming_message_chan {
 			if TranslateSonOffSensor(msg, events_to_status_chan) {
 				continue
 			}
-			evnt, err := r3events.UnmarshalTopicByte2Event(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
+			evnt, err := r3events.R3ifyMQTTMsg(msg.(mqtt.Message))
 			if err == nil {
 				events_to_status_chan <- evnt
 			} else {
 				Syslog_.Printf("Error Unmarshalling Event", err)
 				Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
 			}
-
-		case ts := <-ticker.C:
-			events_to_status_chan <- r3events.TimeTick{ts.Unix()}
 		}
 	}
 }
