@@ -64,45 +64,85 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 	toplvltopic := topics[len(topics)-1]
 	switch topic {
 	case TOPIC_FRONTDOOR_CMDEVT:
-		event = DoorCommandEvent{}
+		typed_event := DoorCommandEvent{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_FRONTDOOR_PROBLEM:
-		event = DoorProblemEvent{}
+		typed_event := DoorProblemEvent{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_FRONTDOOR_MANUALLOCK:
-		event = DoorManualMovementEvent{}
+		typed_event := DoorManualMovementEvent{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_PRESENCE:
-		event = PresenceUpdate{}
+		typed_event := PresenceUpdate{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_REALMOVE:
-		event = SomethingReallyIsMoving{}
+		typed_event := SomethingReallyIsMoving{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_TEMPSPIKE:
-		event = TempSensorSpike{}
+		typed_event := TempSensorSpike{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_HUMIDITYSPIKE:
-		event = HumiditySensorSpike{}
+		typed_event := HumiditySensorSpike{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_DUSTSPIKE:
-		event = DustSensorSpike{}
+		typed_event := DustSensorSpike{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_META_DUSKORDAWN:
-		event = DuskOrDawn{}
+		typed_event := DuskOrDawn{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_GW_DHCPACK:
-		event = NetDHCPACK{}
+		typed_event := NetDHCPACK{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_GW_STATS:
-		event = NetGWStatUpdate{}
+		typed_event := NetGWStatUpdate{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_LASER_CARD:
-		event = LaserCutter{}
+		typed_event := LaserCutter{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case ACT_YAMAHA_SEND:
-		event = YamahaIRCmd{}
+		typed_event := YamahaIRCmd{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case ACT_RF433_SEND:
-		event = SendRF433Code{}
+		typed_event := SendRF433Code{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_BACKDOOR_POWERLOSS:
-		event = UPSPowerUpdate{}
+		typed_event := UPSPowerUpdate{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_OLGAFREEZER_SENSORLOST, TOPIC_META_SENSORLOST:
-		event = SensorLost{}
+		typed_event := SensorLost{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case ACT_RF433_SETDELAY:
-		event = SetRF433Delay{}
+		typed_event := SetRF433Delay{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_IRCBOT_FOODREQUEST:
-		event = FoodOrderRequest{}
+		typed_event := FoodOrderRequest{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_IRCBOT_FOODINVITE:
-		event = FoodOrderInvite{}
+		typed_event := FoodOrderInvite{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	case TOPIC_IRCBOT_FOODETA:
-		event = FoodOrderETA{}
+		typed_event := FoodOrderETA{}
+		err = json.Unmarshal(data, &typed_event)
+		event = typed_event
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown topic") // we'll never see this error, it only tells the next if-check that we want to give the next switch a try
@@ -112,49 +152,75 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 	if event == nil {
 		switch toplvltopic {
 		case TYPE_LOCK:
-			event = DoorLockUpdate{}
+			typed_event := DoorLockUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_AJAR:
-			event = DoorAjarUpdate{}
+			typed_event := DoorAjarUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_DOOMBUTTON:
-			event = BoreDoomButtonPressEvent{}
+			typed_event := BoreDoomButtonPressEvent{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_TEMPOVER:
-			event = TempOverThreshold{}
+			typed_event := TempOverThreshold{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_TEMP:
-			event = TempSensorUpdate{}
+			typed_event := TempSensorUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_ILLUMINATION:
-			event = IlluminationSensorUpdate{}
+			typed_event := IlluminationSensorUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_DUST:
-			event = DustSensorUpdate{}
+			typed_event := DustSensorUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_RELHUMIDITY:
-			event = RelativeHumiditySensorUpdate{}
+			typed_event := RelativeHumiditySensorUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_GASALERT:
-			event = GasLeakAlert{}
+			typed_event := GasLeakAlert{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_MOVEMENTPIR:
-			event = MovementSensorUpdate{}
+			typed_event := MovementSensorUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_POWERLOSS:
-			event = UPSPowerUpdate{}
+			typed_event := UPSPowerUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_SENSORLOST:
-			event = SensorLost{}
+			typed_event := SensorLost{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_VOLTAGE:
-			event = Voltage{}
+			typed_event := Voltage{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_BAROMETER:
-			event = BarometerUpdate{}
+			typed_event := BarometerUpdate{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_VENTILATIONSTATE:
-			event = VentilationState{}
+			typed_event := VentilationState{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_SONOFFSENSOR:
-			event = SonOffSensor{}
+			typed_event := SonOffSensor{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_ONLINE:
 			event = Online{Online: string(data) == "ONLINE"}
-			return event, nil
 		default:
 			event = nil
 			err = errors.New("cannot unmarshal unknown type or topic")
 		}
-	}
-
-	//if we have found a type and not returned before: parse the json
-	if event != nil {
-		err = json.Unmarshal(data, &event)
 	}
 
 	//fill Ts field with current timestamp if present and unset
