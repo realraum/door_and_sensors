@@ -168,3 +168,7 @@ type SonOffSensor struct {
 	TempUnit string
 	BMP280   SonOffSensorBMP280
 }
+
+type Online struct {
+	Online bool
+}

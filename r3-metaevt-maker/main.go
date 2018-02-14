@@ -60,8 +60,8 @@ var topics_monitor_if_sensors_disappear = []string{
 var topics_needed_for_presenceevent = []string{
 	r3events.TOPIC_META_REALMOVE,
 	"realraum/+/movement",
-	"realraum/frontdoor/+",
-	"realraum/flatdoor/+",
+	"realraum/" + r3events.CLIENTID_FRONTDOOR + "/+",
+	"realraum/+/lock",
 	"realraum/+/ajar",
 	"realraum/+/boredoombuttonpressed",
 }

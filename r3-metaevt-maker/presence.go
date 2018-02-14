@@ -16,8 +16,9 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 	var last_presence bool
 	var last_event_indicating_presence, last_frontlock_use, last_manual_lockhandling int64
 	var front_shut, back_shut bool = true, true
-	const frontdoor_key = "frontdoor"
-	locked := map[string]bool{frontdoor_key: true, "flatdoor": true}
+	const w1frontdoor_key = r3events.CLIENTID_FRONTDOOR
+	const w2frontdoor_key = r3events.CLIENTID_W2FRONTDOOR
+	locked := map[string]bool{w1frontdoor_key: true, w2frontdoor_key: true}
 
 	anyDoorAjar := func() bool { return !(front_shut && back_shut) }
 
@@ -68,19 +69,19 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 			last_manual_lockhandling = evnt.Ts
 			last_event_indicating_presence = evnt.Ts
 		case r3events.DoorLockUpdate:
-			key := r3event.msg.Topic()
-			if len(r3event.topic) > 2 {
-				key = r3event.topic[1]
+			if len(r3event.topic) < 3 {
+				continue //ignore this update
 			}
+			key := r3event.topic[1]
 			if locked[key] != evnt.Locked {
 				last_event_indicating_presence = evnt.Ts
 			}
 			locked[key] = evnt.Locked
-			if key == "frontdoor" {
+			if key == w1frontdoor_key {
 				last_frontlock_use = evnt.Ts
 			}
 		case r3events.DoorAjarUpdate:
-			if front_shut == false && evnt.Shut && locked[frontdoor_key] && evnt.Ts-last_frontlock_use > 2 {
+			if front_shut == false && evnt.Shut && locked[w1frontdoor_key] && evnt.Ts-last_frontlock_use > 2 {
 				Syslog_.Print("Presence: ignoring frontdoor ajar event, since obviously someone is fooling around with the microswitch while the door is still open")
 			} else {
 				front_shut = evnt.Shut

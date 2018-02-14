@@ -332,6 +332,8 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		newevent := new(SonOffSensor)
 		err = json.Unmarshal(data, newevent)
 		event = *newevent
+	case TYPE_ONLINE:
+		event = Online{Online: string(data) == "ONLINE"}
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown type or topic")

@@ -6,6 +6,7 @@ const (
 	TOPIC_R3                       string = "realraum/"
 	TOPIC_ACTIONS                  string = "action/"
 	CLIENTID_FRONTDOOR             string = "frontdoor"
+	CLIENTID_W2FRONTDOOR           string = "w2frontdoor"
 	CLIENTID_BACKDOOR              string = "backdoorcx"
 	CLIENTID_PILLAR                string = "pillar"
 	CLIENTID_SMALLKIOSK            string = "smallkiosk"
@@ -65,6 +66,7 @@ const (
 	TYPE_PLEASEREPEAT              string = "pleaserepeat"
 	TYPE_VENTILATIONSTATE          string = "ventstate"
 	TYPE_SONOFFSENSOR              string = "SENSOR"
+	TYPE_ONLINE                    string = "ONLINE"
 	TYPE_BAROMETER                 string = "barometer"
 	TOPIC_FRONTDOOR_LOCK           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_FRONTDOOR_AJAR           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_AJAR
