@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	r3events "../r3events"
 	"./r3xmppbot"
-	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 func composeFrontDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, doorcmd r3events.DoorCommandEvent, ts int64) string {
@@ -51,7 +51,7 @@ func composePresence(present bool, temp_cx float64, light_lothr, last_buttonpres
 }
 
 // gets r3events and sends corresponding XMPP messages and XMPP Presence/Status Updates
-func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presence_events_chan chan<- interface{}, watchdog_timeout time.Duration) {
+func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan *r3events.R3MQTTMsg, xmpp_presence_events_chan chan<- interface{}, watchdog_timeout time.Duration) {
 	button_msg := "Dooom ! The button has been pressed ! Probably someone is bored and in need of company ! ;-)"
 	defer func() {
 		if x := recover(); x != nil {
@@ -79,11 +79,7 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan interface{}, xmpp_presenc
 
 	for {
 		select {
-		case r3msgi := <-events:
-			r3msg, castok := r3msgi.(r3events.R3MQTTMsg)
-			if !castok {
-				break
-			}
+		case r3msg := <-events:
 			eventinterface := r3msg.Event
 			Debug_.Printf("event2xmpp: %T %+v", eventinterface, eventinterface)
 			watchdog.Reset(watchdog_timeout)

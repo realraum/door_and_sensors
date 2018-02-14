@@ -6,11 +6,9 @@ import (
 	"flag"
 	"time"
 
+	"../r3events"
 	"./r3xmppbot"
-
-	pubsub "github.com/btittelbach/pubsub"
 	"github.com/eclipse/paho.mqtt.golang"
-	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 type SpaceState struct {
@@ -56,7 +54,7 @@ func init() {
 
 //-------
 
-func RunXMPPBotForever(ps *pubsub.PubSub, mqttc mqtt.Client, mqtt_subscription_topics []string, watchdog_timeout time.Duration) {
+func RunXMPPBotForever(psevents chan *r3events.R3MQTTMsg, incoming_message_chan chan mqtt.Message, mqttc mqtt.Client, mqtt_subscription_topics []string, watchdog_timeout time.Duration) {
 	var xmpperr error
 	var bot *r3xmppbot.XmppBot
 	var xmpp_presence_events_chan chan interface{}
@@ -66,18 +64,15 @@ func RunXMPPBotForever(ps *pubsub.PubSub, mqttc mqtt.Client, mqtt_subscription_t
 		if xmpperr == nil {
 			Syslog_.Printf("Successfully (re)started XMPP Bot")
 			//this are the converted messages we get and publish
-			psevents := ps.Sub("r3events", "updateinterval")
 			//this are the raw messages we subscribe to NOW, so that we get the latest persistent messages from the broker
-			SubscribeMultipleAndPublishToPubSub(mqttc, ps, mqtt_subscription_topics, "mqttrawmessages")
+			SubscribeMultipleAndForwardToGivenChannel(mqttc, mqtt_subscription_topics, incoming_message_chan)
 			//wait till inital messages are queued in channel, then tell EventToXMPP to go into normal mode
 			go func() {
 				time.Sleep(300 * time.Millisecond)
-				psevents <- EventToXMPPStartupFinished{}
+				psevents <- &r3events.R3MQTTMsg{Event: EventToXMPPStartupFinished{}}
 			}()
 			//enter and stay in BotMainRoutine: receive r3Events and send XMPP functions
 			EventToXMPP(bot, psevents, xmpp_presence_events_chan, watchdog_timeout)
-			// unsubscribe right away, since we don't known when reconnect will succeed and we don't want to block PubSub
-			ps.Unsub(psevents, "r3events", "updateinterval")
 			// unsubscribe mqtt events
 			UnsubscribeMultiple(mqttc, mqtt_subscription_topics...)
 			Syslog_.Printf("Stopping XMPP Bot, waiting for 20s")
@@ -104,9 +99,6 @@ func main() {
 	mqttc := ConnectMQTTBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), "r3xmppbot")
 	defer mqttc.Disconnect(20)
 
-	ps := pubsub.NewNonBlocking(50)
-	defer ps.Shutdown()
-
 	mqtt_subscription_filters := []string{
 		"realraum/+/" + r3events.TYPE_TEMP,
 		r3events.TOPIC_XBEE_TEMP,
@@ -123,17 +115,18 @@ func main() {
 		"realraum/+/" + r3events.TYPE_SENSORLOST,
 		"realraum/+/" + r3events.TYPE_POWERLOSS,
 		"realraum/" + r3events.CLIENTID_IRCBOT + "/#"}
-	incoming_message_chan := ps.Sub("mqttrawmessages")
-	go RunXMPPBotForever(ps, mqttc, mqtt_subscription_filters, time.Duration(7)*time.Minute)
+	incoming_message_chan := make(chan mqtt.Message, 100)
+	psevents := make(chan *r3events.R3MQTTMsg, 100)
+	go RunXMPPBotForever(psevents, incoming_message_chan, mqttc, mqtt_subscription_filters, time.Duration(7)*time.Minute)
 
 	// --- receive and distribute events ---
 	for msg := range incoming_message_chan {
-		evnt, err := r3events.R3ifyMQTTMsg(msg.(mqtt.Message))
+		evnt, err := r3events.R3ifyMQTTMsg(msg)
 		if err == nil {
-			ps.Pub(evnt, "r3events")
+			psevents <- evnt
 		} else {
 			Syslog_.Printf("Error Unmarshalling Event", err)
-			Syslog_.Printf(msg.(mqtt.Message).Topic(), msg.(mqtt.Message).Payload())
+			Syslog_.Printf(msg.Topic(), msg.Payload())
 		}
 	}
 }

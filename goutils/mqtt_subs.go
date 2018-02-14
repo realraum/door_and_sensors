@@ -95,8 +95,7 @@ func SubscribeAndForwardToChannel(mqttc mqtt.Client, filter string) (channel cha
 	return
 }
 
-func SubscribeMultipleAndForwardToChannel(mqttc mqtt.Client, filters []string) (channel chan mqtt.Message) {
-	channel = make(chan mqtt.Message, 100)
+func SubscribeMultipleAndForwardToGivenChannel(mqttc mqtt.Client, filters []string, channel chan mqtt.Message) {
 	filtermap := make(map[string]byte, len(filters))
 	for _, topicfilter := range filters {
 		filtermap[topicfilter] = 0 //qos == 0
@@ -112,6 +111,12 @@ func SubscribeMultipleAndForwardToChannel(mqttc mqtt.Client, filters []string) (
 		Syslog_.Printf("SubscribeMultipleAndForwardToChannel successfull")
 		addSubscribedTopics(tk.(*mqtt.SubscribeToken).Result())
 	}
+	return
+}
+
+func SubscribeMultipleAndForwardToChannel(mqttc mqtt.Client, filters []string) (channel chan mqtt.Message) {
+	channel = make(chan mqtt.Message, 100)
+	SubscribeMultipleAndForwardToGivenChannel(mqttc, filters, channel)
 	return
 }
 
