@@ -41,7 +41,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 	defer ps.Unsub(events_chan, PS_R3EVENTS)
 
 	for r3eventi := range events_chan {
-		r3event := r3eventi.(r3events.R3MQTTMsg)
+		r3event := r3eventi.(*r3events.R3MQTTMsg)
 		Debug_.Printf("Presence prior: %t : %T %+v", last_presence, r3event.Event, r3event.Event)
 		new_presence := last_presence
 		ts := time.Now().Unix()
