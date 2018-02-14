@@ -12,11 +12,6 @@ type DoorAjarUpdate struct {
 	Ts   int64 `json:",omitempty"`
 }
 
-type BackdoorAjarUpdate struct {
-	Shut bool
-	Ts   int64 `json:",omitempty"`
-}
-
 type DoorCommandEvent struct {
 	Command string
 	Using   string

@@ -8,7 +8,29 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
+
+type R3MQTTMsg struct {
+	Msg   mqtt.Message
+	Topic []string
+	Event interface{}
+}
+
+func SplitTopic(s string) []string {
+	return strings.Split(s, "/")
+}
+
+func R3ifyMQTTMsg(msg mqtt.Message) (*R3MQTTMsg, error) {
+	r3evnt, err := UnmarshalTopicByte2Event(msg.Topic(), msg.Payload())
+	r3msg := &R3MQTTMsg{
+		Msg:   msg,
+		Topic: SplitTopic(msg.Topic()),
+		Event: r3evnt,
+	}
+	return r3msg, err
+}
 
 func NameOfStruct(evi interface{}) (name string) {
 	etype := fmt.Sprintf("%T", evi)
@@ -40,29 +62,6 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 	topics := strings.Split(topic, "/")
 	toplvltopic := topics[len(topics)-1]
 	switch topic {
-	case TOPIC_FRONTDOOR_LOCK:
-		newevent := new(DoorLockUpdate)
-		err = json.Unmarshal(data, newevent)
-		if newevent.Ts <= 0 {
-			newevent.Ts = time.Now().Unix()
-		}
-		event = *newevent
-	case TOPIC_FRONTDOOR_AJAR:
-		newevent := new(DoorAjarUpdate)
-		err = json.Unmarshal(data, newevent)
-		if newevent.Ts <= 0 {
-			newevent.Ts = time.Now().Unix()
-		}
-		event = *newevent
-
-	case TOPIC_BACKDOOR_AJAR:
-		newevent := new(BackdoorAjarUpdate)
-		err = json.Unmarshal(data, newevent)
-		if newevent.Ts <= 0 {
-			newevent.Ts = time.Now().Unix()
-		}
-		event = *newevent
-
 	case TOPIC_FRONTDOOR_CMDEVT:
 		newevent := new(DoorCommandEvent)
 		err = json.Unmarshal(data, newevent)
@@ -237,6 +236,20 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 	}
 
 	switch toplvltopic {
+	case TYPE_LOCK:
+		newevent := new(DoorLockUpdate)
+		err = json.Unmarshal(data, newevent)
+		if newevent.Ts <= 0 {
+			newevent.Ts = time.Now().Unix()
+		}
+		event = *newevent
+	case TYPE_AJAR:
+		newevent := new(DoorAjarUpdate)
+		err = json.Unmarshal(data, newevent)
+		if newevent.Ts <= 0 {
+			newevent.Ts = time.Now().Unix()
+		}
+		event = *newevent
 	case TYPE_DOOMBUTTON:
 		newevent := new(BoreDoomButtonPressEvent)
 		err = json.Unmarshal(data, newevent)
