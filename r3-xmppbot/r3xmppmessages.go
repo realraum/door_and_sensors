@@ -10,7 +10,11 @@ import (
 	"./r3xmppbot"
 )
 
-func composeFrontDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate, doorcmd r3events.DoorCommandEvent, ts int64) string {
+func composeW2DoorLockMessage(locked bool) string {
+	return fmt.Sprintf("Flat#2 is %s", IfThenElseStr(locked, "locked", "unlocked"))
+}
+
+func composeDoorLockMessage(w1locked, w2locked bool, frontshut r3events.DoorAjarUpdate, doorcmd r3events.DoorCommandEvent, ts int64) string {
 	var ajarstring string = ""
 	if frontshut.Shut == false && frontshut.Ts < doorcmd.Ts {
 		ajarstring = " (still ajar)"
@@ -19,17 +23,13 @@ func composeFrontDoorLockMessage(locked bool, frontshut r3events.DoorAjarUpdate,
 	var whounknown bool = len(doorcmd.Who) == 0 || doorcmd.Who == "-"
 	if ts-doorcmd.Ts < 30 {
 		if whounknown {
-			return fmt.Sprintf("The%s frontdoor was %s by %s %sat %s.", ajarstring, IfThenElseStr(locked, "locked", "unlocked"), doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), time.Unix(ts, 0).String())
+			return fmt.Sprintf("The%s frontdoor was %s by %s %sand %s as of %s.", ajarstring, IfThenElseStr(w1locked, "locked", "unlocked"), doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), composeW2DoorLockMessage(w2locked), time.Unix(ts, 0).String())
 		} else {
-			return fmt.Sprintf("%s %s the%s frontdoor by %s %sat %s.", doorcmd.Who, IfThenElseStr(locked, "locked", "unlocked"), ajarstring, doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), time.Unix(ts, 0).String())
+			return fmt.Sprintf("%s %s the%s frontdoor by %s %sand %s as of %s.", doorcmd.Who, IfThenElseStr(w1locked, "locked", "unlocked"), ajarstring, doorcmd.Using, IfThenElseStr(frominside, "from the inside ", ""), composeW2DoorLockMessage(w2locked), time.Unix(ts, 0).String())
 		}
 	} else {
-		return fmt.Sprintf("The%s frontdoor was %s manually at %s.", ajarstring, IfThenElseStr(locked, "locked", "unlocked"), time.Unix(ts, 0).String())
+		return fmt.Sprintf("The%s frontdoor was %s manually and %s as of %s.", ajarstring, IfThenElseStr(w1locked, "locked", "unlocked"), composeW2DoorLockMessage(w2locked), time.Unix(ts, 0).String())
 	}
-}
-
-func composeW2DoorLockMessage(locked bool, ts int64) string {
-	return fmt.Sprintf("The door to flat#2 is now %s. ()", IfThenElseStr(locked, "locked", "unlocked"), time.Unix(ts, 0).String())
 }
 
 // compose a message string from presence state
@@ -100,17 +100,21 @@ func EventToXMPP(bot *r3xmppbot.XmppBot, events <-chan *r3events.R3MQTTMsg, xmpp
 				if len(r3msg.Topic) < 3 {
 					continue
 				}
+				some_lock_changed := false
 				switch r3msg.Topic[1] {
 				case r3events.CLIENTID_FRONTDOOR:
 					if frontlock != event.Locked {
-						xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: composeFrontDoorLockMessage(event.Locked, last_frontdoor_ajar, last_door_cmd, event.Ts), DistributeLevel: standard_distribute_level, RememberAsStatus: true}
+						some_lock_changed = true
 					}
 					frontlock = event.Locked
 				case r3events.CLIENTID_W2FRONTDOOR:
 					if w2frontlock != event.Locked {
-						xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: composeW2DoorLockMessage(event.Locked, event.Ts), DistributeLevel: standard_distribute_level, RememberAsStatus: false}
+						some_lock_changed = true
 					}
 					w2frontlock = event.Locked
+				}
+				if some_lock_changed {
+					xmpp_presence_events_chan <- r3xmppbot.XMPPMsgEvent{Msg: composeDoorLockMessage(frontlock, w2frontlock, last_frontdoor_ajar, last_door_cmd, event.Ts), DistributeLevel: standard_distribute_level, RememberAsStatus: true}
 				}
 			case r3events.DoorAjarUpdate:
 				if len(r3msg.Topic) < 3 {
