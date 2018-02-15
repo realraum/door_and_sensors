@@ -1,9 +1,8 @@
 
-SUBSYSTEM=="tty", DRIVERS=="pl2303", SYMLINK+="ttySMSGW", OWNER="smsd", GROUP="dialout"
+SUBSYSTEM=="tty", DRIVERS=="pl2303", SYMLINK+="ttySMSGW",OWNER="smsd", GROUP="dialout"
 
-SUBSYSTEM=="tty", ATTRS{serial}=="A600dKpw", SYMLINK+="ttyXBEE", OWNER="realraum", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{serial}=="A600dKpw", SYMLINK+="ttyXBEE", OWNER="realraum", GROUP="dialout", ENV{ID_MM_DEVICE_IGNORE}="1"
 
-SUBSYSTEM=="tty", ATTRS{product}=="spreadspace usb-ajar example", SYMLINK+="ttyBackdoor", OWNER="realraum", GROUP="dialout"
-
+SUBSYSTEM=="tty", ATTRS{product}=="spreadspace usb-ajar example", SYMLINK+="ttyBackdoor", OWNER="realraum", GROUP="dialout", ENV{ID_MM_DEVICE_IGNORE}="1"
 
 
