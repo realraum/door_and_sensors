@@ -358,7 +358,8 @@ const help_text_auth string = `You are authorized to use the following commands:
 *on_while_offline* ...You will receive all r3 status changes, wether you are online or offline.
 *status* ...Use it to query the current status.
 *settings* ...Display your current settings
-*time* ...Returns bot time.\n*bye* ...Logout.
+*time* ...Returns bot time.
+*bye* ...Logout.
 *backdoorajarinfo <on|off>* ...Filters out backdoor updates
 *frontdoorajarinfo <on|off>* ...Filters out frontdoor updates
 *buttoninfo <on|off>* ...Filters out doom-button broadcasts
