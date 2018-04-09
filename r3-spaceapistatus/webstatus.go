@@ -157,7 +157,6 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				default:
 					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("UnknownLock", "Unbekanntes Türschloß", event.Locked))
 				}
-
 				publishStateToWeb()
 			case r3events.BoreDoomButtonPressEvent:
 				statusstate.buttonpress_until = event.Ts + 3600
