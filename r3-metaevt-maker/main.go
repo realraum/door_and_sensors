@@ -82,7 +82,7 @@ func main() {
 	defer ps.Shutdown() // ps.Shutdown should be called before zmq_ctx.Close(), since it will cause goroutines to shutdown and close zqm_sockets which is needed for zmq_ctx.Close() to return
 
 	go MetaEventRoutine_Movement(ps, mqttc, 10, 20, 10)
-	go MetaEventRoutine_Presence(ps, mqttc, 21, 200)
+	go MetaEventRoutine_Presence(ps, mqttc, 21, 200, 40)
 	go MetaEventRoutine_SensorLost(ps, mqttc, topics_monitor_if_sensors_disappear)
 	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
 
