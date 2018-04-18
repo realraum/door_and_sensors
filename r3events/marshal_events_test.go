@@ -28,7 +28,7 @@ func TestUnMarshallingAddTime(t *testing.T) {
 
 func TestUnMarshallingDontAddTime(t *testing.T) {
 
-	topic := "lala/blabla/" + TYPE_ONLINE
+	topic := "lala/blabla/" + TYPE_ONLINESTR
 	payload := []byte("ONLINE")
 	evt_i, err := UnmarshalTopicByte2Event(topic, payload)
 	if err != nil {

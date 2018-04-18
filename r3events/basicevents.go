@@ -165,5 +165,6 @@ type SonOffSensor struct {
 }
 
 type Online struct {
-	Online bool
+	Online bool   `json:"online"`
+	Ip     string `json:"ip,omitempty"`
 }
