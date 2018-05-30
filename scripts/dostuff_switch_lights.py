@@ -99,10 +99,11 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
                 if isTheSunDown():
-                    switchname(client,["cxleds","bluebar","couchwhite"],"on")
+                    switchname(client,["cxleds","bluebar","couchwhite","logo","laserball"],"on")
                     switchsonoff(client,["couchred"],"on")
                 else:
-                    switchname(client,["cxleds","bluebar","couchwhite"],"off")
+                    #leave cxleads on, otherwise people will use the ceiling light in CX
+                    switchname(client,["bluebar","couchwhite","laserball","logo"],"off")
                     switchsonoff(client,["couchred"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata:
             if msg.retain:
@@ -116,21 +117,21 @@ def onMqttMessage(client, userdata, msg):
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
                     switchname(client,["cxleds","boilerolga"],"on")
-                    switchsonoff(client,["tesla","lothrboiler","olgaboiler","logo"],"on")
+                    switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
                     if isTheSunDown():
-                        switchname(client,["floodtesla","cxleds","bluebar","couchwhite"],"on")
+                        switchname(client,["floodtesla","bluebar","couchwhite","laserball","logo"],"on")
                         switchsonoff(client,["couchred"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
-                    switchname(client,["boilerolga"],"on")
+                    switchname(client,["boilerolga","cxleds"],"on")
                 else:
                     # everybody left
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
-                    switchname(client,["abwasch","couchwhite","all"],"off")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","logo"],"off")
+                    switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
+                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
