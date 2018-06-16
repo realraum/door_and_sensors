@@ -105,14 +105,14 @@ def onMqttMessage(client, userdata, msg):
                     #leave cxleads on, otherwise people will use the ceiling light in CX
                     switchname(client,["bluebar","couchwhite","laserball","logo"],"off")
                     switchsonoff(client,["couchred"],"off")
-        elif topic.endswith("/presence") and "Present" in dictdata:
+        elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
             if msg.retain:
-                last_status = dictdata["Present"]
+                last_status = dictdata["InSpace1"]
                 return  # do not act on retained messages
             # if something changed
-            if last_status != dictdata["Present"]:
-                last_status = dictdata["Present"]
-                if dictdata["Present"] == True:
+            if last_status != dictdata["InSpace1"]:
+                last_status = dictdata["InSpace1"]
+                if dictdata["InSpace1"] == True:
                     # someone just arrived
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
