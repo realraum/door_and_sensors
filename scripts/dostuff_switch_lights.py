@@ -137,6 +137,17 @@ def onMqttMessage(client, userdata, msg):
                     # doppelt hält besser, für die essentiellen dinge
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}')
                     switchname(client,["boilerolga"],"off")
+            elif last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
+                if dictdata["InSpace1"] == True:
+                    switchsonoff(client,["couchred"],"on")
+                else:
+                    switchname(client,["couchwhite","mashadecke","floodtesla"],"off")
+                    switchsonoff(client,["couchred"],"off")
+            elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
+                if dictdata["InSpace2"] == True:
+                    pass
+                else:
+                    pass
         elif topic.endswith("realraum/mashaesp/movement"):
             last_masha_movement_=time.time()
             #print(last_masha_movement_)
