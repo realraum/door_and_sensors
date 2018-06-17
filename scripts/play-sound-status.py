@@ -354,6 +354,9 @@ def onMqttMessage(client, userdata, msg):
     logging.debug("Got data: " + topic + ":" + str(dictdata))
 
     if topic.endswith("/presence") and "Present" in dictdata:
+        if last_status == dictdata["Present"]:
+            ##ignore resend of presence or InSpace changes
+            return
         unixts_last_presence = time.time()
         last_status = dictdata["Present"]
         unixts_panic_button = None
