@@ -82,7 +82,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, last_user, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_movement_
+    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_movement_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -94,7 +94,7 @@ def onMqttMessage(client, userdata, msg):
             last_havesunlight_state_ = bool(dictdata["HaveSunlight"])
             if msg.retain:
                 return  # do not act on retained messages
-            if not last_status:
+            if not last_status["Present"]:
                 return  # no use switching lights if nobody is here
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
@@ -107,12 +107,12 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
             if msg.retain:
-                last_status = dictdata["InSpace1"]
+                last_status = dictdata.copy()
                 return  # do not act on retained messages
             # if something changed
-            if last_status != dictdata["InSpace1"]:
-                last_status = dictdata["InSpace1"]
-                if dictdata["InSpace1"] == True:
+            if last_status["Present"] != dictdata["Present"]:
+                last_status = dictdata.copy()
+                if dictdata["Present"] == True:
                     # someone just arrived
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
@@ -164,8 +164,7 @@ def onMQTTDisconnect(mqttc, userdata, rc):
         sys.exit()
 
 if __name__ == "__main__":
-    last_status = None
-    last_user = None
+    last_status = {}
     unixts_panic_button = None
     unixts_last_movement = 0
     unixts_last_presence = 0
