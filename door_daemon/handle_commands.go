@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013
+// (c) Bernhard Tittelbach, 2013, 2018
 
 package main
 
@@ -19,7 +19,7 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
 	"openfrominside":   DoorCmdHandler{checkCmdDoorControl, "o"},
 	"closefrominside":  DoorCmdHandler{checkCmdDoorControl, "c"},
 	"togglefrominside": DoorCmdHandler{checkCmdDoorControl, "t"},
-	"status":           DoorCmdHandler{checkCmdNoArgs, "s"},
+	"status":           DoorCmdHandler{checkCmdIgnoreArgs, "s"},
 }
 
 // ---------- Talk with Firmware directly in response to stuff it sends ------------
@@ -89,6 +89,10 @@ func checkCmdNoArgs(tokens SerialLine) error {
 	if len(tokens) != 1 {
 		return errors.New("command does not accept arguments")
 	}
+	return nil
+}
+
+func checkCmdIgnoreArgs(tokens SerialLine) error {
 	return nil
 }
 

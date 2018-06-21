@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013, 2015
+// (c) Bernhard Tittelbach, 2013, 2015, 2018
 
 package main
 
@@ -19,12 +19,14 @@ type SerialLine []string
 var (
 	cmd_port_ string
 	sub_port_ string
+	cgiven_   bool //we ignore this
 )
 
 const DEFAULT_TUER_DOORCMD_SOCKETPATH string = "/run/tuer/door_cmd.unixpacket"
 
 func init() {
 	flag.StringVar(&cmd_port_, "cmdport", DEFAULT_TUER_DOORCMD_SOCKETPATH, "rpc command socket path")
+	flag.BoolVar(&cgiven_, "c", false, "this is ignored") //filter out -c
 	flag.Parse()
 }
 
@@ -58,12 +60,20 @@ func ConnectToRPCServer(socketpath string) (c *rpc.Client) {
 func main() {
 	rpcc := ConnectToRPCServer(cmd_port_)
 	defer rpcc.Close()
-	// var listen bool
-	// var ignore_next uint = 0
 
+	var append_to_all_fwd_cmds_ []string = flag.Args()
 	user_input_chan := make(chan SerialLine, 1)
-	go LineReader(user_input_chan, os.Stdin)
 	defer os.Stdin.Close()
+
+	ssh_orig_cmd := os.Getenv("SSH_ORIGINAL_COMMAND")
+	if len(ssh_orig_cmd) == 0 || len(ssh_orig_cmd) > 50 {
+		//read from stdin
+		go LineReader(user_input_chan, os.Stdin)
+	} else {
+		//use first argument given in SSH_ORIGINAL_COMMAND as input, ignore the rest
+		args := strings.Fields(ssh_orig_cmd)
+		user_input_chan <- []string{args[0]}
+	}
 
 	for {
 		select {
@@ -76,13 +86,11 @@ func main() {
 				case "help", "?":
 					fmt.Println("Available Commands: help, listen, quit. Everything else is passed through to door daemon")
 				case "listen":
-					// listen = true
-					// fmt.Println("Now listening, @ are broadcasts")
 					fmt.Println("Listening not supported anymore, please subscribe to mqtt 'door' messages")
 				case "quit":
 					os.Exit(0)
 				default:
-					// ignore_next = 2
+					input = append(input, append_to_all_fwd_cmds_...)
 					var reply SerialLine
 					if err := rpcc.Call("Frontdoor.SendCmd", input, &reply); err == nil {
 						fmt.Println(">", strings.Join(reply, " "))
@@ -94,17 +102,6 @@ func main() {
 			} else {
 				os.Exit(0)
 			}
-			// case pubsubstuff := <-sub_chans.In():
-			// 	if len(pubsubstuff) == 0 {
-			// 		continue
-			// 	}
-			// 	if ignore_next > 0 {
-			// 		ignore_next--
-			// 		continue
-			// 	}
-			// 	if listen {
-			// 		fmt.Println("@", strings.Join(pubsubstuff, " "))
-			// 	}
 		}
 	}
 }
