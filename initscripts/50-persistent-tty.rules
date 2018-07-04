@@ -5,4 +5,6 @@ SUBSYSTEM=="tty", ATTRS{serial}=="A600dKpw", SYMLINK+="ttyXBEE", OWNER="realraum
 
 SUBSYSTEM=="tty", ATTRS{product}=="spreadspace usb-ajar example", SYMLINK+="ttyBackdoor", OWNER="realraum", GROUP="dialout", ENV{ID_MM_DEVICE_IGNORE}="1"
 
+SUBSYSTEM=="tty", ATTRS{product}=="Arduino Leonardo", SYMLINK+="ttyLEDs", OWNER="realraum", GROUP="dialout", ENV{ID_MM_DEVICE_IGNORE}="1"
+
 
