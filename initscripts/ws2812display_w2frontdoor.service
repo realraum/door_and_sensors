@@ -1,0 +1,15 @@
+[Unit]
+Description=Display Status of Doors with LEDs abvoe door
+Wants=network.target
+
+[Service]
+Nice=2
+Type=simple
+Restart=always
+WorkingDirectory=/home/realraum
+#EnvironmentFile=/home/realraum/.config/realraum/
+ExecStart=/home/realraum/bin/ws2812display_w2frontdoor.py
+SyslogIdentifier=%i
+
+[Install]
+WantedBy=default.target
