@@ -86,7 +86,7 @@ func MakeHumiditySensor(name, where, unit string, value float64, timestamp int64
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "Barometer Pressure",
+		"description": "relative humidity level",
 		"timestamp":   timestamp}
 	return SpaceInfo{"humidity": listofwhats}
 }
@@ -98,7 +98,7 @@ func MakeBarometerSensor(name, where, unit string, value float64, timestamp int6
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "relative humidity level",
+		"description": "barometer pressure",
 		"timestamp":   timestamp}
 	return SpaceInfo{"barometer": listofwhats}
 }
@@ -164,7 +164,7 @@ func MakeLasercutterHotSensor(name, where string, value bool) SpaceInfo {
 		"value":       value,
 		"location":    where,
 		"name":        name,
-		"description": "Indicates if the lasercutter is in use"}
+		"description": "indicates if the lasercutter is in use"}
 	return SpaceInfo{"ext_lasercutter_hot": listofwhats}
 }
 
@@ -175,7 +175,7 @@ func MakeVoltageSensor(name, where, unit string, value float64, timestamp int64)
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "Voltage",
+		"description": "voltage",
 		"timestamp":   timestamp}
 	return SpaceInfo{"ext_voltage": listofwhats}
 }
@@ -187,7 +187,7 @@ func MakeBatteryChargeSensor(name, where, unit string, percentcharge float64, ti
 		"unit":        unit,
 		"location":    where,
 		"name":        name,
-		"description": "Charge of battery",
+		"description": "battery charge",
 		"timestamp":   timestamp}
 	return SpaceInfo{"ext_batterycharge": listofwhats}
 }
