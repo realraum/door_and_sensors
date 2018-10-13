@@ -15,6 +15,7 @@ last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
 last_masha_movement_ = 0
 keep_running_ = True
+time_schedule_sonoff_ = []
 
 def isTheSunDown():
     return not last_havesunlight_state_
@@ -30,7 +31,6 @@ def decodeR3Message(topic, data):
     except Exception as e:
         # print("decodeR3Message:"+str(e))
         return ("", {})
-
 
 def touchURL(url):
     try:
@@ -62,13 +62,37 @@ def switchsonoff(client,name,action):
         return
     if isinstance(name,list):
         for n in name:
-            client.publish("action/%s/power" % n, action);
+            client.publish("action/%s/power" % n, action)
     else:
-        client.publish("action/%s/power" % name, action);
+        client.publish("action/%s/power" % name, action)
+
+
+def scheduleSwitchSonoff(name,action,time):
+    global time_schedule_sonoff_
+    ##remove all earlier action entries for names, regardless of action off or on
+    for stime, (sname, saction) in time_schedule_sonoff_:
+        if stime <= time:
+            sname[:] = [ x for x in sname if not x in name]
+    ## add new scheduled action for names
+    time_schedule_sonoff_.append((time,(name,action)))
+
+def runScheduledEvents(client):
+    global time_schedule_sonoff_
+    curtime = time.time()
+    time_schedule_sonoff_.sort()
+    idx=0
+    for stime, (sname, saction) in time_schedule_sonoff_:
+        if stime > curtime:
+            break
+        switchsonoff(client,sname,saction)
+        idx+=1
+    time_schedule_sonoff_ = time_schedule_sonoff_[idx:]
 
 
 def onLoop(client):
     global last_masha_movement_
+    ## run schedules events
+    runScheduledEvents(client)
     ## if more than 10 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
@@ -153,6 +177,29 @@ def onMqttMessage(client, userdata, msg):
             #print(last_masha_movement_)
         elif topic.endswith("/boredoombuttonpressed"):
             pass
+        elif topic.endswith("realraum/w2frontdoor/lock"):
+            if msg.retain:
+                return
+            if isTheSunDown() and dictdata["Locked"] == True:
+                ## configure hallwaylight to safety switch off after 100s
+                client.publish("action/hallwaylight/PulseTime", "%d" % (100+100))
+                ## switch on hallwaylight
+                switchsonoff(client,["hallwaylight"],"on")
+                ## for 30s
+                scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+30)
+        elif topic.endswith("/ajar"):
+            if msg.retain:
+                return
+            if isTheSunDown() and dictdata["Shut"] == False:
+                ## configure hallwaylight to safety switch off after 100s
+                client.publish("action/hallwaylight/PulseTime", "%d" % (100+100))
+                ## switch on hallwaylight
+                switchsonoff(client,["hallwaylight"],"on")
+                ## for 30s
+                scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+30)
+                if topic.endswith("/backdoorcx/ajar"):
+                    ## also switch CX light on and leave them on
+                    switchname(client,["cxleds"],"on")
 
     except Exception as ex:
         print("onMqttMessage: " + str(ex))
@@ -185,6 +232,8 @@ if __name__ == "__main__":
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
         ("realraum/mashaesp/movement",1),
+        ("realraum/+/ajar",1),
+        ("realraum/w2frontdoor/lock",1),
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
