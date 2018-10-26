@@ -11,6 +11,7 @@ import sys
 
 myclientid_ = "xbee"
 mylocation1_ = "MaSha"
+mylocation3_ = "MaSha"
 mylocation0_ = "WC"
 rf433_send_delay_s_ = 0.0
 
@@ -53,6 +54,12 @@ def initTTY(port):
     tty.flushOutput()
     return tty
 
+def publishMovement(client, datastr, location):
+    sendR3Message(client,
+        "realraum/" + myclientid_ + "/" + location + "/movement",
+        {"SensorIndex":3,"Ts": int(time.time())},
+         retain=False)
+
 def publishHumidity(client, datastr, location):
     humidity = float(datastr)
     sendR3Message(client,
@@ -90,6 +97,8 @@ def handle_arduino_output(client, tty):
     str_humidity1 = b'Humidity 1 (%): '
     str_temperature1 = b'Temperature 1 (C): '
     str_voltage1 = b'Battery Voltage 1 (V): '
+    str_voltage3 = b'Battery Voltage 3 (V): '
+    str_movement3 = b'movement: Masha'
     sensordata = tty.readline()
     if sensordata is None or len(sensordata) <= 5:
         return
@@ -105,6 +114,10 @@ def handle_arduino_output(client, tty):
         publishTemperature(client, sensordata[len(str_temperature1):], mylocation1_)
     elif sensordata.startswith(str_voltage1):
         publishVoltage(client, sensordata[len(str_voltage1):], mylocation1_)
+    elif sensordata.startswith(str_voltage3):
+        publishVoltage(client, sensordata[len(str_voltage3):], mylocation3_)
+    elif sensordata.startswith(str_movement3):
+        publishMovement(client, sensordata[len(str_movement3):], mylocation3_)
 
 if __name__ == '__main__':
     tty = None

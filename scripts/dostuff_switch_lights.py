@@ -172,7 +172,7 @@ def onMqttMessage(client, userdata, msg):
                     pass
                 else:
                     pass
-        elif topic.endswith("realraum/mashaesp/movement"):
+        elif topic.endswith("realraum/xbee/masha/movement"):
             last_masha_movement_=time.time()
             #print(last_masha_movement_)
         elif topic.endswith("/boredoombuttonpressed"):
@@ -231,7 +231,7 @@ if __name__ == "__main__":
         ("realraum/metaevt/presence", 1),
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
-        ("realraum/mashaesp/movement",1),
+        ("realraum/xbee/masha/movement",1),
         ("realraum/+/ajar",1),
         ("realraum/w2frontdoor/lock",1),
     ])
