@@ -31,11 +31,10 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
 // In this state, manual moving the key/cogwheel will not trigger the state "manual_movement"
 // Users however will not notice that the door is in an error state and needs to manually be moved to the real open position,
 // they have after all, already successfully entered the room.
-// Without that information however, the r3-event-broker daemon, cannot tell if the door is being locked manuall from the inside
-// or if someone else is locking the door for other reasons.
-// Thus, if the door has been opened imperfectly and is then closed manually, it will trigger a presence=false event and switch off the lights.
 //
-// As Workaround, the door daemon watches for "timeout_after_open" events.
+// While the firmware remains in the error-state, outside software like the r3-event-broker daemon, lacks the information to determine if the door is being locked manually from the inside since "manual_movement" is never sent.
+//
+// As a workaround for this behaviour, the door daemon watches now for "timeout_after_open" events.
 // If one is detected and followed by an "door is now ajar" info, we tell the firmware
 // to open the door, causing it to move out of the error state and into the final open key/cogwheel position.
 func WorkaroundFirmware(serial_wr chan string) (in chan SerialLine) {
