@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013,2015
+// (c) Bernhard Tittelbach, 2013,2015,2018
 
 package main
 
@@ -54,7 +54,11 @@ func serialReader(out chan<- SerialLine, serial *sio.Port) {
 		if len(text) == 0 {
 			continue
 		}
-		out <- text
+		select {
+		case out <- text:
+		default:
+			Debug_.Println("serialReader: line lost, channel full")
+		}
 	}
 	if err := linescanner.Err(); err != nil {
 		Syslog_.Print("serialReader Error", err)

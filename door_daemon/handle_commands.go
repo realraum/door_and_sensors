@@ -63,7 +63,7 @@ func WorkaroundFirmware(serial_wr chan string) (in chan SerialLine) {
 	return in
 }
 
-// ---------- ZMQ Command Handling Code -------------
+// ---------- Command Handling Code -------------
 
 func checkCmdDoorControl(tokens SerialLine) error {
 	doorctrl_usage := "syntax: <open|close|toggle>[frominside] <method> <nickname>"
