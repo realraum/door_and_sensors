@@ -186,7 +186,7 @@ def onMqttMessage(client, userdata, msg):
                 ## switch on hallwaylight
                 switchsonoff(client,["hallwaylight"],"on")
                 ## for 30s
-                scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+30)
+                ##scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+40)
         elif topic.endswith("/ajar"):
             if msg.retain:
                 return
@@ -195,8 +195,6 @@ def onMqttMessage(client, userdata, msg):
                 client.publish("action/hallwaylight/PulseTime", "%d" % (100+100))
                 ## switch on hallwaylight
                 switchsonoff(client,["hallwaylight"],"on")
-                ## for 30s
-                scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+30)
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
                     switchname(client,["cxleds"],"on")
