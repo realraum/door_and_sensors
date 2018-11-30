@@ -11,7 +11,7 @@ import sys
 
 myclientid_ = "xbee"
 mylocation1_ = "MaSha"
-mylocation3_ = "MaSha"
+mylocation3_ = "masha"
 mylocation0_ = "WC"
 rf433_send_delay_s_ = 0.0
 
@@ -54,7 +54,7 @@ def initTTY(port):
     tty.flushOutput()
     return tty
 
-def publishMovement(client, datastr, location):
+def publishMovement(client, location):
     sendR3Message(client,
         "realraum/" + myclientid_ + "/" + location + "/movement",
         {"SensorIndex":3,"Ts": int(time.time())},
@@ -117,7 +117,7 @@ def handle_arduino_output(client, tty):
     elif sensordata.startswith(str_voltage3):
         publishVoltage(client, sensordata[len(str_voltage3):], mylocation3_)
     elif sensordata.startswith(str_movement3):
-        publishMovement(client, sensordata[len(str_movement3):], mylocation3_)
+        publishMovement(client, mylocation3_)
 
 if __name__ == '__main__':
     tty = None

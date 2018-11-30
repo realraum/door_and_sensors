@@ -93,7 +93,7 @@ def onLoop(client):
     global last_masha_movement_
     ## run schedules events
     runScheduledEvents(client)
-    ## if more than 10 minutes no movement in masha ... switch off light
+    ## if more than 6 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
         #print(last_masha_movement_)
