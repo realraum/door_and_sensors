@@ -25,9 +25,7 @@ bool doorLocked()
 
 bool doorShut()
 {
-	//FIXME
-	return doorLocked();
-	//return digitalRead(SHUT_PIN) == LOW;
+	return digitalRead(SHUT_PIN) == LOW;
 }
 
 bool checkIfStateChanged()
