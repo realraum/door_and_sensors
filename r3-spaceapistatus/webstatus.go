@@ -140,7 +140,9 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				case r3events.CLIENTID_FRONTDOOR:
 					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("TorwaechterAjarSensor", "Türkontakt", event.Shut))
 				case r3events.CLIENTID_BACKDOOR:
-					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertorwaechterAjarSensor", "Hintertürkontakt", event.Shut))
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("HintertürAjarSensor", "Hintertürkontakt", event.Shut))
+				case r3events.CLIENTID_W2FRONTDOOR:
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("Wohnung2AjarSensor", "Zweitwohnungstürkontakt", event.Shut))
 				default:
 					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("UnknownAjarSensor", "Unbekannter Türkontakt", event.Shut))
 				}
