@@ -187,7 +187,7 @@ def onMqttMessage(client, userdata, msg):
                 switchsonoff(client,["hallwaylight"],"on")
                 ## for 30s
                 ##scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+40)
-        elif topic.endswith("/ajar"):
+        elif topic.endswith("/backdoorcx/ajar") or topic.endswith("/w2frontdoor/ajar"):
             if msg.retain:
                 return
             if isTheSunDown() and dictdata["Shut"] == False:

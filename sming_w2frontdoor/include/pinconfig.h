@@ -2,10 +2,10 @@
 #define USERCONFIG_H
 
 #define LOCK_PIN 5 //D1
-#define SHUT_PIN 2  //D4 10k pullup on D1mini, BUILTIN LED
+ // 2  //D4 10k pullup on D1mini, BUILTIN LED
 // 0 //D3 10k pullup on D1mini
 // 4  //D2 10k pulldown on D1mini
-// 12 //D6
+#define SHUT_PIN 12 //D6
 
 const uint32_t TELNET_PORT_ = 2323;
 
@@ -17,7 +17,7 @@ const uint32_t TELNET_PORT_ = 2323;
 
 const String MQTT_TOPIC1 = "realraum/";
 const String MQTT_TOPIC3_LOCK = "/lock";
-const String MQTT_TOPIC3_SHUT = "/shut";
+const String MQTT_TOPIC3_SHUT = "/ajar";
 const String MQTT_TOPIC3_DEVICEONLINE = "/online";
 
 
