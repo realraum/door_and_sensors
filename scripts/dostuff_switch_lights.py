@@ -169,9 +169,15 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
-                    pass
+                    pass # switch on stuff in space2 if somebody there
                 else:
-                    pass
+                    ## switch off stuff in space2 if nobody there
+                    client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
+            ### stuff that should happen anyway
+            if dictdata["InSpace2"] == True:
+                client.publish("action/singleled/light",'{"r":0,"g":180,"b":0}');
+            else:
+                client.publish("action/singleled/light",'{"r":180,"g":0,"b":0}');
         elif topic.endswith("realraum/xbee/masha/movement"):
             last_masha_movement_=time.time()
             #print(last_masha_movement_)
