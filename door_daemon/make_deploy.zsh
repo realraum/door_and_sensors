@@ -1,7 +1,7 @@
 #!/bin/zsh
 REMOTE_USER=root
 REMOTE_HOST=torwaechter.mgmt.realraum.at
-REMOTE_DIR=/flash/tuer/
+REMOTE_DIR=/usr/local/bin/
 
 export GO386=387
 export CGO_ENABLED=0
