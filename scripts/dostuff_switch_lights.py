@@ -51,9 +51,9 @@ def switchname(client,name,action):
         return
     if isinstance(name,list):
         for n in name:
-            client.publish("action/GoLightCtrl/"+n,'{"Action":"'+action+'"}');
+            client.publish("action/GoLightCtrl/"+n,'{"Action":"'+action+'"}', qos=2);
     else:
-        client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}');
+        client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}', qos=2);
 
 def switchsonoff(client,name,action):
     if not isinstance(action,str):
@@ -62,9 +62,9 @@ def switchsonoff(client,name,action):
         return
     if isinstance(name,list):
         for n in name:
-            client.publish("action/%s/power" % n, action)
+            client.publish("action/%s/power" % n, action, qos=2)
     else:
-        client.publish("action/%s/power" % name, action)
+        client.publish("action/%s/power" % name, action, qos=2)
 
 
 def scheduleSwitchSonoff(name,action,time):
@@ -88,11 +88,19 @@ def runScheduledEvents(client):
         idx+=1
     time_schedule_sonoff_ = time_schedule_sonoff_[idx:]
 
+next_run_pulsetime=0.0
+def runRegularEvents(client):
+    global next_run_pulsetime
+    if time.time() > next_run_pulsetime:
+        ## configure hallwaylight to safety switch off after 100s
+        client.publish("action/hallwaylight/PulseTime1", "%d" % (100+100), qos=2)
+        next_run_pulsetime=time.time()+3600*12
 
 def onLoop(client):
     global last_masha_movement_
     ## run schedules events
     runScheduledEvents(client)
+    runRegularEvents(client)
     ## if more than 6 minutes no movement in masha ... switch off light
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
@@ -187,9 +195,7 @@ def onMqttMessage(client, userdata, msg):
             if msg.retain:
                 return
             if isTheSunDown() and dictdata["Locked"] == True:
-                ## configure hallwaylight to safety switch off after 100s
-                client.publish("action/hallwaylight/PulseTime", "%d" % (100+100))
-                ## switch on hallwaylight
+                ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
                 ## for 30s
                 ##scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+40)
@@ -197,9 +203,7 @@ def onMqttMessage(client, userdata, msg):
             if msg.retain:
                 return
             if isTheSunDown() and dictdata["Shut"] == False:
-                ## configure hallwaylight to safety switch off after 100s
-                client.publish("action/hallwaylight/PulseTime", "%d" % (100+100))
-                ## switch on hallwaylight
+                ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
