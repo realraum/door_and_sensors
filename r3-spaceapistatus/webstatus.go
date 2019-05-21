@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013
+// (c) Bernhard Tittelbach, 2013..2019
 
 package main
 
@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"./spaceapi"
-	//r3events "github.com/realraum/door_and_sensors/r3events"
-	r3events "../r3events"
+	"github.com/realraum/door_and_sensors/r3-spaceapistatus/spaceapi"
+
+	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 type spaceState struct {
