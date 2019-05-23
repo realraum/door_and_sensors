@@ -164,6 +164,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler"],"off")
+                    switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
