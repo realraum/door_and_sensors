@@ -62,9 +62,9 @@ def switchsonoff(client,name,action):
         return
     if isinstance(name,list):
         for n in name:
-            client.publish("action/%s/power" % n, action, qos=2)
+            client.publish("action/%s/power" % n, action, qos=1)
     else:
-        client.publish("action/%s/power" % name, action, qos=2)
+        client.publish("action/%s/power" % name, action, qos=1)
 
 
 def scheduleSwitchSonoff(name,action,time):
