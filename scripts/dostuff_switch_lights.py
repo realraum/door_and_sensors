@@ -195,7 +195,7 @@ def onMqttMessage(client, userdata, msg):
         elif topic.endswith("realraum/w2frontdoor/lock"):
             if msg.retain:
                 return
-            if isTheSunDown() and dictdata["Locked"] == True:
+            if dictdata["Locked"] == True:
                 ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
                 ## for 30s
@@ -203,9 +203,9 @@ def onMqttMessage(client, userdata, msg):
         elif topic.endswith("/backdoorcx/ajar") or topic.endswith("/w2frontdoor/ajar"):
             if msg.retain:
                 return
+            ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
+            switchsonoff(client,["hallwaylight"],"on")
             if isTheSunDown() and dictdata["Shut"] == False:
-                ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
-                switchsonoff(client,["hallwaylight"],"on")
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
                     switchname(client,["cxleds"],"on")
