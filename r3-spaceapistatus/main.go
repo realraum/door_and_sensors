@@ -21,8 +21,8 @@ type SpaceState struct {
 
 const (
 	DEFAULT_TUER_STATUSPUSH_SSH_ID_FILE   string = "/home/realraum/.ssh/id_rsa"
-	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "www-data"
-	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:2342"
+	DEFAULT_TUER_STATUSPUSH_SSH_USER      string = "spaceapi"
+	DEFAULT_TUER_STATUSPUSH_SSH_HOST_PORT string = "vex.realraum.at:22000"
 	DEFAULT_R3_MQTT_BROKER                string = "tcp://mqtt.realraum.at:1883"
 	DEFAULT_SPACEAPI_HTTP_INTERFACE       string = ":8080"
 )
