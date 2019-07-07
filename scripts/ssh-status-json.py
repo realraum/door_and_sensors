@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 # (c) Bernhard Tittelbach, 2019
 
+### this file replaces ssh-status-json.sh
+### meant to be run via .ssh/authorized_keys as forced command=
+
 import json
 import sys
 import os
