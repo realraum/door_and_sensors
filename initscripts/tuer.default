@@ -1,19 +1,19 @@
 # common defaults for tuer_core and tuer_status
 
 DIR_RUN=/var/run/tuer
-DOOR_USR=tuer
-DOOR_GRP=nogroup
+DOOR_USR=tuerd
+DOOR_GRP=tuerd
 
 export TUER_XMPP_PASS=""
 export TUER_XMPP_CHATAUTHSTRING=""
 
 export R3_MQTT_BROKER="tcp://mqtt.realraum.at:1883"
-export TUER_DOORCMD_SOCKETPATH="/run/tuer/door_cmd.unixpacket"
+export TUER_DOORCMD_SOCKETPATH="/var/run/tuer/door_cmd.unixpacket"
 export TUER_XMPP_JID="realrauminfo@realraum.at/Tuer"
 export TUER_XMPP_STATE_SAVEDIR="/var/lib/r3-xmppbot/"
 export TUER_STATUSPUSH_SSH_USER="www-data"
 export TUER_STATUSPUSH_SSH_ID_FILE="/home/realraum/.ssh/id_rsa"
 export TUER_STATUSPUSH_SSH_HOST_PORT="vex.realraum.at:2342"
 export TUER_TTY_PATH="/dev/door"
-export TUER_KEYSFILE_PATH="/flash/keys"
+export TUER_KEYSFILE_PATH="/tmp/keys"
 #DEBUG=TRUE

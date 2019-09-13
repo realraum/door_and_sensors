@@ -1,0 +1,71 @@
+#!/bin/sh
+# Start/stop the tuer daemon core.
+#
+### BEGIN INIT INFO
+# Provides:          tuer_core
+# Required-Start:    $remote_fs $syslog $time
+# Required-Stop:     $remote_fs $syslog $time
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+EXE_DOOR=/usr/local/bin/door_daemon
+DOOR_DEV=/dev/door
+
+# FIXME: currently ext4 is read-only because of FS error, thus loading from ramdisk
+if [ -e /tmp/tuer ]; then
+    . /tmp/tuer
+fi
+# future proper config location for openwrt?
+if [ -e /etc/default/tuer ]; then
+    . /etc/default/tuer
+fi
+
+PIDFILE_DOOR=${DIR_RUN}/door_daemon.pid
+
+test -e $EXE_DOOR  || exit 1
+if [ ! -d $DIR_RUN ]; then
+	mkdir -p $DIR_RUN || exit 2
+	chown -R $DOOR_USR:$DOOR_GRP $DIR_RUN
+fi
+chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
+
+# FIXME: not available on openwrt
+log_daemon_msg()
+{
+    echo "Info: $*" >&2
+}
+log_end_msg()
+{
+    echo "Info: $*" >&2
+}
+log_action_msg()
+{
+    echo "$*" >&2
+}
+
+# FIXME: needs porting for rc.common for openwrt, create start() and stop() functions
+case "$1" in
+start)
+  log_daemon_msg "Starting door daemon" "door_daemon"
+  #start-stop-daemon --start --quiet --pidfile $PIDFILE_DOOR -c $DOOR_USR -m -g $DOOR_GRP -b --name door_daemon --startas $EXE_DOOR -- --syslog
+  #start-stop-daemon -S -m -p $PIDFILE_DOOR -c $DOOR_USR:$DOOR_GRP -b -a door_daemon -x $EXE_DOOR -- --syslog
+  start-stop-daemon -S -m -p $PIDFILE_DOOR -c $DOOR_USR:$DOOR_GRP -b -x $EXE_DOOR -- -syslog
+  log_end_msg $?
+  ;;
+stop)
+  log_daemon_msg "Stopping door daemon" "door_daemon"
+  #start-stop-daemon --stop --quiet --pidfile $PIDFILE_DOOR -m --name door_daemon
+  start-stop-daemon -K -m -p $PIDFILE_DOOR
+  log_end_msg $?
+        ;;
+restart)
+	$0 stop
+	$0 start
+        ;;
+*)	log_action_msg "Usage: $0 {start|stop|restart|reload|force-reload}"
+        exit 2
+        ;;
+esac
+
+exit 0
