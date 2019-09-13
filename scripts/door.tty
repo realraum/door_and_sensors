@@ -1,0 +1,29 @@
+#!/bin/sh
+## (c) Bernhard Tittelbach
+SYMLINK="door"
+DEVGRP="tuer"
+PV_PRODID="204b"
+PV_VENDORID="03eb"
+
+
+## need to check quickly, can't take too long.
+## thus we assume there are never more than ttyACM9 CDC devices
+## and to check if DEVICENAME is a ttyACM* we remove the last letter
+if [ "${DEVICENAME%?}" = "ttyACM" ]; then
+    DEVICE_USB_PRODUCT=$(cat /sys/$DEVPATH/../../../idProduct)
+    DEVICE_USB_VENDOR=$(cat /sys/$DEVPATH/../../../idVendor)
+    [ -z $DEVICE_USB_PRODUCT ] && exit 0
+    [ -z $DEVICE_USB_VENDOR ] && exit 0
+    [ $DEVICE_USB_VENDOR != $PV_VENDORID ] && exit 0
+    [ $DEVICE_USB_PRODUCT != $PV_PRODID ] && exit 0
+
+    if [ "${ACTION}" = "add" ]; then
+        logger -t Hotplug Device name is $DEVICENAME
+        chgrp $DEVGRP /dev/$DEVICENAME
+        chmod g+rw /dev/$DEVICENAME
+        if ! [ -e /dev/${SYMLINK} ]; then
+            ln -s /dev/$DEVICENAME /dev/${SYMLINK}
+            logger -t Hotplug Symlink from /dev/$DEVICENAME to /dev/${SYMLINK} created
+        fi
+    fi
+fi
