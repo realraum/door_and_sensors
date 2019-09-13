@@ -320,15 +320,6 @@ func (nsi SpaceInfo) SetSpaceContactFaceBook(info string, is_issue_report_channe
 	return nsi.SetSpaceContactInfo("facebook", info, is_issue_report_channel)
 }
 
-func (nsi SpaceInfo) SetSpaceContactGooglePlus(info string) SpaceInfo {
-	if nsi["contact"] == nil {
-		nsi["contact"] = make([]SpaceInfo, 1)
-	}
-	contact := nsi["contact"].(SpaceInfo)
-	contact["google"] = SpaceInfo{"plus": info}
-	return nsi
-}
-
 func (nsi SpaceInfo) SetSpaceContactIdentica(info string, is_issue_report_channel bool) SpaceInfo {
 	return nsi.SetSpaceContactInfo("identica", info, is_issue_report_channel)
 }
