@@ -14,15 +14,18 @@ fi
 PIDFILE_DOOR=${DIR_RUN}/door_daemon.pid
 
 test -e $EXE_DOOR  || exit 1
+
 if [ ! -d $DIR_RUN ]; then
 	mkdir -p $DIR_RUN || exit 2
-	chown -R $DOOR_USR:$DOOR_GRP $DIR_RUN
 fi
-#chown $DOOR_USR:$DOOR_GRP $DOOR_DEV
+# group = tuerctl because every member of group tuer should be able to speak with this daemon
+chown $DOOR_USR:tuerctl $DIR_RUN
+chmod 750 $DIR_RUN
 
 start_service() {
   procd_open_instance
   procd_set_param command $EXE_DOOR
+  # running under procd now, just log to stdout/stderr
   #procd_append_param command -syslog
   procd_append_param command -debug
   procd_set_param env $(grep export\  $CFG_FILE |sed -e 's/export //' |xargs)
@@ -39,8 +42,14 @@ start_service() {
 }
 
 stop_service() {
-  echo "Stopping door daemon" "door_daemon"
-  #start-stop-daemon --stop --quiet --pidfile $PIDFILE_DOOR -m --name door_daemon
-  #start-stop-daemon -K -m -p $PIDFILE_DOOR
-  #log_end_msg $?
+  logger -t "Stopping door daemon" "door_daemon"
+  # seems to be unneeded in practice
+  #service_stop tuer_core
+}
+
+reload_service()
+{
+    logger -t "Explicitly restarting" "door_daemon"
+    stop
+    start
 }

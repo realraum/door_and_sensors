@@ -1,10 +1,13 @@
 #!/bin/sh
 ## (c) Bernhard Tittelbach
 SYMLINK="door"
-DEVGRP="tuer"
+DEVGRP="tuerd"
 PV_PRODID="204b"
 PV_VENDORID="03eb"
 
+## ATTENTION
+## errors in this script are logged NOWHERE!!
+## they are silently ignored, keep that in mind during debugging
 
 ## need to check quickly, can't take too long.
 ## thus we assume there are never more than ttyACM9 CDC devices
