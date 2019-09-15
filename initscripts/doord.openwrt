@@ -22,6 +22,13 @@ fi
 chown $DOOR_USR:tuerctl $DIR_RUN
 chmod 750 $DIR_RUN
 
+# FiXME - hack to make daemon run until ansible is fixed
+TUER_KEYPATH="$(dirname $TUER_KEYSFILE_PATH)"
+if [ ! -d $TUER_KEYPATH ]; then
+    mkdir -p $TUER_KEYPATH
+    echo "DEADBEEF foo" >>$TUER_KEYSFILE_PATH
+fi
+
 start_service() {
   procd_open_instance
   procd_set_param command $EXE_DOOR
