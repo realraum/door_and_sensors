@@ -4,7 +4,7 @@
 
 USE_PROCD=1
 EXE_DOOR=/usr/local/bin/door_daemon
-CFG_FILE=/etc/default/tuer
+CFG_FILE=/etc/default/door
 DOOR_DEV=/dev/door
 
 if [ -e $CFG_FILE ]; then
