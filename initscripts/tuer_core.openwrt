@@ -28,7 +28,7 @@ start_service() {
   # running under procd now, just log to stdout/stderr
   #procd_append_param command -syslog
   procd_append_param command -debug
-  procd_set_param env $(grep export\  $CFG_FILE |sed -e 's/export //' |xargs)
+  procd_set_param env $(grep "^export "  $CFG_FILE |sed -e 's/export //' |xargs)
   procd_set_param file $CFG_FILE
   procd_set_param file $TUER_KEYSFILE_PATH
   procd_set_param stdout 1
