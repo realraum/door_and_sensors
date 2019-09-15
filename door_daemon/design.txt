@@ -1,0 +1,11 @@
+# notes about the design of door_deamon
+
+door_daemon is executed on torwaechter under openwrt with procd.
+To unwrap, this means:
+  - this daemon is executed with service supervision
+  - is restarted an unlimited number of times if it exites with a
+        wait time of 2s between restarts
+  - on most errors that do not require to keep state it's better to
+        just exist
+        IFF for whatever reason it's required to keep state across
+        errors, this design decission should be reconsidered
