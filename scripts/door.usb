@@ -1,0 +1,12 @@
+#!/bin/sh
+## (c) Bernhard Tittelbach
+SYMLINK="door"
+DEVGRP="tuerd"
+PV_PRODID="3eb/204b/1"
+
+if [ "${PRODUCT}" = "${PV_PRODID}" ]; then
+    if [ "${ACTION}" = "remove" ]; then
+        rm /dev/${SYMLINK}
+        logger -t Hotplug Symlink /dev/${SYMLINK} removed
+    fi
+fi

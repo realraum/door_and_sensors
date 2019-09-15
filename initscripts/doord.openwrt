@@ -1,0 +1,62 @@
+#!/bin/sh /etc/rc.common
+# Start/stop the tuer daemon core.
+# (c) Michael Gebetsroither <michael@mgeb.org>
+
+USE_PROCD=1
+EXE_DOOR=/usr/local/bin/door_daemon
+CFG_FILE=/etc/default/door
+DOOR_DEV=/dev/door
+
+if [ -e $CFG_FILE ]; then
+    . $CFG_FILE
+fi
+
+PIDFILE_DOOR=${DIR_RUN}/door_daemon.pid
+
+test -e $EXE_DOOR  || exit 1
+
+if [ ! -d $DIR_RUN ]; then
+	mkdir -p $DIR_RUN || exit 2
+fi
+# group = tuerctl because every member of group tuer should be able to speak with this daemon
+chown $DOOR_USR:tuerctl $DIR_RUN
+chmod 750 $DIR_RUN
+
+# FiXME - hack to make daemon run until ansible is fixed
+TUER_KEYPATH="$(dirname $TUER_KEYSFILE_PATH)"
+if [ ! -d $TUER_KEYPATH ]; then
+    mkdir -p $TUER_KEYPATH
+    echo "DEADBEEF foo" >>$TUER_KEYSFILE_PATH
+fi
+
+start_service() {
+  procd_open_instance
+  procd_set_param command $EXE_DOOR
+  # running under procd now, just log to stdout/stderr
+  #procd_append_param command -syslog
+  procd_append_param command -debug
+  procd_set_param env $(grep "^export "  $CFG_FILE |sed -e 's/export //' |xargs)
+  procd_set_param file $CFG_FILE
+  procd_set_param file $TUER_KEYSFILE_PATH
+  procd_set_param stdout 1
+  procd_set_param stderr 1
+  procd_set_param user $DOOR_USR
+  procd_set_param group $DOOR_GRP
+  procd_set_param pidfile $PIDFILE_DOOR
+  # restart indefinitely, every 2 seconds
+  procd_set_param respawn 3600 2 0
+  procd_close_instance
+}
+
+stop_service() {
+  logger -t "Stopping door daemon" "door_daemon"
+  # seems to be unneeded in practice
+  #service_stop tuer_core
+}
+
+reload_service()
+{
+    logger -t "Explicitly restarting" "door_daemon"
+    stop
+    start
+}

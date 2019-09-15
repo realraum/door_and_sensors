@@ -5,7 +5,10 @@ import (
 	"log"
 	"net"
 	"net/rpc"
+	"os"
 )
+
+var rpcServerSocketPerm = 0777
 
 type CmdAndReply struct {
 	cmd      SerialLine
@@ -35,6 +38,9 @@ func StartRPCServer(send_me_cmds chan CmdAndReply, socketpath string) {
 	l, e := net.Listen("unixpacket", socketpath)
 	if e != nil {
 		log.Fatal("listen error:", e)
+	}
+	if e := os.Chmod(socketpath, os.FileMode(rpcServerSocketPerm)); e != nil {
+		log.Printf("Info: could not chmod %O on %s", rpcServerSocketPerm, socketpath)
 	}
 	rpc.Accept(l) //this blocks forever
 	log.Panic("rpc socket lost")
