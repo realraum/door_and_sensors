@@ -51,10 +51,10 @@ func updateStatusString() {
 	if statusstate.present {
 		if statusstate.buttonpress_until > time.Now().Unix() {
 			spacestatus = "Panic! Present&Bored"
-		} else if true == statusstate.space2present {
+		} else if true == statusstate.space1present {
 			spacestatus = "Leute Anwesend"
-		} else {
-			spacestatus = "Vielleicht Leute da"
+		} else if false == statusstate.space1present && true == statusstate.space2present {
+			spacestatus = "Leute nur in Whg2"
 		}
 	} else {
 		spacestatus = "Keiner Da"
