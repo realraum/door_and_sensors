@@ -18,6 +18,8 @@ import (
 type spaceState struct {
 	present           bool
 	buttonpress_until int64
+	space1present     bool
+	space2present     bool
 }
 
 var (
@@ -49,8 +51,10 @@ func updateStatusString() {
 	if statusstate.present {
 		if statusstate.buttonpress_until > time.Now().Unix() {
 			spacestatus = "Panic! Present&Bored"
-		} else {
+		} else if true == statusstate.space1present {
 			spacestatus = "Leute Anwesend"
+		} else if false == statusstate.space1present && true == statusstate.space2present {
+			spacestatus = "Leute nur in Whg2"
 		}
 	} else {
 		spacestatus = "Keiner Da"
@@ -131,6 +135,8 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 			switch event := eventinterface.(type) {
 			case r3events.PresenceUpdate:
 				statusstate.present = event.Present
+				statusstate.space1present = event.InSpace1
+				statusstate.space2present = event.InSpace2
 				publishStateToWeb()
 			case r3events.DoorAjarUpdate:
 				if len(r3msg.Topic) < 3 {
