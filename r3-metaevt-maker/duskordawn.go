@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/btittelbach/astrotime"
-	"github.com/eclipse/paho.mqtt.golang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	// "../r3events"
 	"github.com/realraum/door_and_sensors/r3events"
 )
 

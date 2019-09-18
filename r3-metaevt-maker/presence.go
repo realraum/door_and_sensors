@@ -5,10 +5,10 @@ package main
 import (
 	"time"
 	//~ "./brain"
-	r3events "../r3events"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
-	//r3events "github.com/realraum/door_and_sensors/r3events"
+	// r3events "../r3events"
 	pubsub "github.com/btittelbach/pubsub"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 const w1frontdoor_key = r3events.CLIENTID_FRONTDOOR
@@ -74,6 +74,9 @@ PRESFORLOOP:
 			if evnt.Movement {
 				//ignore movements that happened just after locking door
 				if (evnt.Ts - last_event_indicating_presence) > movement_timeout {
+					if false == presences[PS_PRESENCE_W1] {
+						Syslog_.Println("PresenceW1 true, due to movement")
+					}
 					presences[PS_PRESENCE_W1] = true
 				}
 				last_event_indicating_presence = evnt.Ts
@@ -87,6 +90,7 @@ PRESFORLOOP:
 			}
 		case r3events.BoreDoomButtonPressEvent:
 			presences[PS_PRESENCE_W1] = true
+			Syslog_.Println("PresenceW1 true, due to BoreDoomButtonPress")
 			last_event_indicating_presence = evnt.Ts
 		case r3events.DoorCommandEvent:
 			last_door_cmd = &evnt
@@ -161,7 +165,7 @@ PRESFORLOOP:
 		// }
 		if change {
 			mqttc.Publish(r3events.TOPIC_META_PRESENCE, MQTT_QOS_4STPHANDSHAKE, true, r3events.MarshalEvent2ByteOrPanic(r3events.PresenceUpdate{Present: presence_overall, InSpace1: presences_last[PS_PRESENCE_W1], InSpace2: presences_last[PS_PRESENCE_W2], Ts: ts}))
-			Syslog_.Printf("Presence: %t", presence_overall)
+			Syslog_.Printf("Presence: %t (%+v)", presence_overall, presences_last)
 		}
 	}
 }

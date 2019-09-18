@@ -5,9 +5,9 @@ package main
 import (
 	"flag"
 	//~ "time"
-	r3events "../r3events"
-	//r3events "github.com/realraum/door_and_sensors/r3events"
+	// r3events "../r3events"
 	pubsub "github.com/btittelbach/pubsub"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 //~ func StringArrayToByteArray(ss []string) [][]byte {

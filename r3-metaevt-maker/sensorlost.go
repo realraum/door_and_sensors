@@ -5,10 +5,10 @@ package main
 import (
 	"time"
 	//~ "./brain"
-	r3events "../r3events"
-	//r3events "github.com/realraum/door_and_sensors/r3events"
+	// r3events "../r3events"
 	pubsub "github.com/btittelbach/pubsub"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
 type TopicSeen struct {
