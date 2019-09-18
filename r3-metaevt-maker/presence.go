@@ -129,13 +129,19 @@ PRESFORLOOP:
 		///////////////////////////////
 		// decide on Space 1 Presence
 		if presences[PS_PRESENCE_W1] != presences_last[PS_PRESENCE_W1] {
+			// Syslog_.Printf("definitive presence event %+v", presences)
 			//... skip state check .. we had a definite presence event
 		} else if shut[w1backdoor_key] == false || shut[w1frontdoor_key] == false || locked[w1frontdoor_key] == false {
 			presences[PS_PRESENCE_W1] = true
+			// Syslog_.Printf("P:true  shut:%+v  locked:%+v", shut, locked)
 		} else if last_door_cmd != nil && (manualInsideButtonUsed(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
-			// if last_door_cmd is set then: if either door was closed using Button
-			//or if time of manual lock movement is greater (newer) than timestamp of last_door_cmd
-			//or if was closed/opened/toggled with -frominside addition to simulate close/open/toggle from inside
+			//if last_door_cmd is set then:
+			//  Presence is true if
+			//	- either door was closed using Button on the inside (button not built yet)
+			//  - time of manual lock movement is greater (newer) than timestamp of last_door_cmd, indicating someone turned the lock from inside
+			//  - closed/opened/toggled with string '-frominside' added, which can be used to simulate close/open/toggle from inside
+			// Syslog_.Printf("last_door_cmd P:true %+v %+v %+v", last_door_cmd, last_manual_lockhandling, manualInsideButtonUsed(last_door_cmd))
+			Syslog_.Printf("Presence true since door locked from inside")
 			presences[PS_PRESENCE_W1] = true
 		} else if evnt_type == "DoorCommandEvent" {
 			//don't set presence to false for just a door command, wait until we receive a LockUpdate
@@ -160,6 +166,7 @@ PRESFORLOOP:
 			change = true
 		}
 
+		// Syslog_.Printf("Change %+v", change)
 		presence_overall := anyPresenceTrue()
 		// if !presence_overall && (time.Now().Unix()-lock_use_ts[w1frontdoor_key] < between_spaces_timeout || time.Now().Unix()-lock_use_ts[w2frontdoor_key] < between_spaces_timeout) {
 		// }
