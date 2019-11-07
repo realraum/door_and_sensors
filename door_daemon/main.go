@@ -24,7 +24,7 @@ const (
 	DEFAULT_TUER_DOORCMD_SOCKETPATH string = "/run/tuer/door_cmd.unixpacket"
 	DEFAULT_R3_MQTT_BROKER          string = "tcp://mqtt.realraum.at:1883"
 	DEFAULT_TUER_TTY_PATH           string = "/dev/door"
-	DEFAULT_TUER_KEYSFILE_PATH      string = "/flash/keys/keys"
+	DEFAULT_TUER_KEYSFILE_PATH      string = "/home/tuergit/keys.git/keys"
 )
 
 func init() {
