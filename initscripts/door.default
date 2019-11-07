@@ -15,5 +15,5 @@ export TUER_STATUSPUSH_SSH_USER="www-data"
 export TUER_STATUSPUSH_SSH_ID_FILE="/home/realraum/.ssh/id_rsa"
 export TUER_STATUSPUSH_SSH_HOST_PORT="vex.realraum.at:2342"
 export TUER_TTY_PATH="/dev/door"
-export TUER_KEYSFILE_PATH="/home/tuergit/keys"
+export TUER_KEYSFILE_PATH="/home/tuergit/keys.git/keys"
 #DEBUG=TRUE
