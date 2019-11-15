@@ -232,6 +232,14 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 			typed_event := VentilationState{}
 			err = json.Unmarshal(data, &typed_event)
 			event = fixTs(&typed_event)
+		case TYPE_PRESENCEBUTTON:
+			typed_event := PresenceButtonPressEvent{}
+			err = json.Unmarshal(data, &typed_event)
+			event = fixTs(&typed_event)
+		case TYPE_PRESENCETIMEOUTSTART:
+			typed_event := PresenceTimeoutStartEvent{}
+			err = json.Unmarshal(data, &typed_event)
+			event = fixTs(&typed_event)
 		case TYPE_SONOFFSENSOR:
 			typed_event := SonOffSensor{}
 			err = json.Unmarshal(data, &typed_event)

@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013
+// (c) Bernhard Tittelbach, 2013, 2019
 
 package r3events
 
@@ -30,6 +30,12 @@ type DoorProblemEvent struct {
 }
 
 type BoreDoomButtonPressEvent struct {
+	Ts int64 `json:",omitempty"`
+}
+
+//Sent by a button people can press to tell the system they are still in the room
+//	TYPE_PRESENCEBUTTON            string = "presencebuttonpressed"
+type PresenceButtonPressEvent struct {
 	Ts int64 `json:",omitempty"`
 }
 

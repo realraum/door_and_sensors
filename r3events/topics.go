@@ -49,6 +49,8 @@ const (
 	TYPE_PROBLEM                   string = "problemevt"
 	TYPE_MANUALLOCK                string = "manuallockmovement"
 	TYPE_DOOMBUTTON                string = "boredoombuttonpressed"
+	TYPE_PRESENCEBUTTON            string = "presencebuttonpressed"
+	TYPE_PRESENCETIMEOUTSTART      string = "presencetimeoutstart"
 	TYPE_TEMP                      string = "temperature"
 	TYPE_ILLUMINATION              string = "illumination"
 	TYPE_DUST                      string = "dust"

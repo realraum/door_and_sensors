@@ -170,6 +170,14 @@ PRESFORLOOP:
 		presence_overall := anyPresenceTrue()
 		// if !presence_overall && (time.Now().Unix()-lock_use_ts[w1frontdoor_key] < between_spaces_timeout || time.Now().Unix()-lock_use_ts[w2frontdoor_key] < between_spaces_timeout) {
 		// }
+		//
+		// // this is great if people move from W2 to W1 and a backdoor open event comes
+		// // but does not help when the backdoor closes again
+		// // also bad, if person leaves through hallway and no event ever comes (need timeout)
+		// // TODO: trigger timeout and then event if this event is triggered
+		// // TODO: implement backdoor locked sensor with springs and sugru?
+		// if !presence_overall && (time.Now().Unix()-lock_use_ts[w2frontdoor_key] < between_spaces_timeout) {
+		// }
 		if change {
 			mqttc.Publish(r3events.TOPIC_META_PRESENCE, MQTT_QOS_4STPHANDSHAKE, true, r3events.MarshalEvent2ByteOrPanic(r3events.PresenceUpdate{Present: presence_overall, InSpace1: presences_last[PS_PRESENCE_W1], InSpace2: presences_last[PS_PRESENCE_W2], Ts: ts}))
 			Syslog_.Printf("Presence: %t (%+v)", presence_overall, presences_last)

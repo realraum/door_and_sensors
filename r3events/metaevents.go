@@ -15,6 +15,15 @@ type SomethingReallyIsMoving struct {
 	Ts         int64
 }
 
+//Sent by the system to indicate that the system thinks everbody left, but is unsure
+//and that is has started a timeout after which presence will be false if nobody presses a button
+//	TYPE_PRESENCETIMEOUTSTART      string = "presencetimeoutstart"
+type PresenceTimeoutStartEvent struct {
+	TimeoutSec           int
+	PresenceAfterTimeout bool  `json:",omitempty"`
+	Ts                   int64 `json:",omitempty"`
+}
+
 type TempSensorSpike struct {
 	Location string
 	Value    float64
