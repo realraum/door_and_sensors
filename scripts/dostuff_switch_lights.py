@@ -171,11 +171,14 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}')
                     switchname(client,["boilerolga"],"off")
             elif last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
+                ## Presence InSpace1 changed while overall presence remains true
                 if dictdata["InSpace1"] == True:
+                    ## Someone came in through the front door
                     switchsonoff(client,["couchred"],"on")
                 else:
-                    switchname(client,["couchwhite","mashadecke","floodtesla"],"off")
+                    ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred"],"off")
+                    #switchname(client,["couchwhite","mashadecke","floodtesla"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
                     pass # switch on stuff in space2 if somebody there
