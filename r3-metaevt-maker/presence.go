@@ -38,9 +38,9 @@ func anyTrue(x map[string]bool) bool {
 func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_timeout, button_timeout, between_spaces_timeout int64) {
 	var last_door_cmd *r3events.DoorCommandEvent
 	var last_event_indicating_presence, last_manual_lockhandling int64
-	locked := map[string]bool{w1frontdoor_key: true, w2frontdoor_key: true}
-	lock_use_ts := map[string]int64{w1frontdoor_key: 0, w2frontdoor_key: 0}
-	shut := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true}
+	locked := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
+	lock_use_ts := map[string]int64{w1frontdoor_key: 0, w1backdoor_key: 0, w2frontdoor_key: 0}
+	shut := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
 	presences_last := map[string]bool{PS_PRESENCE_W1: false, PS_PRESENCE_W2: false}
 
 	anyPresenceTrue := func() bool { return anyTrue(presences_last) }
@@ -106,6 +106,13 @@ PRESFORLOOP:
 				//check if changed, in case that some locks send periodic status updates, which would NOT indicate presence
 				last_event_indicating_presence = evnt.Ts
 			}
+			//check if we ignore this update
+			//which we do for w1frontdoor if it was locked while backdoor was still unlocked
+			// --> w1frontdoor only counts as locked if it was locked _after_ the backdoor
+			if key == w1frontdoor_key && evnt.Locked == true && locked[w1backdoor_key] == false {
+				Syslog_.Print("Presence: ignoring frontdoor locked:=true event, since BackdoorBlue is still unlocked")
+				continue
+			}
 			locked[key] = evnt.Locked
 			lock_use_ts[key] = evnt.Ts
 		case r3events.DoorAjarUpdate:
@@ -115,8 +122,9 @@ PRESFORLOOP:
 			key := r3event.Topic[1]
 			last_event_indicating_presence = evnt.Ts
 			//check if we ignore this update
+			//which we do if door was ajar at the time it was locked and shut is only becoming true more than 2s later
 			if key == w1frontdoor_key && shut[w1frontdoor_key] == false && evnt.Shut && locked[w1frontdoor_key] && evnt.Ts-lock_use_ts[w1frontdoor_key] > 2 {
-				Syslog_.Print("Presence: ignoring frontdoor ajar event, since obviously someone is fooling around with the microswitch while the door is still open")
+				Syslog_.Print("Presence: ignoring frontdoor ajar:=false event, since obviously someone is fooling around with the microswitch while the door is still open")
 				continue
 			}
 			shut[key] = evnt.Shut
@@ -131,7 +139,7 @@ PRESFORLOOP:
 		if presences[PS_PRESENCE_W1] != presences_last[PS_PRESENCE_W1] {
 			// Syslog_.Printf("definitive presence event %+v", presences)
 			//... skip state check .. we had a definite presence event
-		} else if shut[w1backdoor_key] == false || shut[w1frontdoor_key] == false || locked[w1frontdoor_key] == false {
+		} else if shut[w1backdoor_key] == false || shut[w1frontdoor_key] == false || locked[w1frontdoor_key] == false || locked[w1backdoor_key] == false {
 			presences[PS_PRESENCE_W1] = true
 			// Syslog_.Printf("P:true  shut:%+v  locked:%+v", shut, locked)
 		} else if last_door_cmd != nil && (manualInsideButtonUsed(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
@@ -154,12 +162,13 @@ PRESFORLOOP:
 			presences_last[PS_PRESENCE_W1] = presences[PS_PRESENCE_W1]
 			change = true
 		}
+
 		///////////////////////////////
 		// decide on Space 2 Presence
 		if presences[PS_PRESENCE_W2] != presences_last[PS_PRESENCE_W2] {
 			//... skip state check .. we had a definite presence event
 		} else {
-			presences[PS_PRESENCE_W2] = !locked[w2frontdoor_key]
+			presences[PS_PRESENCE_W2] = !locked[w2frontdoor_key] || !shut[w2frontdoor_key]
 		}
 		if presences_last[PS_PRESENCE_W2] != presences[PS_PRESENCE_W2] {
 			presences_last[PS_PRESENCE_W2] = presences[PS_PRESENCE_W2]
