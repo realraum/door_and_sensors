@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
+##
+## TODO: replace this script with Homeautomation webfrontend
+##       or rewrite it as "Match Room State -> Ensure Light State"
+## 
+
 import sys
 import os
 #import threading
@@ -136,7 +142,7 @@ def onMqttMessage(client, userdata, msg):
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
                     switchname(client,["bluebar","couchwhite","laserball","logo"],"off")
-                    switchsonoff(client,["couchred"],"off")
+                    switchsonoff(client,["couchred","subtable"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
             if msg.retain:
                 last_status = dictdata.copy()
@@ -152,7 +158,7 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","bluebar","couchwhite","laserball","logo"],"on")
-                        switchsonoff(client,["couchred"],"on")
+                        switchsonoff(client,["couchred","subtable"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
@@ -163,7 +169,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler"],"off")
+                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","subtable"],"off")
                     switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
                     time.sleep(4)
                     switchname(client,["all"],"off")
@@ -177,7 +183,7 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"on")
                 else:
                     ## Everybody left and only people in W2 remain
-                    switchsonoff(client,["couchred"],"off")
+                    switchsonoff(client,["couchred","subtable"],"off")
                     #switchname(client,["couchwhite","mashadecke","floodtesla"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
