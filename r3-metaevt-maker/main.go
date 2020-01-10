@@ -4,6 +4,7 @@ package main
 
 import (
 	"flag"
+	"time"
 	//~ "time"
 	// r3events "../r3events"
 	pubsub "github.com/btittelbach/pubsub"
@@ -82,6 +83,7 @@ func main() {
 	defer ps.Shutdown() // ps.Shutdown should be called before zmq_ctx.Close(), since it will cause goroutines to shutdown and close zqm_sockets which is needed for zmq_ctx.Close() to return
 
 	go MetaEventRoutine_Movement(ps, mqttc, 10, 20, 10)
+	go MetaEventRoutine_MovementSum(ps, mqttc, time.Second*30)
 	go MetaEventRoutine_Presence(ps, mqttc, 21, 200, 40)
 	go MetaEventRoutine_SensorLost(ps, mqttc, topics_monitor_if_sensors_disappear)
 	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
