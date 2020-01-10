@@ -56,6 +56,7 @@ const (
 	TYPE_DUST                      string = "dust"
 	TYPE_RELHUMIDITY               string = "relhumidity"
 	TYPE_MOVEMENTPIR               string = "movement"
+	TYPE_MOVEMENTSUM               string = "movementsum"
 	TYPE_TEMPOVER                  string = "overtemp"
 	TYPE_SENSORLOST                string = "sensorlost"
 	TYPE_GASALERT                  string = "gasalert"

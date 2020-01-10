@@ -15,6 +15,13 @@ type SomethingReallyIsMoving struct {
 	Ts         int64
 }
 
+type MovementSum struct {
+	Sensorindex     int
+	NumEvents       int
+	IntervalSeconds int
+	Ts              int64
+}
+
 //Sent by the system to indicate that the system thinks everbody left, but is unsure
 //and that is has started a timeout after which presence will be false if nobody presses a button
 //	TYPE_PRESENCETIMEOUTSTART      string = "presencetimeoutstart"

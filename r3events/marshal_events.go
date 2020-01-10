@@ -248,6 +248,10 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 			typed_event := Online{}
 			err = json.Unmarshal(data, &typed_event)
 			event = typed_event
+		case TYPE_MOVEMENTSUM:
+			typed_event := MovementSum{}
+			err = json.Unmarshal(data, &typed_event)
+			event = typed_event
 		case TYPE_ONLINESTR:
 			event = Online{Online: string(data) == "ONLINE"}
 		default:
