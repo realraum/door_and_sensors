@@ -11,17 +11,10 @@ import (
 type SpaceInfo map[string]interface{}
 
 type SpaceDoorLockSensor struct {
-	value       bool
-	location    string
-	name        string
-	description string
-}
-
-type SpaceDoorAjarSensor struct {
-	value       bool
-	location    string
-	name        string
-	description string
+	Value       bool   `json:"value"`
+	Location    string `json:"location"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type SpaceEvent struct {
@@ -138,23 +131,23 @@ func MakeMemberCountSensor(name, where string, value int64) SpaceInfo {
 	return SpaceInfo{"total_member_count": listofwhats}
 }
 
-func MakeDoorLockSensor(name, where string, value bool) SpaceInfo {
+func MakeDoorLockSensor(name, location, description string, value bool) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
-		"location":    where,
+		"location":    location,
 		"name":        name,
-		"description": ""}
+		"description": description}
 	return SpaceInfo{"door_locked": listofwhats}
 }
 
-func MakeDoorAjarSensor(name, where string, value bool) SpaceInfo {
+func MakeDoorAjarSensor(name, location, description string, value bool) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"value":       value,
-		"location":    where,
+		"location":    location,
 		"name":        name,
-		"description": ""}
+		"description": description}
 	return SpaceInfo{"ext_door_ajar": listofwhats}
 }
 
