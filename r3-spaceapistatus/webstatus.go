@@ -36,8 +36,8 @@ func init() {
 	spaceapidata.AddSpaceFeed("wiki", "https://realraum.at/wiki/feed.php", "rss")
 	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", false).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
 	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactTwitter("@realraum", false)
-	spaceapidata.SetSpaceContactGooglePlus("https://plus.google.com/+RealraumAt/").SetSpaceContactJabber("realraum@realraum.at", false)
-	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "https://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://synbiota.com/projects/openbiolabgraz/summary", "https://plus.google.com/+RealraumAt", "https://git.realraum.at"})
+	spaceapidata.SetSpaceContactPhone("+49221596191003", false).SetSpaceContactJabber("realraum@realraum.at", false)
+	spaceapidata.AddProjectsURLs([]string{"https://git.github.com/realraum", "https://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://git.realraum.at"})
 	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
 		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
 		if err == nil {
@@ -137,8 +137,8 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				statusstate.present = event.Present
 				statusstate.space1present = event.InSpace1
 				statusstate.space2present = event.InSpace2
-				spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("InSpace1", "Whg1", "Leute Anwesend in Whg1", statusstate.space1present))
-				spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("InSpace2", "Whg2", "Leute Anwesend in Whg2", statusstate.space2present))
+				spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("Space1Empty", "AllW1", "Niemand in Whg1", !statusstate.space1present))
+				spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("Space2Empty", "AllW2", "Niemand in Whg2", !statusstate.space2present))
 				publishStateToWeb()
 			case r3events.DoorAjarUpdate:
 				if len(r3msg.Topic) < 3 {
@@ -146,13 +146,13 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				}
 				switch r3msg.Topic[1] {
 				case r3events.CLIENTID_FRONTDOOR:
-					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("AjarW1Torwaechter", "W1 Frontdoor", "Türkontakt Whg1 Eingangstür", event.Shut))
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarW1Torwaechter", "W1 Frontdoor", "Türkontakt Whg1 Eingangstür", event.Shut))
 				case r3events.CLIENTID_BACKDOOR:
-					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("AjarBackdoorBlue", "W1 BackdoorBlue", "Türkontakt Whg1 Hintertür", event.Shut))
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarBackdoorBlue", "W1 BackdoorBlue", "Türkontakt Whg1 Hintertür", event.Shut))
 				case r3events.CLIENTID_W2FRONTDOOR:
-					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("AjarW2Door", "W2 Frontdoor", "Türkontakt Whg2 Eingangstür", event.Shut))
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarW2Door", "W2 Frontdoor", "Türkontakt Whg2 Eingangstür", event.Shut))
 				default:
-					spaceapidata.MergeInSensor(spaceapi.MakeDoorLockSensor("AjarUnknown", "unknown", "Unbekannter Türkontakt", event.Shut))
+					spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarUnknown", "unknown", "Unbekannter Türkontakt", event.Shut))
 				}
 				publishStateToWeb()
 			case r3events.DoorLockUpdate:
