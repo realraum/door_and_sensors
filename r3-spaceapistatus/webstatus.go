@@ -47,19 +47,7 @@ func init() {
 }
 
 func updateStatusString() {
-	var spacestatus string
-	if statusstate.present {
-		if statusstate.buttonpress_until > time.Now().Unix() {
-			spacestatus = "Panic! Present&Bored"
-		} else if true == statusstate.space1present {
-			spacestatus = "Leute Anwesend"
-		} else if false == statusstate.space1present && true == statusstate.space2present {
-			spacestatus = "Nur Hinterwhg"
-		}
-	} else {
-		spacestatus = "Keiner Da"
-	}
-	spaceapidata.UpdateSpaceStatus(statusstate.present, spacestatus)
+	spaceapidata.UpdateSpaceStatus(false, "temp. shutdown")
 }
 
 func publishStateNotKnown() {
