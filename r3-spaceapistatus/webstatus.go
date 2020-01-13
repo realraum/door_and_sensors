@@ -54,7 +54,7 @@ func updateStatusString() {
 		} else if true == statusstate.space1present {
 			spacestatus = "Leute Anwesend"
 		} else if false == statusstate.space1present && true == statusstate.space2present {
-			spacestatus = "Leute nur in Whg2"
+			spacestatus = "Nur Hinterwhg"
 		}
 	} else {
 		spacestatus = "Keiner Da"
