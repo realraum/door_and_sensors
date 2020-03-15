@@ -32,6 +32,14 @@ func (r *Frontdoor) SendCmd(cmd_w_args SerialLine, reply *SerialLine) error {
 	}
 }
 
+func (r *Frontdoor) ProgramKeys(new_keysfile []byte, reply *int) error {
+	//TODO
+	//(write keysfile with sanitized given data, if supplied)
+	//reload keysfile if needed
+	//check number and length of keys
+	//program keys into eeprom
+}
+
 func StartRPCServer(send_me_cmds chan CmdAndReply, socketpath string) {
 	r := &Frontdoor{send_me_cmds}
 	rpc.Register(r)
