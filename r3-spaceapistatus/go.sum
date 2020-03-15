@@ -1,20 +1,12 @@
-github.com/btittelbach/pubsub v0.0.0-20181118220834-3d9462d72339 h1:LUWUt9S/nWR1Y/hdRaqVbm1LzCfcuj9fYGOFwludPzY=
-github.com/btittelbach/pubsub v0.0.0-20181118220834-3d9462d72339/go.mod h1:sfldyIbBO1Ws7cBOePsyB1RxGKbqwuNKTUEgnnFn3Lw=
 github.com/btittelbach/pubsub v0.0.0-20190716184858-1abeab276624 h1:4wWlPVkVyN70ZMxSpsYPevpGgmlxRqr6mBoVYn9nkGg=
 github.com/btittelbach/pubsub v0.0.0-20190716184858-1abeab276624/go.mod h1:Ds4ly4XreSwOpVBiucrR7LzviIspZnNlARK/jWlWqNg=
 github.com/codegangsta/negroni v1.0.0 h1:+aYywywx4bnKXWvoWtRfJ91vC59NbEhEY03sZjQhbVY=
 github.com/codegangsta/negroni v1.0.0/go.mod h1:v0y3T5G7Y1UlFfyxFn/QLRU4a2EuNau2iZY63YTKWo0=
 github.com/eclipse/paho.mqtt.golang v1.2.0 h1:1F8mhG9+aO5/xpdtFkW4SxOJB67ukuDC3t2y2qayIX0=
 github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
-github.com/realraum/door_and_sensors v0.0.0-20190521181023-f79813b11bea h1:dQ1UkVyWytnLgnWaPJGl6K2oEWf9LGwDZ0GXPjH1/ik=
-github.com/realraum/door_and_sensors v0.0.0-20190521181023-f79813b11bea/go.mod h1:8AYn15jahMFhrd+doO+GfTWxWhyrRBCpHKNaW42CR1U=
-github.com/realraum/door_and_sensors v0.0.0-20200718231408-33e314ee37ff h1:pjAnJ5EwtD1jAxVpB5IICHc7WpLk60nrSsyWuMH2ZRQ=
-github.com/realraum/door_and_sensors v0.0.0-20200718231408-33e314ee37ff/go.mod h1:8AYn15jahMFhrd+doO+GfTWxWhyrRBCpHKNaW42CR1U=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20200718231408-33e314ee37ff h1:M5hmb/DHD2AtpPGpiVyrZQWJj9Nj9xO+dYS18VeAgAY=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20200718231408-33e314ee37ff/go.mod h1:37G8uEgNC2Sy6bqxfmvOqGQHd7qKZVudUDK2bJHT7Pk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
-golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f h1:R423Cnkcp5JABoeemiGEPlt9tHXFfw5kvc0yqlxRPWo=
-golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 h1:DZhuSZLsGlFL4CmhA8BcRA0mnthyA/nZ00AqCUo7vHg=
 golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
@@ -30,4 +22,5 @@ golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae h1:Ih9Yo4hSPImZOpfGuA4bR/ORKTAbhZo2AbWNRCnevdo=
 golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+launchpad.net/gocheck v0.0.0-20140225173054-000000000087 h1:Izowp2XBH6Ya6rv+hqbceQyw/gSGoXfH/UPoTGduL54=
 launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=
