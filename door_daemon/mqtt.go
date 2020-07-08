@@ -28,7 +28,8 @@ func parseSocketInputLine_State(lines []string, mqttc mqtt.Client, ts int64) {
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_PROBLEM, MQTT_QOS_REQCONFIRMATION, false, r3events.MarshalEvent2ByteOrPanic(r3events.DoorProblemEvent{100, strings.Join(lines, " "), ts}))
 	case "timeout_after_open":
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_PROBLEM, MQTT_QOS_REQCONFIRMATION, false, r3events.MarshalEvent2ByteOrPanic(r3events.DoorProblemEvent{10, strings.Join(lines, " "), ts}))
-		mqttc.Publish(r3events.TOPIC_FRONTDOOR_LOCK, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.DoorLockUpdate{true, ts}))
+		//// can't say for sure that door is locked so commented out. Might always have been true for older version of door (?)
+		// mqttc.Publish(r3events.TOPIC_FRONTDOOR_LOCK, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.DoorLockUpdate{true, ts}))
 	case "timeout_after_close":
 		mqttc.Publish(r3events.TOPIC_FRONTDOOR_PROBLEM, MQTT_QOS_REQCONFIRMATION, false, r3events.MarshalEvent2ByteOrPanic(r3events.DoorProblemEvent{20, strings.Join(lines, " "), ts}))
 		// can't say for sure that door is locked if we ran into timeout while closing
