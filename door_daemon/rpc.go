@@ -38,6 +38,7 @@ func (r *Frontdoor) ProgramKeys(new_keysfile []byte, reply *int) error {
 	//reload keysfile if needed
 	//check number and length of keys
 	//program keys into eeprom
+	return nil
 }
 
 func StartRPCServer(send_me_cmds chan CmdAndReply, socketpath string) {
