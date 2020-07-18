@@ -101,6 +101,12 @@ func main() {
 		"realraum/+/" + r3events.TYPE_BAROMETER,
 		r3events.TOPIC_COUCHRED_SENSOR,
 		r3events.TOPIC_LASER_CARD,
+		r3events.ZB_AJARWINDOW_MASHA,
+		r3events.ZB_AJARWINDOW_R2W2left,
+		r3events.ZB_AJARWINDOW_R2W2right,
+		r3events.ZB_AJARWINDOW_TESLA,
+		r3events.ZB_AJARWINDOW_Kitchen,
+		r3events.ZB_AJARWINDOW_OLGA,
 		r3events.TOPIC_IRCBOT_FOODETA})
 
 	for {

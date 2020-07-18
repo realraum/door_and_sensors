@@ -155,6 +155,10 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 					spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarUnknown", "unknown", "Unbekannter Türkontakt", event.Shut))
 				}
 				publishStateToWeb()
+			case r3events.ZigbeeAjarSensor:
+				spaceapidata.MergeInSensor(spaceapi.MakeDoorAjarSensor("AjarWindow"+event.Location, "Window "+event.Location, "Fensterkontakt "+event.Location, event.Contact))
+				spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@AjarWindow%s", event.Location), event.Location, "V", float64(event.Millivolt)/1000.0, event.Ts))
+				publishStateToWeb()
 			case r3events.DoorLockUpdate:
 				if len(r3msg.Topic) < 3 {
 					continue
