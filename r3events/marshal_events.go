@@ -164,6 +164,30 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		typed_event := FoodOrderETA{}
 		err = json.Unmarshal(data, &typed_event)
 		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_MASHA:
+		typed_event := ZigbeeAjarSensor{Location: "MaSha"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_R2W2left:
+		typed_event := ZigbeeAjarSensor{Location: "R2W2left"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_R2W2right:
+		typed_event := ZigbeeAjarSensor{Location: "R2W2right"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_TESLA:
+		typed_event := ZigbeeAjarSensor{Location: "Tesla"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_Kitchen:
+		typed_event := ZigbeeAjarSensor{Location: "Kitchen"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_OLGA:
+		typed_event := ZigbeeAjarSensor{Location: "OLGA"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown topic") // we'll never see this error, it only tells the next if-check that we want to give the next switch a try

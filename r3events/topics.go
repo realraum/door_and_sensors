@@ -5,6 +5,8 @@ package r3events
 const (
 	TOPIC_R3                       string = "realraum/"
 	TOPIC_ACTIONS                  string = "action/"
+	TOPIC_ZIGBEE_W1                string = "zigbee2mqtt/w1/"
+	TOPIC_ZIGBEE_W2                string = "zigbee2mqtt/w2/"
 	CLIENTID_FRONTDOOR             string = "frontdoor"
 	CLIENTID_W2FRONTDOOR           string = "w2frontdoor"
 	CLIENTID_BACKDOOR              string = "backdoorcx"
@@ -122,4 +124,10 @@ const (
 	ACT_LIGHTCTRL_NAME             string = TOPIC_ACTIONS + CLIENTID_LIGHTCTRL + "/name"
 	ACT_ALLFANCYLIGHT_PLEASEREPEAT string = TOPIC_ACTIONS + CLIENTID_CEILINGALL + "/" + TYPE_PLEASEREPEAT
 	ACT_ACTIVATE_SCRIPT            string = TOPIC_ACTIONS + CLIENTID_CEILINGSCRIPTS + "/activatescript"
+	ZB_AJARWINDOW_MASHA            string = TOPIC_ZIGBEE_W1 + "AjarWindowMaSha"
+	ZB_AJARWINDOW_R2W2left         string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2left"
+	ZB_AJARWINDOW_R2W2right        string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2right"
+	ZB_AJARWINDOW_TESLA            string = TOPIC_ZIGBEE_W2 + "AjarWindowTesla"
+	ZB_AJARWINDOW_Kitchen          string = TOPIC_ZIGBEE_W2 + "AjarWindowKitchen"
+	ZB_AJARWINDOW_OLGA             string = TOPIC_ZIGBEE_W1 + "AjarWindowOLGA"
 )

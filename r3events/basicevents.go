@@ -176,10 +176,10 @@ type Online struct {
 }
 
 type ZigbeeAjarSensor struct {
-	Battery int64 `json:"battery"`
-	Millivolt int64 `json:"voltage"`
-	Contact bool `json:"contact"`
+	Location    string
+	Battery     int64 `json:"battery"`
+	Millivolt   int64 `json:"voltage"`
+	Contact     bool  `json:"contact"`
 	Linkquality int64 `json:"linkquality"`
-	Ts        int64 `json:",omitempty"`
+	Ts          int64 `json:",omitempty"`
 }
-
