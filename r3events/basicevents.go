@@ -174,3 +174,12 @@ type Online struct {
 	Online bool   `json:"online"`
 	Ip     string `json:"ip,omitempty"`
 }
+
+type ZigbeeAjarSensor struct {
+	Battery int64 `json:"battery"`
+	Millivolt int64 `json:"voltage"`
+	Contact bool `json:"contact"`
+	Linkquality int64 `json:"linkquality"`
+	Ts        int64 `json:",omitempty"`
+}
+
