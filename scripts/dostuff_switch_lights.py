@@ -111,7 +111,7 @@ def onLoop(client):
     if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
         last_masha_movement_ = 0
         #print(last_masha_movement_)
-        switchname(client,["mashadecke"],"off")
+        switchsonoff(client,["mashadecke"],"off")
 
 
 def signal_handler(self, signal, frame):
@@ -169,7 +169,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","subtable"],"off")
+                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","subtable","mashadecke"],"off")
                     switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
                     time.sleep(4)
                     switchname(client,["all"],"off")
@@ -184,7 +184,6 @@ def onMqttMessage(client, userdata, msg):
                 else:
                     ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred","subtable"],"off")
-                    #switchname(client,["couchwhite","mashadecke","floodtesla"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
                     pass # switch on stuff in space2 if somebody there
