@@ -47,7 +47,7 @@ func init() {
 }
 
 func updateStatusString() {
-	spaceapidata.UpdateSpaceStatus(false, "Covid-19 Semiclosed")
+	spaceapidata.UpdateSpaceStatus(false, "Covid-19 Shutdown")
 }
 
 func publishStateNotKnown() {
