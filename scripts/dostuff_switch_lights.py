@@ -17,6 +17,8 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
+topic_tradfri_onoff_lothr="zigbee2mqtt/w1/TradfriOnOffc9ed"
+
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
 last_masha_movement_ = 0
@@ -217,6 +219,25 @@ def onMqttMessage(client, userdata, msg):
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
                     switchname(client,["cxleds"],"on")
+        elif topic == topic_tradfri_onoff_lothr:
+            if not "click" in dictdata:
+                return
+
+            if "on" == dictdata["click"]:
+                ### shortclick on
+                switchname(client,["floodtesla","ceiling6"],"on")
+            elif "off" == dictdata["click"]:
+                ### shortclick off
+                switchname(client,["floodtesla","ceiling6"],"off")
+            elif "brightness_up" == dictdata["click"]:
+                ### longpress on has started
+                client.publish("action/ceilingscripts/activatescript",json.dumps({"script":"wave","colourlist":[{"r":1000,"g":0,"b":0,"ww":0,"cw":0},{"r":800,"g":0,"b":100,"ww":0,"cw":0},{"r":0,"g":0,"b":300,"ww":0,"cw":0},{"r":0,"g":500,"b":100,"ww":0,"cw":0},{"r":0,"g":800,"b":0,"ww":0,"cw":0},{"r":800,"g":200,"b":0,"ww":0,"cw":0},], "fadeduration":5000}))
+            elif "brightness_down" == dictdata["click"]:
+                ### longpress off has started
+                client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling2","ceiling3","ceiling4","ceiling5","ceiling6"],"value":0.7}')
+            elif "brightness_stop" == dictdata["click"]:
+                ### longpress has stopped
+                pass
 
     except Exception as ex:
         print("onMqttMessage: " + str(ex))
@@ -251,6 +272,7 @@ if __name__ == "__main__":
         ("realraum/xbee/masha/movement",1),
         ("realraum/+/ajar",1),
         ("realraum/w2frontdoor/lock",1),
+        (topic_tradfri_onoff_lothr,1),
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
