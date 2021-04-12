@@ -61,3 +61,10 @@ type DuskOrDawn struct {
 	HaveSunlight bool
 	Ts           int64
 }
+
+type AggregateContactsensor struct {
+	AllDoorsShut   bool
+	AllWindowsShut bool
+	AllDoorsLocked bool
+	Ts             int64 `json:",omitempty"`
+}
