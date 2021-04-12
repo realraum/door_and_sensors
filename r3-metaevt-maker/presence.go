@@ -42,16 +42,9 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 	lock_use_ts := map[string]int64{w1frontdoor_key: 0, w1backdoor_key: 0, w2frontdoor_key: 0}
 	shut := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
 	presences_last := map[string]bool{PS_PRESENCE_W1: false, PS_PRESENCE_W2: false}
+	zigbeecontact_shut := make(map[string]bool) //TODO future: presence==true falls ein Fenster offen ist
 
 	anyPresenceTrue := func() bool { return anyTrue(presences_last) }
-	allTrue := func(x map[string]bool) bool {
-		for _, v := range x {
-			if v == false {
-				return false
-			}
-		}
-		return true
-	}
 
 	// anyDoorAjar := func() bool { return allTrue(shut) == false }
 	areAllDoorsLocked := func() bool { return allTrue(locked) }
@@ -128,6 +121,12 @@ PRESFORLOOP:
 				continue
 			}
 			shut[key] = evnt.Shut
+		case r3events.ZigbeeAjarSensor:
+			if len(r3event.Topic) < 3 {
+				continue
+			}
+			zigbeecontact_shut[r3event.Topic[1]+r3event.Topic[2]] = evnt.Contact
+
 		default:
 			continue PRESFORLOOP
 		}
