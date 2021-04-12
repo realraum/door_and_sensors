@@ -1,4 +1,4 @@
-// (c) Bernhard Tittelbach, 2013
+// (c) Bernhard Tittelbach, 2013-2021
 
 package main
 
@@ -65,6 +65,12 @@ var topics_needed_for_presenceevent = []string{
 	"realraum/+/lock",
 	"realraum/+/ajar",
 	"realraum/+/boredoombuttonpressed",
+	r3events.ZB_AJARWINDOW_MASHA,
+	r3events.ZB_AJARWINDOW_R2W2left,
+	r3events.ZB_AJARWINDOW_R2W2right,
+	r3events.ZB_AJARWINDOW_TESLA,
+	r3events.ZB_AJARWINDOW_Kitchen,
+	r3events.ZB_AJARWINDOW_OLGA,
 }
 
 func main() {
