@@ -75,6 +75,17 @@ def switchsonoff(client,name,action):
         client.publish("action/%s/power" % name, action, qos=1)
 
 
+def switchesphome(client,name,action):
+    if not isinstance(action,str):
+        action = "ON" if action else "OFF"
+    if '"' in action:
+        return
+    action = "{\"state\":\""+action.upper()+"\"}"
+    if not isinstance(name,list):
+        name = [name]
+    for n in name:
+        client.publish("action/%s/command" % n, action, qos=1)
+
 def scheduleSwitchSonoff(name,action,time):
     global time_schedule_sonoff_
     ##remove all earlier action entries for names, regardless of action off or on
@@ -173,6 +184,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","subtable","mashadecke"],"off")
                     switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
+                    switchesphome(client,["olgadecke"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
