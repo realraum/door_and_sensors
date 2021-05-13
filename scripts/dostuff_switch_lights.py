@@ -21,7 +21,7 @@ topic_tradfri_onoff_lothr="zigbee2mqtt/w1/TradfriOnOffc9ed"
 
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
-last_masha_movement_ = 0
+last_masha_no_more_movement_ = 0
 keep_running_ = True
 time_schedule_sonoff_ = []
 
@@ -116,14 +116,14 @@ def runRegularEvents(client):
         next_run_pulsetime=time.time()+3600*12
 
 def onLoop(client):
-    global last_masha_movement_
+    global last_masha_no_more_movement_
     ## run schedules events
     runScheduledEvents(client)
     runRegularEvents(client)
     ## if more than 6 minutes no movement in masha ... switch off light
-    if last_masha_movement_ > 0 and time.time() - last_masha_movement_ > 360.0:
-        last_masha_movement_ = 0
-        #print(last_masha_movement_)
+    if last_masha_no_more_movement_ > 0 and time.time() - last_masha_no_more_movement_ > 660.0:
+        last_masha_no_more_movement_ = 0
+        #print(last_masha_no_more_movement_)
         switchsonoff(client,["mashadecke"],"off")
 
 
@@ -133,7 +133,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_movement_
+    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -155,7 +155,8 @@ def onMqttMessage(client, userdata, msg):
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
                     switchname(client,["bluebar","couchwhite","laserball","logo"],"off")
-                    switchsonoff(client,["couchred","subtable"],"off")
+                    switchsonoff(client,["couchred"],"off")
+                    switchesphome(client,["subtable"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
             if msg.retain:
                 last_status = dictdata.copy()
@@ -171,7 +172,8 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","bluebar","couchwhite","laserball","logo"],"on")
-                        switchsonoff(client,["couchred","subtable"],"on")
+                        switchsonoff(client,["couchred"],"on")
+                        switchesphome(client,["subtable"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
@@ -182,9 +184,9 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","subtable","mashadecke"],"off")
+                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
-                    switchesphome(client,["olgadecke"],"off")
+                    switchesphome(client,["olgadecke","subtable"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
@@ -197,7 +199,8 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"on")
                 else:
                     ## Everybody left and only people in W2 remain
-                    switchsonoff(client,["couchred","subtable"],"off")
+                    switchsonoff(client,["couchred"],"off")
+                    switchesphome(client,["subtable"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
                     pass # switch on stuff in space2 if somebody there
@@ -209,9 +212,13 @@ def onMqttMessage(client, userdata, msg):
                 client.publish("action/singleled/light",'{"r":0,"g":180,"b":0}');
             else:
                 client.publish("action/singleled/light",'{"r":180,"g":0,"b":0}');
-        elif topic.endswith("realraum/xbee/masha/movement"):
-            last_masha_movement_=time.time()
-            #print(last_masha_movement_)
+        elif topic.endswith("zigbee2mqtt/w1/MashaPIR"):
+            if True == dictdata["occupancy"]:
+                switchsonoff(client,["mashadecke"],"on")
+                last_masha_no_more_movement_= 0
+            else:
+                last_masha_no_more_movement_= time.time()
+            #print(last_masha_no_more_movement_)
         elif topic.endswith("/boredoombuttonpressed"):
             pass
         elif topic.endswith("realraum/w2frontdoor/lock"):
@@ -281,9 +288,9 @@ if __name__ == "__main__":
         ("realraum/metaevt/presence", 1),
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
-        ("realraum/xbee/masha/movement",1),
         ("realraum/+/ajar",1),
         ("realraum/w2frontdoor/lock",1),
+        ("zigbee2mqtt/w1/MashaPIR",1),
         (topic_tradfri_onoff_lothr,1),
     ])
     client.on_message = onMqttMessage
