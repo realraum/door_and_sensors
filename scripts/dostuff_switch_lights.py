@@ -22,6 +22,9 @@ topic_tradfri_onoff_lothr="zigbee2mqtt/w1/TradfriOnOffc9ed"
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
 last_masha_no_more_movement_ = 0
+last_masha_no_more_movement2_ = 0
+last_masha_turned_light_off_by_script_ = 0
+masha_ceiling_light_timeout_seconds_ = 660.0
 keep_running_ = True
 time_schedule_sonoff_ = []
 
@@ -116,13 +119,13 @@ def runRegularEvents(client):
         next_run_pulsetime=time.time()+3600*12
 
 def onLoop(client):
-    global last_masha_no_more_movement_
+    global last_masha_turned_light_off_by_script_
     ## run schedules events
     runScheduledEvents(client)
     runRegularEvents(client)
-    ## if more than 6 minutes no movement in masha ... switch off light
-    if last_masha_no_more_movement_ > 0 and time.time() - last_masha_no_more_movement_ > 660.0:
-        last_masha_no_more_movement_ = 0
+    ## if more than 11 minutes no movement in masha ... switch off light
+    if last_masha_no_more_movement_ > 0 and time.time() - last_masha_no_more_movement_ > masha_ceiling_light_timeout_seconds_ and last_masha_no_more_movement2_ > 0 and time.time() - last_masha_no_more_movement2_ > masha_ceiling_light_timeout_seconds_ and last_masha_turned_light_off_by_script_ < max(last_masha_no_more_movement2_,last_masha_no_more_movement_):
+        last_masha_turned_light_off_by_script_ = time.time()
         #print(last_masha_no_more_movement_)
         switchsonoff(client,["mashadecke"],"off")
 
@@ -215,10 +218,15 @@ def onMqttMessage(client, userdata, msg):
         elif topic.endswith("zigbee2mqtt/w1/MashaPIR"):
             if True == dictdata["occupancy"]:
                 switchsonoff(client,["mashadecke"],"on")
-                last_masha_no_more_movement_= 0
+                last_masha_no_more_movement_ = 0
             else:
-                last_masha_no_more_movement_= time.time()
-            #print(last_masha_no_more_movement_)
+                last_masha_no_more_movement_ = time.time()
+        elif topic.endswith("zigbee2mqtt/w1/MashaPIR2"):
+            if True == dictdata["occupancy"]:
+                switchsonoff(client,["mashadecke"],"on")
+                last_masha_no_more_movement2_ = 0
+            else:
+                last_masha_no_more_movement2_ = time.time()
         elif topic.endswith("/boredoombuttonpressed"):
             pass
         elif topic.endswith("realraum/w2frontdoor/lock"):
@@ -291,6 +299,7 @@ if __name__ == "__main__":
         ("realraum/+/ajar",1),
         ("realraum/w2frontdoor/lock",1),
         ("zigbee2mqtt/w1/MashaPIR",1),
+        ("zigbee2mqtt/w1/MashaPIR2",1),
         (topic_tradfri_onoff_lothr,1),
     ])
     client.on_message = onMqttMessage
