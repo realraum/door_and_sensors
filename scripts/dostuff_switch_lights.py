@@ -21,8 +21,8 @@ topic_tradfri_onoff_lothr="zigbee2mqtt/w1/TradfriOnOffc9ed"
 
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
-last_masha_no_more_movement_ = 0
-last_masha_no_more_movement2_ = 0
+last_masha_no_more_movement_ = 1
+last_masha_no_more_movement2_ = 1
 last_masha_turned_light_off_by_script_ = 0
 masha_ceiling_light_timeout_seconds_ = 660.0
 keep_running_ = True
