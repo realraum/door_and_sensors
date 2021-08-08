@@ -77,7 +77,6 @@ def switchsonoff(client,name,action):
     else:
         client.publish("action/%s/power" % name, action, qos=1)
 
-
 def switchesphome(client,name,action):
     if not isinstance(action,str):
         action = "ON" if action else "OFF"
@@ -88,6 +87,20 @@ def switchesphome(client,name,action):
         name = [name]
     for n in name:
         client.publish("action/%s/command" % n, action, qos=1)
+
+def switchZigbeeOutlet(client,whg,friendlyname,action):
+    if not isinstance(whg, str) or not whg in ["w1","w2"]:
+        whg="w1"
+    if not isinstance(action, str) or not action in ["ON","OFF"]:
+        action = "ON" if action else "OFF"
+    if '"' in action:
+        return
+    if '/' in friendlyname:
+        return
+    if not isinstance(friendlyname,list):
+        friendlyname = [friendlyname]
+    for n in friendlyname:
+        client.publish("zigbee2mqtt/"+whg+"/"+n+"/set/state" % n, action, qos=1)
 
 def scheduleSwitchSonoff(name,action,time):
     global time_schedule_sonoff_
@@ -153,11 +166,13 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
                 if isTheSunDown():
-                    switchname(client,["cxleds","bluebar","couchwhite","logo","laserball"],"on")
+                    switchname(client,["cxleds","couchwhite","logo","laserball"],"on")
+                    switchname(client,["OutletBlueLEDBar"],"ON")
                     switchsonoff(client,["couchred"],"on")
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
-                    switchname(client,["bluebar","couchwhite","laserball","logo"],"off")
+                    switchname(client,["couchwhite","laserball","logo"],"off")
+                    switchname(client,["OutletBlueLEDBar"],"OFF")
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
@@ -174,7 +189,8 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["cxleds","boilerolga"],"on")
                     switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
                     if isTheSunDown():
-                        switchname(client,["floodtesla","bluebar","couchwhite","laserball","logo"],"on")
+                        switchname(client,["floodtesla","couchwhite","laserball","logo"],"on")
+                        switchname(client,["OutletBlueLEDBar"],"ON")
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
