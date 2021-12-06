@@ -3,10 +3,11 @@
 package r3events
 
 type PresenceUpdate struct {
-	Present  bool
-	InSpace1 bool
-	InSpace2 bool
-	Ts       int64
+	Present  				bool
+	InSpace1 				bool
+	InSpace2 				bool
+	Space1LockedFromInside	bool
+	Ts       				int64
 }
 
 type SomethingReallyIsMoving struct {

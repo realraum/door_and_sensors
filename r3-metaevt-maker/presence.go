@@ -133,6 +133,8 @@ PRESFORLOOP:
 
 		change := false
 
+		locked_from_inside := last_door_cmd != nil && (manualInsideButtonUsed(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling)
+
 		///////////////////////////////
 		// decide on Space 1 Presence
 		if presences[PS_PRESENCE_W1] != presences_last[PS_PRESENCE_W1] {
@@ -141,7 +143,7 @@ PRESFORLOOP:
 		} else if shut[w1backdoor_key] == false || shut[w1frontdoor_key] == false || locked[w1frontdoor_key] == false || locked[w1backdoor_key] == false {
 			presences[PS_PRESENCE_W1] = true
 			// Syslog_.Printf("P:true  shut:%+v  locked:%+v", shut, locked)
-		} else if last_door_cmd != nil && (manualInsideButtonUsed(last_door_cmd) || last_door_cmd.Ts < last_manual_lockhandling) {
+		} else if locked_from_inside {
 			//if last_door_cmd is set then:
 			//  Presence is true if
 			//	- either door was closed using Button on the inside (button not built yet)
@@ -187,7 +189,7 @@ PRESFORLOOP:
 		// if !presence_overall && (time.Now().Unix()-lock_use_ts[w2frontdoor_key] < between_spaces_timeout) {
 		// }
 		if change {
-			mqttc.Publish(r3events.TOPIC_META_PRESENCE, MQTT_QOS_4STPHANDSHAKE, true, r3events.MarshalEvent2ByteOrPanic(r3events.PresenceUpdate{Present: presence_overall, InSpace1: presences_last[PS_PRESENCE_W1], InSpace2: presences_last[PS_PRESENCE_W2], Ts: ts}))
+			mqttc.Publish(r3events.TOPIC_META_PRESENCE, MQTT_QOS_4STPHANDSHAKE, true, r3events.MarshalEvent2ByteOrPanic(r3events.PresenceUpdate{Present: presence_overall, InSpace1: presences_last[PS_PRESENCE_W1], InSpace2: presences_last[PS_PRESENCE_W2], Ts: ts, Space1LockedFromInside: locked_from_inside}))
 			Syslog_.Printf("Presence: %t (%+v)", presence_overall, presences_last)
 		}
 	}
