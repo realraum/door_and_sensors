@@ -3,7 +3,7 @@ REMOTE_USER=root
 REMOTE_HOST=torwaechter.mgmt.realraum.at
 REMOTE_DIR=/usr/local/bin/
 
-export GO386=387
+export GO386=softfloat
 export CGO_ENABLED=0
 export GOOS=linux
 export GOARCH=386
