@@ -382,8 +382,13 @@ def onMqttMessage(client, userdata, msg):
             if last_status:
                 playThemeOf(user=last_user, fallback_default="DEFAULT")
         return
-    elif topic.endswith("/problemevt") and "Severity" in dictdata:
-        playThemeOf(user="ERROR", fallback_default="nothing")
+    elif topic.endswith("/problemevt") and "Problem" in dictdata:
+        if dictdata["Problem"].startswith("timeout_after_close"):
+            playThemeOf(user="ERROR_DOOR_CLOSING", fallback_default="ERROR")
+        elif dictdata["Problem"].startswith("timeout_after_open"):
+            playThemeOf(user="ERROR_DOOR_OPENING", fallback_default="ERROR")
+        else:
+            playThemeOf(user="ERROR", fallback_default="nothing")
         return
 
 
