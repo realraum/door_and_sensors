@@ -37,14 +37,35 @@ var cmdToDoorCmdHandler = map[string]DoorCmdHandler{
 // As a workaround for this behaviour, the door daemon watches now for "timeout_after_open" events.
 // If one is detected and followed by an "door is now ajar" info, we tell the firmware
 // to open the door, causing it to move out of the error state and into the final open key/cogwheel position.
+//
+//
+//
+// Another problem is the following:
+// If there are pebbles in the door and the closed door is not completely flush with it's frame,
+// the lock won't close properly. This causes problems later on.
+//
+// To encourage users to clean out the pebbles from the door until the door correctly locks,
+// we open the door again, if there was a closing timeout.
+//
+// this is of course experimental.
+// Also this is implemented in door_daemon and not in firmware, so this feature can be disabled just by unplugging USB if needed.
+//
 func WorkaroundFirmware(serial_wr chan string) (in chan SerialLine) {
 	in = make(chan SerialLine, 5)
 	go func() {
 		var last_state_time time.Time
+		var last_timeout_after_close_time time.Time
 		var last_door_state string
 		for firmware_output := range in {
 			Debug_.Printf("WorkaroundFirmware Input: %s", firmware_output)
 			if len(firmware_output) > 1 && firmware_output[0] == "State:" {
+				if firmware_output[1] == "timeout_after_close" {
+					if time.Now().Sub(last_timeout_after_close_time) > 90*time.Second {
+						// only do this once for every error within 90s. e.g. ignore the next error in case people are just to tired to do the easy to do right thing
+						serial_wr <- cmdToDoorCmdHandler["open"].FirmwareChar //open door again, so pebbles are cleaned out and door is shut again
+					}
+					last_timeout_after_close_time = time.Now()
+				}
 				last_state_time = time.Now()
 				last_door_state = firmware_output[1]
 			}
