@@ -212,7 +212,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["boilerolga"],"off")
             elif last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
                 ## Presence InSpace1 changed while overall presence remains true
-                if dictdata["InSpace1"] == True:
+                if dictdata["InSpace1"]:
                     ## Someone came in through the front door
                     switchsonoff(client,["couchred"],"on")
                 else:
@@ -220,7 +220,7 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
-                if dictdata["InSpace2"] == True:
+                if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
                     switchsonoff(client,["twang"],"on")
                 else:
