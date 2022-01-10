@@ -26,9 +26,9 @@ last_masha_no_more_movement2_ = 1
 last_masha_turned_light_off_by_script_ = 0
 masha_ceiling_light_timeout_seconds_ = 660.0
 keep_running_ = True
-time_schedule_sonoff_ = []
+time_schedule_sonoff_ = [] # | list[tuple[float,tuple[str,str]]]
 
-def isTheSunDown():
+def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
 
 # note that during dusk / dawn several events are fired, so we have this function to 
@@ -203,7 +203,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"OFF")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
-                    switchsonoff(client,["twang"],"on")  # swtich TU facing animation back on if everybody gone
+                    switchsonoff(client,["twang"],"off")
                     switchesphome(client,["olgadecke","subtable"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
@@ -221,9 +221,11 @@ def onMqttMessage(client, userdata, msg):
                     switchesphome(client,["subtable"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"] == True:
-                    pass # switch on stuff in space2 if somebody there
+                    # switch on stuff in space2 if somebody there
+                    switchsonoff(client,["twang"],"on")
                 else:
                     ## switch off stuff in space2 if nobody there
+                    switchsonoff(client,["twang"],"off")
                     client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
             ### stuff that should happen anyway
             if dictdata["InSpace2"] == True:
