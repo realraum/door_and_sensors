@@ -50,7 +50,7 @@ func updateStatusString() {
 	var spacestatus string
 	if statusstate.present {
 		if statusstate.buttonpress_until > time.Now().Unix() {
-			spacestatus = "Panic! Present&Bored"
+			spacestatus = "People Having Fun!"
 		} else if true == statusstate.space1present {
 			spacestatus = "Leute Anwesend"
 		} else if false == statusstate.space1present && true == statusstate.space2present {
