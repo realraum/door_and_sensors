@@ -191,6 +191,7 @@ def onMqttMessage(client, userdata, msg):
                         switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"ON")
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
+                        switchesphome(client,["w1gastherme"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
@@ -210,15 +211,18 @@ def onMqttMessage(client, userdata, msg):
                     # doppelt hält besser, für die essentiellen dinge
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}')
                     switchname(client,["boilerolga"],"off")
+                    switchesphome(client,["w1gastherme"],"off")
             elif last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
                 ## Presence InSpace1 changed while overall presence remains true
                 if dictdata["InSpace1"]:
                     ## Someone came in through the front door
                     switchsonoff(client,["couchred"],"on")
+                    switchesphome(client,["w1gastherme"],"on")
                 else:
                     ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
+                    switchesphome(client,["w1gastherme"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
