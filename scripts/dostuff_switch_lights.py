@@ -201,6 +201,7 @@ def onMqttMessage(client, userdata, msg):
                     # everybody left
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
+                    client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"OFF")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
@@ -223,6 +224,7 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
                     switchesphome(client,["w1gastherme"],"off")
+                    switchname(client,["basiclightAll"],"off")
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
