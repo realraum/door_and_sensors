@@ -1,0 +1,134 @@
+## ESP8266 Relay that switches Gas-Therme into standby mode if nobody is here
+## - can be controlled via mqtt
+## - do_stuff*py controlls this device like any other devices
+## - Relay
+##   - closes for standby mode
+##   - opens for normal mode
+##   - gas-therme contacts should be connected between C and NO, so that gas-therme works normally if relay becomes unpowered
+## - optional LED indicator
+##   - dark-yellow: Standby Mode
+##   - bright-red: normal heating mode
+## - optional Button
+##   - press to toggle mode / relay
+#===============================================================================
+substitutions:
+  device_name: w1gastherme
+  device_friendly_name: "W1 GasTherme Sparmode"
+#===============================================================================  
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: d1_mini
+  on_boot:
+  - switch.turn_off: relayswitch
+
+
+wifi:
+  networks:
+    - ssid: !secret realstuffwifi_name
+      password: !secret realstuffwifi_pass
+  reboot_timeout: 24h
+
+  ap:
+    ssid: "${device_name} fallback"
+    password: !secret fallbackwifi_pass
+
+  manual_ip:
+    static_ip: 192.168.33.37
+    gateway: 192.168.33.1
+    dns1: 192.168.33.1
+    subnet: 255.255.255.0
+
+captive_portal:
+
+logger:
+  baud_rate: 0
+
+ota:
+  password: !secret realstuffwifi_pass
+
+
+mqtt:
+  broker: !secret realraum_mqtt_broker
+  birth_message:
+    topic: realraum/w1gastherme/status
+    payload: online
+  will_message:
+    topic: realraum/w1gastherme/status
+    payload: offline
+  topic_prefix: realraum/w1gastherme
+
+
+#===============================================================================
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: D3
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "Button ${device_friendly_name}"
+    on_press:
+      - switch.toggle: relayswitch
+
+#===============================================================================
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP ${device_friendly_name}"
+
+#===============================================================================
+sensor:
+  - platform: wifi_signal
+    name: "WifiSignal ${device_friendly_name}"
+    update_interval: 120s
+#------------------------------------------------------------------------------
+  - platform: uptime
+    name: "Uptime ${device_friendly_name}"
+
+#===============================================================================
+output:
+  - platform: gpio
+    pin: D1
+    id: relay
+    inverted: true
+
+
+switch:
+  - platform: restart
+    name: "Restart ${device_friendly_name}"
+  - platform: output
+    name: "Sparmodus W1 Therme"
+    output: relay
+    id: relayswitch
+    state_topic: realraum/w1gastherme/state
+    command_topic: action/w1gastherme/command
+    on_turn_on:
+      - light.turn_on:
+          id: rgbled
+          brightness: 90%
+          red: 100%
+          green: 0%
+          blue: 20%
+    on_turn_off:
+      - light.turn_on:
+          id: rgbled
+          brightness: 25%
+          red: 30%
+          green: 15%
+          blue: 0%
+
+light:
+  - platform: neopixelbus
+    type: GRB
+    variant: WS2811
+    pin: D2
+    num_leds: 1
+    name: "Status Light"
+    id: rgbled
+
+#===============================================================================
+# status_led:
+#   pin:
+#     number: GPIO13
+#     inverted: yes

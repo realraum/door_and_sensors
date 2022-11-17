@@ -1,0 +1,100 @@
+## Sonoff T4eu1C WiFi Wall Switch
+#===============================================================================
+substitutions:
+  device_name: light_switch_olgadecke
+  device_friendly_name: "OLGA Ceiling Light"
+#===============================================================================  
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp01_1m
+  on_boot: 
+  - light.turn_off: light1
+
+
+wifi:
+  networks:
+    - ssid: !secret realstuffwifi_name
+      password: !secret realstuffwifi_pass
+  reboot_timeout: 2h
+
+  ap:
+    ssid: "${device_name} fallback"
+    password: !secret fallbackwifi_pass
+
+  manual_ip:
+    static_ip: 192.168.33.35
+    gateway: 192.168.33.1
+    dns1: 192.168.33.1
+    subnet: 255.255.255.0
+
+captive_portal:
+
+logger:
+  baud_rate: 0
+
+ota:
+  password: !secret realstuffwifi_pass
+
+
+mqtt:
+  broker: !secret realraum_mqtt_broker
+  birth_message:
+    topic: realraum/olgadecke/status
+    payload: online
+  will_message:
+    topic: realraum/olgadecke/status
+    payload: offline
+  topic_prefix: realraum/olgadecke
+
+
+#===============================================================================
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "Button ${device_friendly_name}"
+    on_press:
+      - light.toggle: light1
+
+#===============================================================================
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP ${device_friendly_name}"
+
+#===============================================================================
+sensor:
+  - platform: wifi_signal
+    name: "WifiSignal ${device_friendly_name}"
+    update_interval: 120s
+#------------------------------------------------------------------------------
+  - platform: uptime
+    name: "Uptime ${device_friendly_name}"
+
+#===============================================================================
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay
+
+switch:
+  - platform: restart
+    name: "Restart ${device_friendly_name}"
+
+light:
+  - platform: binary
+    name: "${device_friendly_name}"
+    output: relay
+    id: light1
+    state_topic: realraum/olgadecke/state
+    command_topic: action/olgadecke/command
+
+#===============================================================================
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
