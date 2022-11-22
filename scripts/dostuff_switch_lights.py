@@ -165,12 +165,12 @@ def onMqttMessage(client, userdata, msg):
             if didSunChangeRecently():
                 if isTheSunDown():
                     switchname(client,["cxleds","couchwhite","logo","laserball"],"on")
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"ON")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
                     switchsonoff(client,["couchred"],"on")
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
                     switchname(client,["couchwhite","laserball","logo"],"off")
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"OFF")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
@@ -188,7 +188,7 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","couchwhite","laserball","logo"],"on")
-                        switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"ON")
+                        switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
                         switchesphome(client,["w1gastherme"],"on")
@@ -203,7 +203,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar"],"OFF")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchsonoff(client,["twang"],"off")
                     switchesphome(client,["olgadecke","subtable"],"off")
