@@ -25,6 +25,8 @@ last_masha_no_more_movement_ = 1
 last_masha_no_more_movement2_ = 1
 last_masha_turned_light_off_by_script_ = 0
 masha_ceiling_light_timeout_seconds_ = 660.0
+retro_corner_outletplug_timeout_seconds_ = 60*100 # 1h40m
+last_w2_locked_ = 0
 keep_running_ = True
 time_schedule_sonoff_ = [] # | list[tuple[float,tuple[str,str]]]
 
@@ -130,7 +132,7 @@ def runRegularEvents(client):
         next_run_pulsetime=time.time()+3600*12
 
 def onLoop(client):
-    global last_masha_turned_light_off_by_script_
+    global last_masha_turned_light_off_by_script_, last_w2_locked_
     ## run schedules events
     runScheduledEvents(client)
     runRegularEvents(client)
@@ -139,6 +141,9 @@ def onLoop(client):
         last_masha_turned_light_off_by_script_ = time.time()
         #print(last_masha_no_more_movement_)
         switchsonoff(client,["mashadecke"],"off")
+    if last_w2_locked_ > 0 and time.time() - last_w2_locked_ > retro_corner_outletplug_timeout_seconds_:
+        last_w2_locked_ = 0
+        switchsonoff(client,["retrocorner"],"off")
 
 
 def signal_handler(self, signal, frame):
@@ -147,7 +152,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_
+    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_, last_w2_locked_
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -199,6 +204,8 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["boilerolga","cxleds"],"on")
                 else:
                     # everybody left
+                    if last_w2_locked_ == 0:
+                        last_w2_locked_ = time.time()  #everything locked, start retro-corner-off timer unless w2 was closed earlier
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
@@ -228,9 +235,11 @@ def onMqttMessage(client, userdata, msg):
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
+                    last_w2_locked_ = 0 ## 0 means don't switch stuff off
                     switchsonoff(client,["twang"],"on")
                 else:
                     ## switch off stuff in space2 if nobody there
+                    last_w2_locked_ = time.time()  # w2 locked, start timer to switch of retro-corner
                     switchsonoff(client,["twang"],"off")
                     client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
             ### stuff that should happen anyway
