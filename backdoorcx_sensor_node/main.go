@@ -56,7 +56,7 @@ func SendSMS(groups []string, text string) {
 	stdinpipe.Close()
 }
 
-func ConnectSerialToMQTT(mc mqtt.Client, timeout time.Duration) {
+func ConnectSerialToMQTT(mc mqtt.Client, timeout time.Duration, trigger_request_current_status <-chan bool) {
 	defer func() {
 		if x := recover(); x != nil {
 			Syslog_.Println(x)
@@ -120,6 +120,8 @@ func ConnectSerialToMQTT(mc mqtt.Client, timeout time.Duration) {
 			}
 		case <-t.C:
 			Syslog_.Print("Timeout, no message for 120 seconds")
+		case <- trigger_request_current_status:
+			serial_wr <- "s"
 		}
 	}
 }
@@ -132,7 +134,9 @@ func main() {
 		Syslog_.Print("started")
 	}
 
-	options := mqtt.NewClientOptions().AddBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER)).SetAutoReconnect(true).SetProtocolVersion(4).SetCleanSession(true)
+	options := mqtt.NewClientOptions().AddBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER)).SetAutoReconnect(true).SetCleanSession(true)
+	options = options.SetClientID(r3events.CLIENTID_BACKDOOR).SetKeepAlive(49 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
+	options = options.SetOnConnectHandler(func(c mqtt.Client){c.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, nil)}) //re-subscribe on connect
 	mqttclient := mqtt.NewClient(options)
 	ctk := mqttclient.Connect()
 	ctk.Wait()
@@ -140,10 +144,17 @@ func main() {
 		Syslog_.Fatal("Error connecting to MQTT broker", ctk.Error())
 	}
 
+	trigger_request_current_status := make(chan bool, 10)
+	tk := mqttclient.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, func(mqttc mqtt.Client, msg mqtt.Message) { trigger_request_current_status <- true })
+	tk.Wait()
+	if tk.Error() != nil {
+		Syslog_.Fatalf("Error subscribing to %s:%s", r3events.ACT_RESEND_STATUS_TRIGGER, tk.Error())
+	}
+
 	var backoff_exp uint32 = 0
 	for {
 		start_time := time.Now().Unix()
-		ConnectSerialToMQTT(mqttclient, time.Second*120)
+		ConnectSerialToMQTT(mqttclient, time.Second*120, trigger_request_current_status)
 		run_time := time.Now().Unix() - start_time
 		if run_time > exponential_backof_activation_threshold {
 			backoff_exp = 0
