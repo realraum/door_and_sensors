@@ -56,3 +56,6 @@ type FancyLight struct {
 type CeilingScript struct {
 	Script string `json:"script"`
 }
+
+type ResendStatus struct {
+}

@@ -126,6 +126,7 @@ const (
 	ACT_LIGHTCTRL_NAME             string = TOPIC_ACTIONS + CLIENTID_LIGHTCTRL + "/name"
 	ACT_ALLFANCYLIGHT_PLEASEREPEAT string = TOPIC_ACTIONS + CLIENTID_CEILINGALL + "/" + TYPE_PLEASEREPEAT
 	ACT_ACTIVATE_SCRIPT            string = TOPIC_ACTIONS + CLIENTID_CEILINGSCRIPTS + "/activatescript"
+	ACT_RESEND_STATUS_TRIGGER      string = TOPIC_ACTIONS + "realraum" + "/resendstatus"
 	ZB_AJARWINDOW_MASHA            string = TOPIC_ZIGBEE_W1 + "AjarWindowMaSha"
 	ZB_AJARWINDOW_R2W2left         string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2left"
 	ZB_AJARWINDOW_R2W2right        string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2right"

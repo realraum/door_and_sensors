@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/hishboy/gocommons/lang"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/realraum/door_and_sensors/r3events"
 )
 
 // ---------- Main Code -------------
@@ -62,11 +64,25 @@ func main() {
 		panic(err)
 	}
 
+	trigger_requesting_status := make(chan bool, 10)
+
 	// Connect to MQTT Broker
 	// once we have connected, get status and distribute to MQTT Broker
 	// Until we are connected, keep channels clean
 	publish_line_as_event_to_mqtt := make(chan SerialLine, 50)
-	run_on_connect := func() { HandleCommand([]string{"status"}, serial_wr, serial_rd) }
+	run_on_connect := func(mqttc mqtt.Client) {
+
+		tk := mqttc.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, func(mqttc mqtt.Client, msg mqtt.Message) { trigger_requesting_status <- true })
+		tk.Wait()
+		if tk.Error() != nil {
+			Syslog_.Fatalf("Error subscribing to %s:%s", r3events.ACT_RESEND_STATUS_TRIGGER, tk.Error())
+		}
+
+		// trigger getting initial
+		trigger_requesting_status <- true
+
+	}
+
 	go ConnectChannelToMQTT(publish_line_as_event_to_mqtt, EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), knstore, run_on_connect)
 
 	// Start Workaround for Door Firmware "bug"
@@ -106,6 +122,8 @@ func main() {
 					close(oldrequest.backchan)
 				}
 			}
+		case <- trigger_requesting_status:
+			HandleCommand([]string{"status"}, serial_wr, serial_rd)
 		case incoming_cmd, ic_notclosed := <-send_me_cmds:
 			if !ic_notclosed {
 				Syslog_.Print("rpc chan closed, exiting")

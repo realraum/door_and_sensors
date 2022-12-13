@@ -98,9 +98,19 @@ func ParseSocketInputLineAndPublish(lines []string, mqttc mqtt.Client, keynickst
 	}
 }
 
-func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, keystore *KeyNickStore, runOnMQTTConnect func()) {
+func mqttOnConnectionHandler(mqttc mqtt.Client) {
+	Syslog_.Print("MQTT connection to broker established. (re)subscribing topics")
+	tk := mqttc.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, nil) //re-subscribe after disconnect
+	tk.Wait()
+	if tk.Error() != nil {
+		Syslog_.Fatalf("Error (re)subscribing to %s:%s", r3events.ACT_RESEND_STATUS_TRIGGER, tk.Error())
+	}
+}
+
+func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, keystore *KeyNickStore, runOnMQTTConnect func(mqtt.Client)) {
 	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(r3events.CLIENTID_FRONTDOOR).SetKeepAlive(49 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
 	options = options.SetConnectionLostHandler(func(c mqtt.Client, err error) { Debug_.Print("ERROR MQTT connection lost:", err) })
+	options = options.SetOnConnectHandler(mqttOnConnectionHandler)
 	c := mqtt.NewClient(options)
 	//gooble up all publish_chan stuff for as long as mqtt is not connected
 	shutdown_gobbler_c := make(chan bool, 1)
@@ -109,7 +119,7 @@ func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, key
 			select {
 			case <-publish_chan:
 			case <-shutdown_gobbler_c:
-				runOnMQTTConnect()
+				runOnMQTTConnect(c)
 				return
 			}
 		}

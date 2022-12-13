@@ -188,6 +188,9 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		typed_event := ZigbeeAjarSensor{Location: "OLGA"}
 		err = json.Unmarshal(data, &typed_event)
 		event = fixTs(&typed_event)
+	case ACT_RESEND_STATUS_TRIGGER:
+		typed_event := ResendStatus{}
+		event = &typed_event
 	default:
 		event = nil
 		err = errors.New("cannot unmarshal unknown topic") // we'll never see this error, it only tells the next if-check that we want to give the next switch a try
