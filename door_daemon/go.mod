@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/hishboy/gocommons v0.0.0-20160108023425-89887b2ade6d
-	github.com/realraum/door_and_sensors/r3events v0.0.0-20220105033114-c071f1dc71b3
+	github.com/realraum/door_and_sensors/r3events v0.0.0-20221213001831-baf4172edb6f
 	github.com/schleibinger/sio v0.0.0-20130717070631-2cc3e40bedc0
 )
 
