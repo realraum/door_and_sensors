@@ -36,6 +36,7 @@ func anyTrue(x map[string]bool) bool {
 }
 
 func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_timeout, button_timeout, between_spaces_timeout int64) {
+	//define variable
 	var last_door_cmd *r3events.DoorCommandEvent
 	var last_event_indicating_presence, last_manual_lockhandling int64
 	locked := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
@@ -55,6 +56,9 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 
 	events_chan := ps.Sub(PS_R3EVENTS)
 	defer ps.Unsub(events_chan, PS_R3EVENTS)
+
+	//send mqtt-msg to all door/ajar sensors to trigger re-sending of state
+	mqttc.Publish(r3events.ACT_RESEND_STATUS_TRIGGER, 0, false, nil)
 
 PRESFORLOOP:
 	for r3eventi := range events_chan {
