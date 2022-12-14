@@ -16,7 +16,7 @@ uint8_t wifi_fail_count_ = 0;
 
 bool last_locked_=false;
 bool last_shut_=false;
-bool last_value_known_=false;
+// bool last_value_known_=false;
 
 bool doorLocked()
 {
@@ -149,6 +149,7 @@ void init()
 */	//spiffs_mount(); // default auto spiffs mount
 	spiffs_mount_manual(0x100000,SPIFF_SIZE);
 	setupPINs(); //Init HW
+	delay(500);
 	initState();
 	telnetRegisterCmdsWithCommandHandler();
 	commandHandler.registerSystemCommands();

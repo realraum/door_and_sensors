@@ -11,6 +11,7 @@
 
 Timer procMQTTTimer;
 MqttClient *mqtt = nullptr;
+bool resend_status_was_requested_ = false;
 
 String getMQTTTopic(String topic3)
 {
@@ -70,17 +71,21 @@ void publishMessage()
 	if (mqtt->getConnectionState() != eTCS_Connected)
 		startMqttClient(); // Auto reconnect
 
-	if (checkIfStateChanged())
+	if (checkIfStateChanged() || resend_status_was_requested_)
 	{
 		StaticJsonBuffer<1024> jsonBuffer;
 		publishLockMessage(jsonBuffer);
 		publishShutMessage(jsonBuffer);
+		resend_status_was_requested_ = false;
 	}
 }
 
 // Callback for messages, arrived from MQTT server
 void onMessageReceived(String topic, String message)
 {
+	if (topic == MQTT_TOPIC_RESEND_STATUS) {
+		resend_status_was_requested_ = true;
+	}
 }
 
 // Run MQTT client, connect to server, subscribe topics
@@ -116,7 +121,7 @@ void startMqttClient()
 	// debugf("connecting to to MQTT broker");
 	mqtt->connect(NetConfig.mqtt_clientid, NetConfig.mqtt_user, NetConfig.mqtt_pass, true);
 	// debugf("connected to MQTT broker");
-	// mqtt->subscribe(getMQTTTopic(...,true));
+	mqtt->subscribe(MQTT_TOPIC_RESEND_STATUS);
 	//publish fact that we are online
 	root[JSONKEY_ONLINE] = true;
 	message="";

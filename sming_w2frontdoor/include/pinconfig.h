@@ -19,6 +19,7 @@ const String MQTT_TOPIC1 = "realraum/";
 const String MQTT_TOPIC3_LOCK = "/lock";
 const String MQTT_TOPIC3_SHUT = "/ajar";
 const String MQTT_TOPIC3_DEVICEONLINE = "/online";
+const String MQTT_TOPIC_RESEND_STATUS = "action/realraum/resendstatus";
 
 
 #endif // USERCONFIG_H
