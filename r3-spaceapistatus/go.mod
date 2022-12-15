@@ -7,7 +7,7 @@ require (
 	github.com/codegangsta/negroni v1.0.0
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/realraum/door_and_sensors/r3events v0.0.0-20221215222911-3731b99c2a35
+	github.com/realraum/door_and_sensors/r3events v0.0.0-20221215225714-8301f35969e5
 	golang.org/x/crypto v0.4.0
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
