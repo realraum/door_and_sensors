@@ -188,6 +188,14 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		typed_event := ZigbeeAjarSensor{Location: "OLGA"}
 		err = json.Unmarshal(data, &typed_event)
 		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_OUTER_MASHA:
+		typed_event := ZigbeeAjarSensor{Location: "outr MaSha"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
+	case ZB_AJARWINDOW_OUTER_OLGA:
+		typed_event := ZigbeeAjarSensor{Location: "outr OLGA"}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
 	case ACT_RESEND_STATUS_TRIGGER:
 		typed_event := ResendStatus{}
 		event = &typed_event

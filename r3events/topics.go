@@ -133,4 +133,6 @@ const (
 	ZB_AJARWINDOW_TESLA            string = TOPIC_ZIGBEE_W2 + "AjarWindowTesla"
 	ZB_AJARWINDOW_Kitchen          string = TOPIC_ZIGBEE_W2 + "AjarWindowKitchen"
 	ZB_AJARWINDOW_OLGA             string = TOPIC_ZIGBEE_W1 + "AjarWindowOLGA"
+	ZB_AJARWINDOW_OUTER_MASHA      string = TOPIC_ZIGBEE_W1 + "AjarOuterwindowMaSha"
+	ZB_AJARWINDOW_OUTER_OLGA       string = TOPIC_ZIGBEE_W1 + "AjarOuterwWindowOLGA"
 )
