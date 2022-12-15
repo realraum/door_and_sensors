@@ -127,12 +127,13 @@ const (
 	ACT_ALLFANCYLIGHT_PLEASEREPEAT string = TOPIC_ACTIONS + CLIENTID_CEILINGALL + "/" + TYPE_PLEASEREPEAT
 	ACT_ACTIVATE_SCRIPT            string = TOPIC_ACTIONS + CLIENTID_CEILINGSCRIPTS + "/activatescript"
 	ACT_RESEND_STATUS_TRIGGER      string = TOPIC_ACTIONS + "realraum" + "/resendstatus"
+	ZB_AJARWINDOW_OLGA             string = TOPIC_ZIGBEE_W1 + "AjarWindowOLGA"
+	ZB_AJARWINDOW_OUTER_OLGA       string = TOPIC_ZIGBEE_W1 + "AjarOuterwindowOLGA"
 	ZB_AJARWINDOW_MASHA            string = TOPIC_ZIGBEE_W1 + "AjarWindowMaSha"
+	ZB_AJARWINDOW_OUTER_MASHA      string = TOPIC_ZIGBEE_W1 + "AjarOuterwindowMaSha"
 	ZB_AJARWINDOW_R2W2left         string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2left"
 	ZB_AJARWINDOW_R2W2right        string = TOPIC_ZIGBEE_W2 + "AjarWindowR2W2right"
 	ZB_AJARWINDOW_TESLA            string = TOPIC_ZIGBEE_W2 + "AjarWindowTesla"
 	ZB_AJARWINDOW_Kitchen          string = TOPIC_ZIGBEE_W2 + "AjarWindowKitchen"
-	ZB_AJARWINDOW_OLGA             string = TOPIC_ZIGBEE_W1 + "AjarWindowOLGA"
-	ZB_AJARWINDOW_OUTER_MASHA      string = TOPIC_ZIGBEE_W1 + "AjarOuterwindowMaSha"
-	ZB_AJARWINDOW_OUTER_OLGA       string = TOPIC_ZIGBEE_W1 + "AjarOuterwWindowOLGA"
+	ZB_AJARWINDOW_REALFUNK         string = TOPIC_ZIGBEE_W2 + "AjarWindowRealFunk"
 )
