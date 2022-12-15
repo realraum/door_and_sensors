@@ -12,6 +12,6 @@ go build "$@" \
 && rsync ${RSYNCOPTIONS[@]} -rvp --delay-updates --progress --delete ${PWD:t} ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/ \
 && {echo "Restart Daemon? [Yn]"; read -q \
 && ssh ${OPTIONS[@]} ${REMOTE_USER}@$REMOTE_HOST systemctl --user restart ${PWD:t}.service; return 0}
-sleep 1 \
-&& ssh ${OPTIONS[@]} ${REMOTE_USER}@$REMOTE_HOST sudo mount /home -o remount,ro
+#sleep 1 \
+#&& ssh ${OPTIONS[@]} ${REMOTE_USER}@$REMOTE_HOST sudo mount /home -o remount,ro
 
