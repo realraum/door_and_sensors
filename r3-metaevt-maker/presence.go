@@ -58,7 +58,7 @@ func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_ti
 	defer ps.Unsub(events_chan, PS_R3EVENTS)
 
 	//send mqtt-msg to all door/ajar sensors to trigger re-sending of state
-	mqttc.Publish(r3events.ACT_RESEND_STATUS_TRIGGER, 0, false, nil)
+	mqttc.Publish(r3events.ACT_RESEND_STATUS_TRIGGER, 1, false, "")
 
 PRESFORLOOP:
 	for r3eventi := range events_chan {
