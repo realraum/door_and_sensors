@@ -107,6 +107,9 @@ func main() {
 		r3events.ZB_AJARWINDOW_TESLA,
 		r3events.ZB_AJARWINDOW_Kitchen,
 		r3events.ZB_AJARWINDOW_OLGA,
+		r3events.ZB_AJARWINDOW_OUTER_OLGA,
+		r3events.ZB_AJARWINDOW_OUTER_MASHA,
+		r3events.ZB_AJARWINDOW_REALFUNK,
 		r3events.TOPIC_IRCBOT_FOODETA})
 
 	for {
