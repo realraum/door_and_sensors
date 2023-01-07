@@ -1,0 +1,87 @@
+#===============================================================================
+substitutions:
+  device_name: w2_r2w2_sensor
+  device_friendly_name: "Dell EMC-Switch"
+  room_friendly_name: "r2w2"
+#===============================================================================  
+## Use with Sonoff S20/S26 outlet
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266                 
+  board: d1_mini 
+  on_boot:
+    - output.turn_off: gpio_gnd
+
+wifi:
+  ssid: realstuff
+  password: !secret realstuffwifi_pass
+  manual_ip:
+    static_ip: 192.168.33.11
+    gateway: 192.168.33.1
+    subnet: 255.255.255.0
+    dns1: 192.168.33.1
+    dns2: 1.1.1.1
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${device_name}"
+    password: !secret fallbackwifi2_pass
+
+captive_portal:
+
+# Enable logging
+logger:
+
+web_server:
+  port: 80
+
+ota:
+  password: !secret api_password
+
+## gpio configuration
+## gpio 15 output low, acts as GND
+output:
+  - platform: gpio
+    pin:
+      number: 15
+      inverted: false
+    id: gpio_gnd
+
+
+## i2c configuration
+i2c:
+  sda: 12
+  scl: 13
+  #scan: True
+  scan: False
+
+deep_sleep:
+  run_duration: 5s
+  sleep_duration: 2min
+
+## sensor configuration
+sensor:
+  - platform: bmp280
+    temperature:
+      name: "${room_friendly_name} Temperature"
+      id: senstemp
+      oversampling: 16x
+    pressure:
+      name: "${room_friendly_name} Pressure"
+    address: 0x77
+    update_interval: 3s
+
+
+mqtt:
+  broker: mqtt.realraum.at
+  log_topic: "realraum/${device_name}/log"
+  birth_message:
+    topic: realraum/${device_name}/online
+    payload: online
+  will_message:
+    topic: realraum/${device_name}/online
+    payload: offline
+  discovery: False
+  discovery_retain: False
+  topic_prefix: "realraum/${device_name}"
