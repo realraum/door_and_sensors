@@ -43,6 +43,8 @@ const (
 	CLIENTID_CEILINGSCRIPTS        string = "ceilingscripts"
 	CLIENTID_COUCHRED              string = "couchred"
 	CLIENTID_VENTILATION           string = "ventilation"
+	CLIENTID_REDOXNH3              string = "w1_redoxnh3_sensor"
+	CLIENTID_W2R2W2BMP280          string = "w2_r2w2_sensor"
 	ACTDESTID_RF433                string = "rf433"
 	ACTDESTID_YAMAHA               string = "yamahastereo"
 	TYPE_LOCK                      string = "lock"
@@ -75,6 +77,7 @@ const (
 	TYPE_ONLINESTR                 string = "ONLINE"
 	TYPE_ONLINEJSON                string = "online"
 	TYPE_BAROMETER                 string = "barometer"
+
 	TOPIC_FRONTDOOR_LOCK           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_W2FRONTDOOR_LOCK         string = TOPIC_R3 + CLIENTID_W2FRONTDOOR + "/" + TYPE_LOCK
 	TOPIC_FRONTDOOR_AJAR           string = TOPIC_R3 + CLIENTID_FRONTDOOR + "/" + TYPE_AJAR
@@ -136,4 +139,13 @@ const (
 	ZB_AJARWINDOW_TESLA            string = TOPIC_ZIGBEE_W2 + "AjarWindowTesla"
 	ZB_AJARWINDOW_Kitchen          string = TOPIC_ZIGBEE_W2 + "AjarWindowKitchen"
 	ZB_AJARWINDOW_REALFUNK         string = TOPIC_ZIGBEE_W2 + "AjarWindowRealFunk"
+	TOPIC_ESPHOME_R2W2_TEMPERATURE string = TOPIC_R3 + CLIENTID_W2R2W2BMP280 + "/sensor/" + TYPE_TEMP+"/state"
+	TOPIC_ESPHOME_R2W2_BAROMETER   string = TOPIC_R3 + CLIENTID_W2R2W2BMP280 + "/sensor/" + TYPE_BAROMETER+"/state"
+	TOPIC_ESPHOME_REDOXNH3_TEMPERATURE string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_" + TYPE_TEMP+"/state"
+	TOPIC_ESPHOME_REDOXNH3_BAROMETER   string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_pressure" +"/state"
+	TOPIC_ESPHOME_REDOXNH3_HUMIDITY string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_humidity" +"/state"
+	TOPIC_ESPHOME_REDOXNH3_TVOC    string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_tvoc" +"/state"
+	TOPIC_ESPHOME_REDOXNH3_ECO2    string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_eco2" +"/state"
+	TOPIC_ESPHOME_REDOXNH3_NH3     string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_nh3" +"/state"
+	TOPIC_ESPHOME_REDOXNH3_OXNO2   string = TOPIC_R3 + CLIENTID_REDOXNH3 + "/sensor/r3cx_oxno2" +"/state"
 )

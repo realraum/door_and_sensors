@@ -8,8 +8,8 @@ substitutions:
 
 esphome:
   name: ${device_name}
-  platform: ESP8266                 
-  board: d1_mini 
+  platform: ESP826
+  board: d1_mini
   on_boot:
     - output.turn_off: gpio_gnd
 
@@ -64,12 +64,13 @@ deep_sleep:
 sensor:
   - platform: bmp280
     temperature:
-      name: "${room_friendly_name} Temperature"
+      name: "temperature"
       id: senstemp
       oversampling: 16x
     pressure:
-      name: "${room_friendly_name} Pressure"
+      name: "barometer"
     address: 0x77
+   #address: 0x76
     update_interval: 3s
 
 
