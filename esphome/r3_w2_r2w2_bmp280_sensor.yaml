@@ -8,7 +8,7 @@ substitutions:
 
 esphome:
   name: ${device_name}
-  platform: ESP826
+  platform: ESP8266
   board: d1_mini
   on_boot:
     - output.turn_off: gpio_gnd
@@ -57,8 +57,8 @@ i2c:
   scan: False
 
 deep_sleep:
-  run_duration: 5s
-  sleep_duration: 2min
+  run_duration: 8s
+  sleep_duration: 1min
 
 ## sensor configuration
 sensor:
@@ -69,8 +69,8 @@ sensor:
       oversampling: 16x
     pressure:
       name: "barometer"
-    address: 0x77
-   #address: 0x76
+   #address: 0x77
+    address: 0x76
     update_interval: 3s
 
 

@@ -203,32 +203,32 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		event = fixTs(&typed_event)
 	case ACT_RESEND_STATUS_TRIGGER:
 		typed_event := ResendStatus{}
-		event = &typed_event
+		event = typed_event
 	case TOPIC_ESPHOME_R2W2_TEMPERATURE:
 		var value float64
 		value, err = strconv.ParseFloat(string(data),32)
 		typed_event := TempSensorUpdate{Location: "R2W2", Ts: time.Now().Unix(), Value: value}
-		event = &typed_event
+		event = typed_event
 	case TOPIC_ESPHOME_R2W2_BAROMETER:
 		var value float64
 		value, err = strconv.ParseFloat(string(data),32)
 		typed_event := BarometerUpdate{Location: "R2W2", Ts: time.Now().Unix(), HPa: value}
-		event = &typed_event
+		event = typed_event
 	case TOPIC_ESPHOME_REDOXNH3_TEMPERATURE:
 		var value float64
 		value, err = strconv.ParseFloat(string(data),32)
 		typed_event := TempSensorUpdate{Location: "CXtherme", Ts: time.Now().Unix(), Value: value}
-		event = &typed_event
+		event = typed_event
 	case TOPIC_ESPHOME_REDOXNH3_BAROMETER:
 		var value float64
 		value, err = strconv.ParseFloat(string(data),32)
 		typed_event := BarometerUpdate{Location: "CXtherme", Ts: time.Now().Unix(), HPa: value}
-		event = &typed_event
+		event = typed_event
 	case TOPIC_ESPHOME_REDOXNH3_HUMIDITY:
 		var value float64
 		value, err = strconv.ParseFloat(string(data),32)
 		typed_event := RelativeHumiditySensorUpdate{Location: "CXtherme", Ts: time.Now().Unix(), Percent: value}
-		event = &typed_event
+		event = typed_event
 	// case TOPIC_ESPHOME_REDOXNH3_ECO2:
 		//.....
 	default:
