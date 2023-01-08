@@ -14,6 +14,10 @@ github.com/realraum/door_and_sensors/r3events v0.0.0-20221215231422-3561fe507a0f
 github.com/realraum/door_and_sensors/r3events v0.0.0-20221215231422-3561fe507a0f/go.mod h1:6pGfZxbtCIZ/1TorJpPqTN9cYfEeuLzmGya2atjKzus=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20230107130201-1dcc1441b19d h1:QavLrH5w9JlN7f+PC1Y719Z81PfUXjYplCMCAz2kGIw=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20230107130201-1dcc1441b19d/go.mod h1:6pGfZxbtCIZ/1TorJpPqTN9cYfEeuLzmGya2atjKzus=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20230107130450-fa0a4902d5fd h1:aA5ddKu6OsetaBCpfuvNfoiN4tFbXkiYrec6ZMKGqvc=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20230107130450-fa0a4902d5fd/go.mod h1:6pGfZxbtCIZ/1TorJpPqTN9cYfEeuLzmGya2atjKzus=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20230108002903-8d9c06045d44 h1:yYmqdqrUICCruyeDG7clA4Q/yjh6w2O3elfAovxl7sU=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20230108002903-8d9c06045d44/go.mod h1:6pGfZxbtCIZ/1TorJpPqTN9cYfEeuLzmGya2atjKzus=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20210921155107-089bfa567519/go.mod h1:GvvjBRRGRdwPK5ydBHafDWAxML/pGHZbMvKqRZ5+Abc=
