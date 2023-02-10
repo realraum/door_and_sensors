@@ -29,6 +29,8 @@ retro_corner_outletplug_timeout_seconds_ = 60*100 # 1h40m
 last_w2_locked_ = 0
 keep_running_ = True
 time_schedule_sonoff_ = [] # | list[tuple[float,tuple[str,str]]]
+w1_frontdoor_locked = None
+backdoorblue_locked = None
 
 def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
@@ -152,7 +154,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_, last_w2_locked_
+    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_, last_w2_locked_, w1_frontdoor_locked, backdoorblue_locked
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -242,9 +244,18 @@ def onMqttMessage(client, userdata, msg):
                     last_w2_locked_ = time.time()  # w2 locked, start timer to switch of retro-corner
                     switchsonoff(client,["twang"],"off")
                     client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
-            ### stuff that should happen anyway
-            if dictdata["InSpace2"] == True:
-                client.publish("action/singleled/light",'{"r":0,"g":180,"b":0}');
+            ### presence stuff that should happen on any presence update anyway
+            if dictdata["Present"]:
+                # switch single-led green
+                if backdoorblue_locked == True and w1_frontdoor_locked == True and  dictdata["InSpace1"] == True and dictdata["InSpace2"] == False:
+                    # if all locked but room thinks someone is still there (locked from inside), be yellowish
+                    client.publish("action/singleled/light",'{"r":90,"g":100,"b":0}');
+                elif dictdata["InSpace1"] == True and dictdata["InSpace2"] == True:
+                    # more green if people are present in both rooms
+                    client.publish("action/singleled/light",'{"r":10,"g":200,"b":10}');
+                else:
+                    # less green otherwise
+                    client.publish("action/singleled/light",'{"r":0,"g":90,"b":0}');
             else:
                 client.publish("action/singleled/light",'{"r":180,"g":0,"b":0}');
         elif topic.endswith("zigbee2mqtt/w1/MashaPIR"):
@@ -261,6 +272,10 @@ def onMqttMessage(client, userdata, msg):
                 last_masha_no_more_movement2_ = time.time()
         elif topic.endswith("/boredoombuttonpressed"):
             pass
+        elif topic.endswith("realraum/frontdoor/lock"):
+            w1_frontdoor_locked = dictdata["Locked"]
+        elif topic.endswith("realraum/backdoorcx/lock"):
+            backdoorblue_locked = dictdata["Locked"]
         elif topic.endswith("realraum/w2frontdoor/lock"):
             if msg.retain:
                 return
@@ -330,6 +345,8 @@ if __name__ == "__main__":
         ("realraum/pillar/boredoombuttonpressed", 1),
         ("realraum/+/ajar",1),
         ("realraum/w2frontdoor/lock",1),
+        ("realraum/frontdoor/lock",1),
+        ("realraum/backdoorcx/lock",1),
         ("zigbee2mqtt/w1/MashaPIR",1),
         ("zigbee2mqtt/w1/MashaPIR2",1),
         (topic_tradfri_onoff_lothr,1),
