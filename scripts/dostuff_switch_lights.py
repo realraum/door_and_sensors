@@ -199,7 +199,7 @@ def onMqttMessage(client, userdata, msg):
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
                         switchesphome(client,["w1gastherme"],"on")
-                        client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling3"],"value":0.7}')
+                        client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling2","ceiling3","ceiling4"],"value":0.75,"fadeduration":6000}')
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
