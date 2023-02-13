@@ -192,7 +192,7 @@ def onMqttMessage(client, userdata, msg):
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
                     switchname(client,["cxleds","boilerolga"],"on")
-                    switchsonoff(client,["tesla","lothrboiler","olgaboiler"],"on")
+                    switchsonoff(client,["tesla","lothrboiler","olgaboiler","mashacompressor"],"on")
                     if isTheSunDown():
                         switchname(client,["floodtesla","couchwhite","laserball","logo"],"on")
                         switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
@@ -214,7 +214,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
-                    switchsonoff(client,["twang"],"off")
+                    switchsonoff(client,["twang","mashacompressor"],"off")
                     switchesphome(client,["olgadecke","subtable"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")

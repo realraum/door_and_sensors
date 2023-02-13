@@ -1,0 +1,79 @@
+## Sonoff S20 Compressor Switch
+#===============================================================================
+substitutions:
+  device_name: mashacompressor
+  device_friendly_name: "MaSha Compressor"
+
+#===============================================================================
+
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp8285
+
+wifi:
+  networks:
+    - ssid: !secret realstuffwifi_name
+      password: !secret realstuffwifi_pass
+  reboot_timeout: 2h
+
+  ap:
+    ssid: "${device_name} fallback"
+    password: !secret fallbackwifi_pass
+
+  manual_ip:
+    static_ip: 192.168.33.19
+    gateway: 192.168.33.1
+    dns1: 192.168.33.1
+    subnet: 255.255.255.0
+
+captive_portal:
+
+logger:
+
+ota:
+  password: !secret realstuffwifi_pass
+
+
+mqtt:
+  broker: !secret realraum_mqtt_broker
+  birth_message:
+    topic: realraum/${device_name}/status
+    payload: online
+  will_message:
+    topic: realraum/${device_name}/status
+    payload: offline
+  topic_prefix: realraum/${device_name}
+
+
+#===============================================================================
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "Button ${device_friendly_name}"
+    on_press:
+      - switch.toggle: relaypower
+  - platform: status
+    name: "Status ${device_friendly_name}"
+
+switch:
+  - platform: restart
+    name: "Restart ${device_friendly_name}"
+  - platform: gpio
+    name: "${device_friendly_name} Relay"
+    id: relaypower
+    pin: GPIO12
+    state_topic: realraum/${device_name}/state
+    command_topic: action/${device_name}/command
+    
+
+#===============================================================================
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
