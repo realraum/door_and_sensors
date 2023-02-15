@@ -57,20 +57,43 @@ binary_sensor:
       inverted: True
     name: "Button ${device_friendly_name}"
     on_press:
-      - switch.toggle: relaypower
+      - light.toggle: light1
+
   - platform: status
     name: "Status ${device_friendly_name}"
+
+#===============================================================================
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP ${device_friendly_name}"
+
+#===============================================================================
+sensor:
+  - platform: wifi_signal
+    name: "WifiSignal ${device_friendly_name}"
+    update_interval: 120s
+#------------------------------------------------------------------------------
+  - platform: uptime
+    name: "Uptime ${device_friendly_name}"
+
+#===============================================================================
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay
 
 switch:
   - platform: restart
     name: "Restart ${device_friendly_name}"
-  - platform: gpio
-    name: "${device_friendly_name} Relay"
-    id: relaypower
-    pin: GPIO12
+
+light:
+  - platform: binary
+    name: "${device_friendly_name}"
+    output: relay
+    id: light1
     state_topic: realraum/${device_name}/state
     command_topic: action/${device_name}/command
-    
 
 #===============================================================================
 status_led:
