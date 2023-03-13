@@ -192,7 +192,8 @@ def onMqttMessage(client, userdata, msg):
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
                     switchname(client,["cxleds","boilerolga"],"on")
-                    switchsonoff(client,["tesla","lothrboiler","olgaboiler","mashacompressor"],"on")
+                    switchsonoff(client,["lothrboiler","olgaboiler"],"on")
+                    switchesphome(client,["mashacompressor"], True)
                     if isTheSunDown():
                         switchname(client,["floodtesla","couchwhite","laserball","logo"],"on")
                         switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
@@ -213,8 +214,8 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
-                    switchsonoff(client,["couchred","tesla","lothrboiler","olgaboiler","mashadecke"],"off")
-                    switchsonoff(client,["twang","mashacompressor"],"off")
+                    switchsonoff(client,["couchred","lothrboiler","olgaboiler","mashadecke"],"off")
+                    switchesphome(client,["twang","mashacompressor"],"OFF")
                     switchesphome(client,["olgadecke","subtable"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
@@ -238,11 +239,11 @@ def onMqttMessage(client, userdata, msg):
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
                     last_w2_locked_ = 0 ## 0 means don't switch stuff off
-                    switchsonoff(client,["twang"],"on")
+                    switchesphome(client,["twang"],"ON")
                 else:
                     ## switch off stuff in space2 if nobody there
                     last_w2_locked_ = time.time()  # w2 locked, start timer to switch of retro-corner
-                    switchsonoff(client,["twang"],"off")
+                    switchesphome(client,["twang"],"OFF")
                     client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
             ### presence stuff that should happen on any presence update anyway
             if dictdata["Present"]:
