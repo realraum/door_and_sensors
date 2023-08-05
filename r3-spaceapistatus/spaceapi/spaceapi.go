@@ -6,6 +6,7 @@ package spaceapi
 import (
 	"encoding/json"
 	"time"
+	"golang.org/x/exp/constraints"
 )
 
 type SpaceInfo map[string]interface{}
@@ -42,6 +43,23 @@ type SpaceLocation struct {
 	Address string  `json:"address",omitempty`
 	Lat     float64 `json:"lat",omitempty`
 	Lon     float64 `json:"lon",omitempty`
+}
+
+
+func Min[T constraints.Ordered](a, b T) T {
+	if a > b {
+		return b
+	} else {
+		return a
+	}
+}
+
+func Max[T constraints.Ordered](a, b T) T {
+	if a < b {
+		return b
+	} else {
+		return a
+	}
 }
 
 func MakeTempSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {
@@ -159,6 +177,18 @@ func MakeLasercutterHotSensor(name, where string, value bool) SpaceInfo {
 		"name":        name,
 		"description": "indicates if the lasercutter is in use"}
 	return SpaceInfo{"ext_lasercutter_hot": listofwhats}
+}
+
+func Make3DPrinterSensor(printerName, jobName string, progress_percent uint, elapsed_time_s int64) SpaceInfo {
+	listofwhats := make([]SpaceInfo, 1)
+	listofwhats[0] = SpaceInfo{
+		"name":       printerName,
+		"job":    jobName,
+		"value":        Min(Max(progress_percent,0),100),
+		"unit": "%",
+		"elapsed_time_s": elapsed_time_s,
+		"description": "progress of 3dprint job"}
+	return SpaceInfo{"ext_3dprinter_progress": listofwhats}
 }
 
 func MakeVoltageSensor(name, where, unit string, value float64, timestamp int64) SpaceInfo {

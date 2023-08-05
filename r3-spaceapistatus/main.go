@@ -99,6 +99,7 @@ func main() {
 		"realraum/+/" + r3events.TYPE_GASALERT,
 		"realraum/+/" + r3events.TYPE_POWERLOSS,
 		"realraum/+/" + r3events.TYPE_BAROMETER,
+		"realraum/+/" + r3events.TYPE_3DPRINTER,
 		r3events.TOPIC_COUCHRED_SENSOR,
 		r3events.TOPIC_LASER_CARD,
 		r3events.ZB_AJARWINDOW_MASHA,

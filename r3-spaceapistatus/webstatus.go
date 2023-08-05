@@ -209,6 +209,9 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 			case r3events.LaserCutter:
 				spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot))
 				publishStateToWeb()
+			case r3events.ThreeDimensionalPrinterProgress:
+				spaceapidata.MergeInSensor(spaceapi.Make3DPrinterSensor(event.Printer, event.Job, event.Progress_percent, event.Elapsed_time_s))
+				publishStateToWeb()
 			case r3events.FoodOrderETA:
 				//TODO: remember food orders TSofInvite and overwrite with new ETA if the same or add additonal if new
 				unixeta := time.Unix(event.ETA, 0)

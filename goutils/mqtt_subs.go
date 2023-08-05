@@ -120,7 +120,7 @@ func SubscribeMultipleAndForwardToChannel(mqttc mqtt.Client, filters []string) (
 	return
 }
 
-func SubscribeAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub, filter string, pstopics ...string) {
+func SubscribeAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub[mqtt.Message], filter string, pstopics ...string) {
 	tk := mqttc.Subscribe(filter, 0, func(mqttc mqtt.Client, msg mqtt.Message) { ps.Pub(msg, pstopics...) })
 	tk.Wait()
 	if tk.Error() != nil {
@@ -132,7 +132,7 @@ func SubscribeAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub, filter st
 	return
 }
 
-func SubscribeMultipleAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub, filters []string, pstopics ...string) {
+func SubscribeMultipleAndPublishToPubSub(mqttc mqtt.Client, ps *pubsub.PubSub[mqtt.Message], filters []string, pstopics ...string) {
 	filtermap := make(map[string]byte, len(filters))
 	for _, topicfilter := range filters {
 		filtermap[topicfilter] = 0 //qos == 0
