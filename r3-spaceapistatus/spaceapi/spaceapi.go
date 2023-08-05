@@ -179,7 +179,7 @@ func MakeLasercutterHotSensor(name, where string, value bool) SpaceInfo {
 	return SpaceInfo{"ext_lasercutter_hot": listofwhats}
 }
 
-func Make3DPrinterSensor(printerName, jobName string, progress_percent uint, elapsed_time_s int64) SpaceInfo {
+func Make3DPrinterSensor(printerName, jobName string, progress_percent float64, elapsed_time_s int64) SpaceInfo {
 	listofwhats := make([]SpaceInfo, 1)
 	listofwhats[0] = SpaceInfo{
 		"name":       printerName,

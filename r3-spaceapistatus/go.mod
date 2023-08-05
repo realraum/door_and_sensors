@@ -6,7 +6,7 @@ require (
 	github.com/btittelbach/pubsub v1.2.0
 	github.com/codegangsta/negroni v1.0.0
 	github.com/eclipse/paho.mqtt.golang v1.4.3
-	github.com/realraum/door_and_sensors/r3events v0.0.0-20230805193347-6f18dee4597e
+	github.com/realraum/door_and_sensors/r3events v0.0.0-20230805210814-7aff3f44fed9
 	golang.org/x/crypto v0.12.0
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b
 )
