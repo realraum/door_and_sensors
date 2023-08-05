@@ -188,5 +188,5 @@ type ThreeDimensionalPrinterProgress struct {
 	Printer string
 	Job string `json:",omitempty"`
 	Elapsed_time_s int64 `json:",omitempty"`
-	Progress_percent uint
+	Progress_percent float64
 }
