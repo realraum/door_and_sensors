@@ -183,3 +183,10 @@ type ZigbeeAjarSensor struct {
 	Linkquality int64 `json:"linkquality"`
 	Ts          int64 `json:",omitempty"`
 }
+
+type ThreeDimensionalPrinterProgress struct {
+	Printer string
+	Job string `json:",omitempty"`
+	Elapsed_time_s int64 `json:",omitempty"`
+	Progress_percent uint
+}
