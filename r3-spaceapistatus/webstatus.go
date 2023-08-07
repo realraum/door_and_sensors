@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -44,6 +45,13 @@ func init() {
 			spaceapidata.MergeInSensor(spaceapi.MakeMemberCountSensor("Member Count", "realraum", int64(total_member_count)))
 		}
 	}
+}
+
+func roundToDecimalPlaces(value float64, decimals uint) float64 {
+	value *= 1*math.Pow(10,float64(decimals))
+	value = math.Round(value)
+	value /= 1*math.Pow(10,float64(decimals))
+	return value
 }
 
 func updateStatusString() {
@@ -179,18 +187,18 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				spaceapidata.AddSpaceEvent("BoreDOOMButton", "check-in", "The button has been pressed", event.Ts, 4*time.Hour)
 				publishStateToWeb()
 			case r3events.TempSensorUpdate:
-				spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp@%s", event.Location), event.Location, event.Value, event.Ts))
+				spaceapidata.MergeInSensor(spaceapi.MakeTempCSensor(fmt.Sprintf("Temp@%s", event.Location), event.Location, roundToDecimalPlaces(event.Value,2), event.Ts))
 			case r3events.IlluminationSensorUpdate:
 				spaceapidata.MergeInSensor(spaceapi.MakeIlluminationSensor("Photoresistor", event.Location, "/2^10", event.Value, event.Ts))
 			case r3events.RelativeHumiditySensorUpdate:
-				spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+				spaceapidata.MergeInSensor(spaceapi.MakeHumiditySensor(fmt.Sprintf("Humidity@%s", event.Location), event.Location, "%", roundToDecimalPlaces(event.Percent, 2), event.Ts))
 			case r3events.Voltage:
-				spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@%s", event.Location), event.Location, "V", event.Value, event.Ts))
+				spaceapidata.MergeInSensor(spaceapi.MakeVoltageSensor(fmt.Sprintf("Voltage@%s", event.Location), event.Location, "V", roundToDecimalPlaces(event.Value, 2), event.Ts))
 				if event.Min != event.Max {
-					spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", event.Percent, event.Ts))
+					spaceapidata.MergeInSensor(spaceapi.MakeBatteryChargeSensor(fmt.Sprintf("BatteryCharge@%s", event.Location), event.Location, "%", roundToDecimalPlaces(event.Percent, 2), event.Ts))
 				}
 			case r3events.BarometerUpdate:
-				spaceapidata.MergeInSensor(spaceapi.MakeBarometerSensor(fmt.Sprintf("Barometer@%s", event.Location), event.Location, "hPa", event.HPa, event.Ts))
+				spaceapidata.MergeInSensor(spaceapi.MakeBarometerSensor(fmt.Sprintf("Barometer@%s", event.Location), event.Location, "hPa", roundToDecimalPlaces(event.HPa, 2), event.Ts))
 			case r3events.GasLeakAlert:
 				spaceapidata.AddSpaceEvent("GasLeak", "alert", "GasLeak Alert has been triggered", event.Ts, 24*time.Hour)
 				publishStateToWeb()
@@ -210,7 +218,7 @@ func EventToWeb(events chan *r3events.R3MQTTMsg) {
 				spaceapidata.MergeInSensor(spaceapi.MakeLasercutterHotSensor("LasercutterHot", "M500", event.IsHot, time.Now().Unix()))
 				publishStateToWeb()
 			case r3events.ThreeDimensionalPrinterProgress:
-				spaceapidata.MergeInSensor(spaceapi.Make3DPrinterSensor(event.Printer, event.Job, event.Progress_percent, event.Elapsed_time_s, time.Now().Unix()))
+				spaceapidata.MergeInSensor(spaceapi.Make3DPrinterSensor(event.Printer, event.Job, roundToDecimalPlaces(event.Progress_percent, 1), event.Elapsed_time_s, time.Now().Unix()))
 				publishStateToWeb()
 			case r3events.FoodOrderETA:
 				//TODO: remember food orders TSofInvite and overwrite with new ETA if the same or add additonal if new
