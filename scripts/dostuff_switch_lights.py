@@ -59,6 +59,17 @@ def touchURL(url):
         print("touchURL: " + str(e))
         return None
 
+def switchWLED(ip, action):
+    ## https://kno.wled.ge/interfaces/json-api/
+    if isinstance(action,str):
+        action = True if action.lower == "on" else False
+    url = "http://{}/json/state".format(ip)
+    req = urllib.request.Request(url, method="POST")
+    req.add_header('Content-Type', 'application/json')
+    data = json.dumps({"on":action})
+    data = data.encode()
+    resp = request.urlopen(req, data=data)
+
 def switchname(client,name,action):
     if not isinstance(action,str):
         action = "on" if action else "off"
