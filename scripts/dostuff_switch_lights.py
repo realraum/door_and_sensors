@@ -32,6 +32,11 @@ time_schedule_sonoff_ = [] # | list[tuple[float,tuple[str,str]]]
 w1_frontdoor_locked = None
 backdoorblue_locked = None
 
+wled_cx_deconstructed_flower_ = "192.168.33.42"
+wled_w2_copperkey_ = "192.168.33.43"
+wled_lothr_quadrings_ = "192.168.33.44"
+wled_coppercoil_ = "192.168.33.45"
+
 def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
 
@@ -59,16 +64,31 @@ def touchURL(url):
         print("touchURL: " + str(e))
         return None
 
-def switchWLED(ip, action):
+def switchWLED_IP(ip, action, preset=None, brightness=None):
     ## https://kno.wled.ge/interfaces/json-api/
     if isinstance(action,str):
         action = True if action.lower == "on" else False
     url = "http://{}/json/state".format(ip)
     req = urllib.request.Request(url, method="POST")
     req.add_header('Content-Type', 'application/json')
-    data = json.dumps({"on":action})
-    data = data.encode()
-    resp = request.urlopen(req, data=data)
+    api_data = {"on":action}
+    if isinstance(preset,int) and preset > 0:
+        api_data["ps"] = preset
+    if isinstance(brightness,int) and brightness >= 0 and brightness <= 255:
+        api_data["bri"] = brightness
+    resp = urllib.request.urlopen(req, data=json.dumps(api_data).encode())
+
+def switchWLED_MQTT(client, name, action, preset=None, brightness=None):
+    ## https://kno.wled.ge/interfaces/json-api/
+    if isinstance(action,str):
+        action = True if action.lower == "on" else False
+
+    api_data = {"on":action}
+    if isinstance(preset,int) and preset > 0:
+        api_data["ps"] = preset
+    if isinstance(brightness,int) and brightness >= 0 and brightness <= 255:
+        api_data["bri"] = brightness
+    client.publish("action/wled/"+name+"/api",json.dumps(api_data).encode(), qos=2)
 
 def switchname(client,name,action):
     if not isinstance(action,str):
@@ -77,9 +97,9 @@ def switchname(client,name,action):
         return
     if isinstance(name,list):
         for n in name:
-            client.publish("action/GoLightCtrl/"+n,'{"Action":"'+action+'"}', qos=2);
+            client.publish("action/GoLightCtrl/"+n,'{"Action":"'+action+'"}', qos=2)
     else:
-        client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}', qos=2);
+        client.publish("action/GoLightCtrl/"+name,'{"Action":"'+action+'"}', qos=2)
 
 def switchsonoff(client,name,action):
     if not isinstance(action,str):
@@ -185,8 +205,12 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["cxleds","couchwhite","logo","laserball"],"on")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
                     switchsonoff(client,["couchred"],"on")
+                    switchWLED_MQTT(client, "deconflower", True)
+                    switchWLED_IP(wled_lothr_quadrings_, True)
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
+                    switchWLED_MQTT(client, "deconflower", False)
+                    switchWLED_IP(wled_lothr_quadrings_, False)
                     switchname(client,["couchwhite","laserball","logo"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred"],"off")
@@ -212,6 +236,8 @@ def onMqttMessage(client, userdata, msg):
                         switchesphome(client,["subtable"],"on")
                         switchesphome(client,["w1gastherme"],"on")
                         client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling2","ceiling3","ceiling4"],"value":0.75,"fadeduration":6000}')
+                        switchWLED_MQTT(client, "deconflower", True)
+                        switchWLED_IP(wled_lothr_quadrings_, True)
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
@@ -224,6 +250,8 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
+                    switchWLED_MQTT(client, "deconflower", False)
+                    switchWLED_IP(wled_lothr_quadrings_, False)
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchesphome(client,["twang","mashacompressor"],"OFF")
@@ -240,12 +268,14 @@ def onMqttMessage(client, userdata, msg):
                     ## Someone came in through the front door
                     switchsonoff(client,["couchred"],"on")
                     switchesphome(client,["w1gastherme"],"on")
+                    switchWLED_MQTT(client, "deconflower", True)
                 else:
                     ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred"],"off")
                     switchesphome(client,["subtable"],"off")
                     switchesphome(client,["w1gastherme"],"off")
                     switchname(client,["basiclightAll"],"off")
+                    switchWLED_MQTT(client, "deconflower", False)
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
@@ -305,6 +335,7 @@ def onMqttMessage(client, userdata, msg):
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
                     switchname(client,["cxleds"],"on")
+                    switchWLED_MQTT(client, "deconflower", True)
         elif topic == topic_tradfri_onoff_lothr:
             if not "click" in dictdata:
                 return
