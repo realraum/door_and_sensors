@@ -35,7 +35,7 @@ func anyTrue(x map[string]bool) bool {
 	return false
 }
 
-func MetaEventRoutine_Presence(ps *pubsub.PubSub, mqttc mqtt.Client, movement_timeout, button_timeout, between_spaces_timeout int64) {
+func MetaEventRoutine_Presence(ps *pubsub.PubSub[any], mqttc mqtt.Client, movement_timeout, button_timeout, between_spaces_timeout int64) {
 	//define variable
 	var last_door_cmd *r3events.DoorCommandEvent
 	var last_event_indicating_presence, last_manual_lockhandling int64

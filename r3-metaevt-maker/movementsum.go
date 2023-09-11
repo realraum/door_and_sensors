@@ -12,7 +12,7 @@ import (
 	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
-func MetaEventRoutine_MovementSum(ps *pubsub.PubSub, mqttc mqtt.Client, interval time.Duration) {
+func MetaEventRoutine_MovementSum(ps *pubsub.PubSub[any], mqttc mqtt.Client, interval time.Duration) {
 	events_chan := ps.Sub(PS_R3EVENTS)
 	defer ps.Unsub(events_chan, PS_R3EVENTS)
 	myticker := time.NewTicker(interval)

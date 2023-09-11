@@ -8,7 +8,7 @@ import (
 	r3events "github.com/realraum/door_and_sensors/r3events"
 )
 
-func MetaEventRoutine_ContactsensorAggregation(ps *pubsub.PubSub, mqttc mqtt.Client, interval time.Duration) {
+func MetaEventRoutine_ContactsensorAggregation(ps *pubsub.PubSub[any], mqttc mqtt.Client, interval time.Duration) {
 	locked := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
 	shut := map[string]bool{w1frontdoor_key: true, w1backdoor_key: true, w2frontdoor_key: true}
 	zigbeecontact_shut := make(map[string]bool) //TODO future: presence==true falls ein Fenster offen ist

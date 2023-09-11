@@ -85,7 +85,7 @@ func main() {
 
 	mqttc := ConnectMQTTBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER), r3events.CLIENTID_META)
 
-	ps := pubsub.New(100)
+	ps := pubsub.New[any](100)
 	defer ps.Shutdown() // ps.Shutdown should be called before zmq_ctx.Close(), since it will cause goroutines to shutdown and close zqm_sockets which is needed for zmq_ctx.Close() to return
 
 	go MetaEventRoutine_Movement(ps, mqttc, 10, 20, 10)
@@ -93,6 +93,7 @@ func main() {
 	go MetaEventRoutine_Presence(ps, mqttc, 21, 200, 40)
 	go MetaEventRoutine_SensorLost(ps, mqttc, topics_monitor_if_sensors_disappear)
 	go MetaEventRoutine_DuskDawnEventGenerator(mqttc)
+	go MetaEventRoutine_TimeToClean(mqttc)
 
 	mqtt_subscription_filters := make([]string, len(topics_needed_for_presenceevent)+len(topics_monitor_if_sensors_disappear))
 	copy(mqtt_subscription_filters[0:len(topics_needed_for_presenceevent)], topics_needed_for_presenceevent)

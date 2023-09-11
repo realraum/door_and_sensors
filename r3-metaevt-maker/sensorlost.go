@@ -19,7 +19,7 @@ type TopicSeen struct {
 	max_interval int64
 }
 
-func MetaEventRoutine_SensorLost(ps *pubsub.PubSub, mqttc mqtt.Client, topics_to_monitor []string) {
+func MetaEventRoutine_SensorLost(ps *pubsub.PubSub[any], mqttc mqtt.Client, topics_to_monitor []string) {
 	topicData := make(map[string]TopicSeen, 10)
 
 	events_chan := ps.Sub("seentopics")

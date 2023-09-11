@@ -19,7 +19,7 @@ import (
 /// Thus SomethingReallyIsMoving{True} fires regularly, but at most every gran_duration seconds
 /// While SomethingReallyIsMoving{False} fires only once to assure us that everybody might really be gone
 
-func MetaEventRoutine_Movement(ps *pubsub.PubSub, mqttc mqtt.Client, granularity, gran_duration int, threshold uint32) {
+func MetaEventRoutine_Movement(ps *pubsub.PubSub[any], mqttc mqtt.Client, granularity, gran_duration int, threshold uint32) {
 	var last_movement, last_movement1, last_movement2, last_movement3 int64
 	var confidence uint8
 	movement_window := ring.New(granularity + 1)
