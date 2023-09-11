@@ -111,6 +111,9 @@ type NetGWStatUpdate struct {
 	Ts         int64 `json:",omitempty"`
 }
 
+type TimeToClean struct {
+}
+
 type GasLeakAlert struct {
 	Ts int64 `json:",omitempty"`
 }

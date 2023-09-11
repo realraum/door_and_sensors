@@ -121,6 +121,10 @@ func UnmarshalTopicByte2Event(topic string, data []byte) (event interface{}, err
 		typed_event := DuskOrDawn{}
 		err = json.Unmarshal(data, &typed_event)
 		event = fixTs(&typed_event)
+	case TOPIC_META_TIMETOCLEAN:
+		typed_event := TimeToClean{}
+		err = json.Unmarshal(data, &typed_event)
+		event = fixTs(&typed_event)
 	case TOPIC_GW_DHCPACK:
 		typed_event := NetDHCPACK{}
 		err = json.Unmarshal(data, &typed_event)
