@@ -1,0 +1,177 @@
+## Use with esp8266 based H801 (controls 5 low-side mosfets for 5V-24V RGB-WW-CW led strips)
+##
+## in this case it controls two lights:
+## - a single-colour WW LED strip mounted around the window, simulating daylight
+## - as well as a RGB+W LED strip mounted below the desk
+##   - which also implements a random-colour effect
+#===============================================================================
+substitutions:
+  device_name: lothr_ceiling5
+  light_name: ceiling5
+#===============================================================================
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  ssid: !secret realstuffwifi_name
+  password: !secret realstuffwifi_pass
+
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${device_name} Hotspot"
+    password: !secret fallbackwifi_r3_pass
+
+  manual_ip:
+    static_ip: 192.168.33.25
+    gateway: 192.168.33.1
+    dns1: 192.168.33.1
+    subnet: 255.255.255.0
+
+# Disable logging, which may help with reboots
+logger:
+  level: NONE
+
+#Enable Home Assistant API
+api:
+ encryption:
+   key: !secret r3_api_encryption_psk
+ reboot_timeout: 3h
+
+ota:
+  password: !secret api_password
+
+mqtt:
+    broker: !secret realraum_mqtt_broker
+
+sensor:
+  - platform: wifi_signal
+    name: "WiFi Signal ${device_name}"
+    update_interval: 60s
+
+globals:
+  - id: carbon_copy_topics
+    type: std::string[9]
+    restore_value: no
+    initial_value: '{"","","","","","","","",""}'
+  - id: carbon_copy_index
+    type: uint8_t
+    restore_value: no
+    initial_value: '0'
+
+text_sensor:
+  - platform: mqtt_subscribe
+    name: "mqtt_light"
+    id: r3_mqtt_light
+    topic: action/${light_name}/light
+    on_value:
+      - lambda: |-
+            json::parse_json(id(r3_mqtt_light).get_state(), [](JsonObject root) {
+              auto call = id(lightrgbww).turn_on();
+              call.set_brightness(1.0);
+              if (root.containsKey("r")) {call.set_red(root["r"].as<double>()/1000.0);}
+              if (root.containsKey("g")) {call.set_green(root["g"].as<double>()/1000.0);}
+              if (root.containsKey("b")) {call.set_blue(root["b"].as<double>()/1000.0);}
+              if (root.containsKey("ww")) {call.set_warm_white(root["ww"].as<double>()/1000.0);}
+              if (root.containsKey("cw")) {call.set_cold_white(root["cw"].as<double>()/1000.0);}
+              if (root.containsKey("uv")) {call.set_cold_white(root["uv"].as<double>()/1000.0);}
+              if (root.containsKey("fade")) {
+                if (root["fade"].containsKey("duration")) {
+                  call.set_transition_length(root["fade"]["duration"].as<unsigned int>());
+                }
+                if (root["fade"].containsKey("cc")) {
+                  JsonArray ca = root["fade"]["cc"];
+                  for (uint8_t i=0; i< min((uint8_t)9,(uint8_t)ca.size()); i++) {
+                    id(carbon_copy_topics)[i] = (std::string)ca[i];
+                  }
+                  for (uint8_t i=ca.size(); i< 9; i++) {
+                    id(carbon_copy_topics)[i].clear();
+                  }
+                  carbon_copy_index = 0;
+                }
+              };
+
+              call.perform();
+            });
+  - platform: mqtt_subscribe
+    name: "mqtt_all_lights"
+    id: r3_mqtt_all_lights
+    topic: action/ceilingAll/light
+    on_value:
+      - lambda: |-
+            json::parse_json(id(r3_mqtt_light).get_state(), [](JsonObject root) {
+              auto call = id(lightrgbww).turn_on();
+              call.set_brightness(1.0);
+              if (root.containsKey("r")) {call.set_red(root["r"].as<double>()/1000.0);}
+              if (root.containsKey("g")) {call.set_green(root["g"].as<double>()/1000.0);}
+              if (root.containsKey("b")) {call.set_blue(root["b"].as<double>()/1000.0);}
+              if (root.containsKey("ww")) {call.set_warm_white(root["ww"].as<double>()/1000.0);}
+              if (root.containsKey("cw")) {call.set_cold_white(root["cw"].as<double>()/1000.0);}
+              if (root.containsKey("uv")) {call.set_cold_white(root["uv"].as<double>()/1000.0);}
+              if (root.containsKey("fade")) {
+                if (root["fade"].containsKey("duration")) {
+                  call.set_transition_length(root["fade"]["duration"].as<unsigned int>());
+                }
+                if (root["fade"].containsKey("cc")) {
+                  JsonArray ca = root["fade"]["cc"];
+                  for (uint8_t i=0; i< min((uint8_t)9,(uint8_t)ca.size()); i++) {
+                    id(carbon_copy_topics)[i] = (std::string)ca[i];
+                  }
+                  for (uint8_t i=ca.size(); i< 9; i++) {
+                    id(carbon_copy_topics)[i].clear();
+                  }
+                  carbon_copy_index = 0;
+                }
+              };
+
+              call.perform();
+            });
+
+output:
+  - platform: esp8266_pwm
+    pin: 12
+    frequency: 1000 Hz
+    id: pwm_b
+  - platform: esp8266_pwm
+    pin: 13
+    frequency: 1000 Hz
+    id: pwm_g
+  - platform: esp8266_pwm
+    pin: 15
+    frequency: 1000 Hz
+    id: pwm_r
+  - platform: esp8266_pwm
+    pin: 14
+    frequency: 1000 Hz
+    id: pwm_w1
+  - platform: esp8266_pwm
+    pin: 4
+    frequency: 1000 Hz
+    id: pwm_w2
+light:
+  - platform: rgbww
+    name: "${light_name}"
+    id: lightrgbww
+    red: pwm_r
+    green: pwm_g
+    blue: pwm_b
+    cold_white: pwm_w1
+    warm_white: pwm_w2
+    cold_white_color_temperature: 6536 K
+    warm_white_color_temperature: 2000 K
+    effects:
+      - random:
+          name: RandomColour
+          transition_length: 8s
+          update_interval: 60s
+      - pulse:
+          name: "SlowPulse"
+          transition_length: 4s      # defaults to 1s
+          update_interval: 4s
+      - flicker:
+          name: "Flicker"
+          alpha: 95%
+          intensity: 1.5%
