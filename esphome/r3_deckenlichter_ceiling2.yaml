@@ -42,7 +42,7 @@ api:
  reboot_timeout: 3h
 
 ota:
-  password: !secret api_password
+  password: !secret r3_ota_password
 
 mqtt:
     broker: !secret realraum_mqtt_broker
