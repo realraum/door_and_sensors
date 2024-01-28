@@ -35,9 +35,9 @@ func init() {
 	spaceapidata.AddSpaceFeed("calendar", "https://www.realraum.at/shmcache/grical_realraum_only.ical", "ical")
 	spaceapidata.AddSpaceFeed("blog", "https://wp.realraum.at/feed/", "rss")
 	spaceapidata.AddSpaceFeed("wiki", "https://realraum.at/wiki/feed.php", "rss")
-	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", false).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
-	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactTwitter("@realraum@chaos.social", false)
-	spaceapidata.SetSpaceContactPhone("+49221596191003", false).SetSpaceContactJabber("realraum@realraum.at", false)
+	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", true).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
+	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactIdentica("realraum@chaos.social", false)
+	spaceapidata.SetSpaceContactPhone("+49221596191003", false)
 	spaceapidata.AddProjectsURLs([]string{"https://chaos.social/@realraum", "https://git.github.com/realraum", "https://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://git.realraum.at"})
 	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
 		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
