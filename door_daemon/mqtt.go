@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"os"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/realraum/door_and_sensors/r3events"
@@ -15,6 +16,14 @@ const MQTT_QOS_REQCONFIRMATION byte = 1
 const MQTT_QOS_4STPHANDSHAKE byte = 2
 
 var re_cardid_ *regexp.Regexp = regexp.MustCompile("card\\(([a-fA-F0-9]+)\\)")
+
+var door_online_topic_ string = r3events.TOPIC_R3 + r3events.CLIENTID_FRONTDOOR + "/" + r3events.TYPE_ONLINEJSON
+var door_online_ip_ string = ""
+
+func init() {
+	door_online_ip_, _ = os.Hostname()
+}
+
 
 func parseSocketInputLine_State(lines []string, mqttc mqtt.Client, ts int64) {
 	switch lines[0] {
@@ -105,12 +114,14 @@ func mqttOnConnectionHandler(mqttc mqtt.Client) {
 	if tk.Error() != nil {
 		Syslog_.Fatalf("Error (re)subscribing to %s:%s", r3events.ACT_RESEND_STATUS_TRIGGER, tk.Error())
 	}
+	mqttc.Publish(door_online_topic_, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.Online{Ip: door_online_ip_, Online: true}))
 }
 
 func ConnectChannelToMQTT(publish_chan chan SerialLine, brocker_addr string, keystore *KeyNickStore, runOnMQTTConnect func(mqtt.Client)) {
 	options := mqtt.NewClientOptions().AddBroker(brocker_addr).SetAutoReconnect(true).SetClientID(r3events.CLIENTID_FRONTDOOR).SetKeepAlive(49 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
 	options = options.SetConnectionLostHandler(func(c mqtt.Client, err error) { Debug_.Print("ERROR MQTT connection lost:", err) })
 	options = options.SetOnConnectHandler(mqttOnConnectionHandler)
+	options = options.SetWill(door_online_topic_, string(r3events.MarshalEvent2ByteOrPanic(r3events.Online{Ip: door_online_ip_, Online: false})), MQTT_QOS_REQCONFIRMATION, true)
 	c := mqtt.NewClient(options)
 	//gooble up all publish_chan stuff for as long as mqtt is not connected
 	shutdown_gobbler_c := make(chan bool, 1)
