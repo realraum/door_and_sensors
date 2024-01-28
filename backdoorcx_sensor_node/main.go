@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"os"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/realraum/door_and_sensors/r3events"
@@ -21,6 +22,7 @@ var (
 	use_syslog_   bool
 	enable_debug_ bool
 	serial_speed_ uint
+	door_online_ip_ string = ""
 )
 
 type SerialLine []string
@@ -32,12 +34,17 @@ const (
 	DEFAULT_R3_AJARSENSOR_TTY_PATH      string = "/dev/ttyBackdoor"
 	DEFAULT_R3_GASLEAK2SMS_MININTERVAL  string = "45"
 	DEFAULT_R3_GASLEAK2SMS_DESTINATIONS string = "livesclose"
+    door_online_topic_ string = r3events.TOPIC_R3 + r3events.CLIENTID_BACKDOOR + "/" + r3events.TYPE_ONLINEJSON
+	MQTT_QOS_NOCONFIRMATION byte = 0
+	MQTT_QOS_REQCONFIRMATION byte = 1
+	MQTT_QOS_4STPHANDSHAKE byte = 2
 )
 
 func init() {
 	flag.BoolVar(&use_syslog_, "syslog", false, "log to syslog local1 facility")
 	flag.BoolVar(&enable_debug_, "debug", false, "debugging messages on")
 	flag.Parse()
+	door_online_ip_, _ = os.Hostname()
 }
 
 func SendSMS(groups []string, text string) {
@@ -136,7 +143,11 @@ func main() {
 
 	options := mqtt.NewClientOptions().AddBroker(EnvironOrDefault("R3_MQTT_BROKER", DEFAULT_R3_MQTT_BROKER)).SetAutoReconnect(true).SetCleanSession(true)
 	options = options.SetClientID(r3events.CLIENTID_BACKDOOR).SetKeepAlive(49 * time.Second).SetMaxReconnectInterval(2 * time.Minute)
-	options = options.SetOnConnectHandler(func(c mqtt.Client){c.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, nil)}) //re-subscribe on connect
+	options = options.SetOnConnectHandler(func(c mqtt.Client){
+		c.Subscribe(r3events.ACT_RESEND_STATUS_TRIGGER, 0, nil)
+		c.Publish(door_online_topic_, MQTT_QOS_REQCONFIRMATION, true, r3events.MarshalEvent2ByteOrPanic(r3events.Online{Ip: door_online_ip_, Online: true}))
+	}) //re-subscribe on connect
+	options = options.SetWill(door_online_topic_, string(r3events.MarshalEvent2ByteOrPanic(r3events.Online{Ip: door_online_ip_, Online: false})), MQTT_QOS_REQCONFIRMATION, true)
 	mqttclient := mqtt.NewClient(options)
 	ctk := mqttclient.Connect()
 	ctk.Wait()
