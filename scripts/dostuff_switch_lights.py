@@ -4,7 +4,7 @@
 ##
 ## TODO: replace this script with Homeautomation webfrontend
 ##       or rewrite it as "Match Room State -> Ensure Light State"
-## 
+##
 
 import sys
 import os
@@ -18,6 +18,7 @@ import urllib.parse
 import urllib.error
 
 topic_tradfri_onoff_lothr="zigbee2mqtt/w1/TradfriOnOffc9ed"
+topic_tradfri_onoff_kellerstiege="zigbee2mqtt/w1/TradfriOnOffKellerstiege"
 
 last_havesunlight_state_ = False
 sunlight_change_direction_counter_ = 0
@@ -41,7 +42,7 @@ wled_kaltlichtschrank_ = "192.168.33.46"
 def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
 
-# note that during dusk / dawn several events are fired, so we have this function to 
+# note that during dusk / dawn several events are fired, so we have this function to
 # easily limit our light change attempts to 2 at 0 and 1
 def didSunChangeRecently():
     return sunlight_change_direction_counter_ <= 1
@@ -329,7 +330,7 @@ def onMqttMessage(client, userdata, msg):
             if msg.retain:
                 return
             if dictdata["Locked"] == True:
-                ## switch on hallwaylight (it should be configured to turn itself of after some seconds)
+                ## switch on hallwaylight (it should be configured to turn itself off after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
                 ## for 30s
                 ##scheduleSwitchSonoff(["hallwaylight"],"off",time.time()+40)
@@ -359,6 +360,27 @@ def onMqttMessage(client, userdata, msg):
             elif "brightness_down" == dictdata["click"]:
                 ### longpress off has started
                 client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling2","ceiling3","ceiling4","ceiling5","ceiling6"],"value":0.7}')
+            elif "brightness_stop" == dictdata["click"]:
+                ### longpress has stopped
+                pass
+        elif topic == topic_tradfri_onoff_kellerstiege:
+            if not "click" in dictdata:
+                return
+
+            if "on" == dictdata["click"]:
+                ### shortclick on
+                ## switch on hallwaylight (it should be configured to turn itself off after some seconds)
+                switchsonoff(client,["hallwaylight"],"on")
+            elif "off" == dictdata["click"]:
+                ### shortclick off
+                ## switch on hallwaylight (it should be configured to turn itself off after some seconds)
+                switchsonoff(client,["hallwaylight"],"on")
+            elif "brightness_up" == dictdata["click"]:
+                ### longpress on has started
+                pass
+            elif "brightness_down" == dictdata["click"]:
+                ### longpress off has started
+                pass
             elif "brightness_stop" == dictdata["click"]:
                 ### longpress has stopped
                 pass
@@ -400,6 +422,7 @@ if __name__ == "__main__":
         ("zigbee2mqtt/w1/MashaPIR",1),
         ("zigbee2mqtt/w1/MashaPIR2",1),
         (topic_tradfri_onoff_lothr,1),
+        (topic_tradfri_onoff_kellerstiege,1),
     ])
     client.on_message = onMqttMessage
     client.connect("mqtt.realraum.at", 1883, keepalive=45)
