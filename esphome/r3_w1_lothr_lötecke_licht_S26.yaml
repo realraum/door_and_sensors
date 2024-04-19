@@ -1,0 +1,91 @@
+## Sonoff S20 Lothr Lötecke Licht
+#===============================================================================
+substitutions:
+  device_name: loeteckenlicht
+  device_friendly_name: "LoTHR Lötecke Licht"
+
+#===============================================================================
+
+
+esphome:
+  name: ${device_name}
+  platform: ESP8266
+  board: esp8285
+
+wifi:
+  networks:
+    - ssid: !secret realstuffwifi_name
+      password: !secret realstuffwifi_pass
+  reboot_timeout: 2h
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${device_name} fallback"
+    password: !secret fallbackwifi_pass
+
+  manual_ip:
+    static_ip: 192.168.33.27
+    gateway: 192.168.33.1
+    dns1: 192.168.33.1
+    subnet: 255.255.255.0
+
+captive_portal:
+
+# Enable logging
+logger:
+
+ota:
+  password: !secret r3_ota_password
+
+# Enable Home Assistant API
+#api:
+#  password: !secret old_api_password
+#  reboot_timeout: 3h
+
+mqtt:
+  broker: !secret realraum_mqtt_broker
+  birth_message:
+    topic: realraum/${device_name}/status
+    payload: online
+  will_message:
+    topic: realraum/${device_name}/status
+    payload: offline
+  topic_prefix: realraum/${device_name}
+
+
+#===============================================================================
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${device_friendly_name} Button"
+    on_press:
+      - light.toggle: relaylight
+  - platform: status
+    name: "${device_friendly_name} Status"
+
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay
+
+switch:
+  - platform: restart
+    name: "Restart ${device_friendly_name}"
+
+light:
+  - platform: binary
+    name: "${device_friendly_name}"
+    output: relay
+    id: relaylight
+    state_topic: realraum/${device_name}/state
+    command_topic: action/${device_name}/command
+
+#===============================================================================
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
