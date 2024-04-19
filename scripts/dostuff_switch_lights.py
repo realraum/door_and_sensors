@@ -261,7 +261,7 @@ def onMqttMessage(client, userdata, msg):
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchesphome(client,["twang","mashacompressor"],"OFF")
-                    switchesphome(client,["olgadecke","subtable"],"off")
+                    switchesphome(client,["olgadecke","subtable","loeteckenlicht"],"off")
                     time.sleep(4)
                     switchname(client,["all"],"off")
                     # doppelt hält besser, für die essentiellen dinge
@@ -279,7 +279,7 @@ def onMqttMessage(client, userdata, msg):
                 else:
                     ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred"],"off")
-                    switchesphome(client,["subtable"],"off")
+                    switchesphome(client,["subtable","loeteckenlicht"],"off")
                     switchesphome(client,["w1gastherme"],"off")
                     switchname(client,["basiclightAll"],"off")
                     switchWLED_MQTT(client, "deconflower", False)
