@@ -38,7 +38,7 @@ wled_w2_copperkey_ = "192.168.33.43"
 wled_lothr_quadrings_ = "192.168.33.44"
 wled_coppercoil_ = "192.168.33.45"
 wled_kaltlichtschrank_ = "192.168.33.46"
-wled_exit_sign_ = "192.168.127.122"
+wled_exit_sign_ = "192.168.33.52"
 
 def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
@@ -211,6 +211,7 @@ def onMqttMessage(client, userdata, msg):
                     switchWLED_MQTT(client, "deconflower", True)
                     switchWLED_MQTT(client, "kaltlichtschrank", True)
                     switchWLED_MQTT(client, "exitsign", True)
+                    scpwitchWLED_MQTT(client, "copperkey", True)
                     switchWLED_IP(wled_lothr_quadrings_, True)
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
@@ -260,6 +261,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchWLED_MQTT(client, "deconflower", False)
+                    switchWLED_MQTT(client, "copperkey", False)
                     switchWLED_IP(wled_lothr_quadrings_, False)
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
                     switchWLED_MQTT(client, "exitsign", False)
@@ -296,11 +298,13 @@ def onMqttMessage(client, userdata, msg):
                     # switch on stuff in space2 if somebody there
                     last_w2_locked_ = 0 ## 0 means don't switch stuff off
                     switchesphome(client,["twang"],"ON")
+                    switchWLED_MQTT(client, "copperkey", True)
                 else:
                     ## switch off stuff in space2 if nobody there
                     last_w2_locked_ = time.time()  # w2 locked, start timer to switch of retro-corner
                     switchesphome(client,["twang"],"OFF")
                     client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
+                    switchWLED_MQTT(client, "copperkey", False)
             ### presence stuff that should happen on any presence update anyway
             if dictdata["Present"]:
                 # switch single-led green
