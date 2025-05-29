@@ -38,6 +38,7 @@ wled_w2_copperkey_ = "192.168.33.43"
 wled_lothr_quadrings_ = "192.168.33.44"
 wled_coppercoil_ = "192.168.33.45"
 wled_kaltlichtschrank_ = "192.168.33.46"
+wled_exit_sign_ = "192.168.127.122"
 
 def isTheSunDown(): #->bool :
     return not last_havesunlight_state_
@@ -209,12 +210,14 @@ def onMqttMessage(client, userdata, msg):
                     switchsonoff(client,["couchred"],"on")
                     switchWLED_MQTT(client, "deconflower", True)
                     switchWLED_MQTT(client, "kaltlichtschrank", True)
+                    switchWLED_MQTT(client, "exitsign", True)
                     switchWLED_IP(wled_lothr_quadrings_, True)
                 else:
                     #leave cxleads on, otherwise people will use the ceiling light in CX
                     switchWLED_MQTT(client, "deconflower", False)
                     switchWLED_IP(wled_lothr_quadrings_, False)
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
+                    switchWLED_MQTT(client, "exitsign", False)
                     switchname(client,["couchwhite","laserball","logo"],"off")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred"],"off")
@@ -243,6 +246,7 @@ def onMqttMessage(client, userdata, msg):
                         switchWLED_MQTT(client, "deconflower", True)
                         switchWLED_IP(wled_lothr_quadrings_, True)
                         switchWLED_MQTT(client, "kaltlichtschrank", True)
+                        switchWLED_MQTT(client, "exitsign", True)
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
@@ -258,6 +262,7 @@ def onMqttMessage(client, userdata, msg):
                     switchWLED_MQTT(client, "deconflower", False)
                     switchWLED_IP(wled_lothr_quadrings_, False)
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
+                    switchWLED_MQTT(client, "exitsign", False)
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
                     switchsonoff(client,["couchred","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchesphome(client,["twang","mashacompressor"],"OFF")
@@ -276,6 +281,7 @@ def onMqttMessage(client, userdata, msg):
                     switchesphome(client,["w1gastherme"],"on")
                     switchWLED_MQTT(client, "deconflower", True)
                     switchWLED_MQTT(client, "kaltlichtschrank", True)
+                    switchWLED_MQTT(client, "exitsign", True)
                 else:
                     ## Everybody left and only people in W2 remain
                     switchsonoff(client,["couchred"],"off")
@@ -284,6 +290,7 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["basiclightAll"],"off")
                     switchWLED_MQTT(client, "deconflower", False)
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
+                    switchWLED_MQTT(client, "exitsign", False)
             elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
                 if dictdata["InSpace2"]:
                     # switch on stuff in space2 if somebody there
