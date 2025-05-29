@@ -1,10 +1,13 @@
 module github.com/realraum/door_and_sensors/r3events
 
-go 1.18
+go 1.23.0
 
-require github.com/eclipse/paho.mqtt.golang v1.3.5
+toolchain go1.24.2
+
+require github.com/eclipse/paho.mqtt.golang v1.5.0
 
 require (
-	github.com/gorilla/websocket v1.4.2 // indirect
-	golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
 )
