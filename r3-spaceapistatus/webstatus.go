@@ -24,7 +24,7 @@ type spaceState struct {
 }
 
 var (
-	spaceapidata        spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://realraum.at/logo-red_250x250.png").SetSpaceState(spaceapi.SpaceState{LastChange: time.Now().Unix(), Icon: &spaceapi.SpaceStateIcon{OpenIconURI: "https://realraum.at/logo-re_open_100x100.png", CloseIconURI: "https://realraum.at/logo-re_empty_100x100.png"}}).SetSpaceLocation(spaceapi.SpaceLocation{Address: "Brockmanngasse 15, 8010 Graz, Austria", Lat: 47.065554, Lon: 15.450435}).AddBaseExt("ext_ccc", "chaostreff")
+	spaceapidata        spaceapi.SpaceInfo = spaceapi.NewSpaceInfo("realraum", "https://realraum.at", "https://status.realraum.at/logo-red_250x250.png").SetSpaceState(spaceapi.SpaceState{LastChange: time.Now().Unix(), Icon: &spaceapi.SpaceStateIcon{OpenIconURI: "https://status.realraum.at/logo-re_open_100x100.png", CloseIconURI: "https://status.realraum.at/logo-re_empty_100x100.png"}}).SetSpaceLocation(spaceapi.SpaceLocation{Address: "Brockmanngasse 15, 8010 Graz, Austria", Lat: 47.065554, Lon: 15.450435}).AddBaseExt("ext_ccc", "chaostreff")
 	statusstate         *spaceState        = new(spaceState)
 	re_querystresc_     *regexp.Regexp     = regexp.MustCompile("[^\x30-\x39\x41-\x7E]")
 	spaceapijsonbytes   []byte
@@ -32,13 +32,13 @@ var (
 )
 
 func init() {
-	spaceapidata.AddSpaceFeed("calendar", "https://www.realraum.at/shmcache/grical_realraum_only.ical", "ical")
+	spaceapidata.AddSpaceFeed("calendar", "https://status.realraum.at/ics/grical_realraum_only.ical", "ical")
 	spaceapidata.AddSpaceFeed("blog", "https://wp.realraum.at/feed/", "rss")
-	spaceapidata.AddSpaceFeed("wiki", "https://realraum.at/wiki/feed.php", "rss")
+	spaceapidata.AddSpaceFeed("wiki", "https://doku.realraum.at/feed.php", "rss")
 	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", true).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
 	spaceapidata.SetSpaceContactIssueMail("vorstand@realraum.at", true).SetSpaceContactIdentica("realraum@chaos.social", false)
 	spaceapidata.SetSpaceContactPhone("+49221596191003", false)
-	spaceapidata.AddProjectsURLs([]string{"https://chaos.social/@realraum", "https://git.github.com/realraum", "https://wiki.realraum.at/wiki/doku.php?id=projekte", "https://wp.realraum.at/", "https://git.realraum.at"})
+	spaceapidata.AddProjectsURLs([]string{"https://chaos.social/@realraum", "https://git.github.com/realraum", "https://doku.realraum.at/projekte", "https://wp.realraum.at/", "https://git.realraum.at"})
 	if len(os.Getenv("R3_TOTAL_MEMBERCOUNT")) > 0 {
 		total_member_count, err := strconv.Atoi(os.Getenv("R3_TOTAL_MEMBERCOUNT"))
 		if err == nil {
