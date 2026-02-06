@@ -356,43 +356,43 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["cxleds"],"on")
                     switchWLED_MQTT(client, "deconflower", True)
         elif topic == topic_tradfri_onoff_lothr:
-            if not "click" in dictdata:
+            if not "action" in dictdata:
                 return
 
-            if "on" == dictdata["click"]:
+            if "on" == dictdata["action"]:
                 ### shortclick on
                 switchname(client,["floodtesla","ceiling6"],"on")
-            elif "off" == dictdata["click"]:
+            elif "off" == dictdata["action"]:
                 ### shortclick off
                 switchname(client,["floodtesla","ceiling6"],"off")
-            elif "brightness_up" == dictdata["click"]:
+            elif "brightness_up" == dictdata["action"]:
                 ### longpress on has started
                 client.publish("action/ceilingscripts/activatescript",json.dumps({"script":"wave","colourlist":[{"r":1000,"g":0,"b":0,"ww":0,"cw":0},{"r":800,"g":0,"b":100,"ww":0,"cw":0},{"r":0,"g":0,"b":300,"ww":0,"cw":0},{"r":0,"g":500,"b":100,"ww":0,"cw":0},{"r":0,"g":800,"b":0,"ww":0,"cw":0},{"r":800,"g":200,"b":0,"ww":0,"cw":0},], "fadeduration":5000}))
-            elif "brightness_down" == dictdata["click"]:
+            elif "brightness_down" == dictdata["action"]:
                 ### longpress off has started
                 client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling2","ceiling3","ceiling4","ceiling5","ceiling6"],"value":0.7}')
-            elif "brightness_stop" == dictdata["click"]:
+            elif "brightness_stop" == dictdata["action"]:
                 ### longpress has stopped
                 pass
         elif topic == topic_tradfri_onoff_kellerstiege:
-            if not "click" in dictdata:
+            if not "action" in dictdata:
                 return
 
-            if "on" == dictdata["click"]:
+            if "on" == dictdata["action"]:
                 ### shortclick on
                 ## switch on hallwaylight (it should be configured to turn itself off after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
-            elif "off" == dictdata["click"]:
+            elif "off" == dictdata["action"]:
                 ### shortclick off
                 ## switch on hallwaylight (it should be configured to turn itself off after some seconds)
                 switchsonoff(client,["hallwaylight"],"on")
-            elif "brightness_up" == dictdata["click"]:
+            elif "brightness_up" == dictdata["action"]:
                 ### longpress on has started
                 pass
-            elif "brightness_down" == dictdata["click"]:
+            elif "brightness_down" == dictdata["action"]:
                 ### longpress off has started
                 pass
-            elif "brightness_stop" == dictdata["click"]:
+            elif "brightness_stop" == dictdata["action"]:
                 ### longpress has stopped
                 pass
 
