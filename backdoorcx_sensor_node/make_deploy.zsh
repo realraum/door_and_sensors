@@ -2,6 +2,7 @@
 REMOTE_HOST=smsgw.realraum.at
 
 #ping -W 1 -c 1 $REMOTE_HOST || OPTIONS=(-e "ssh -o ProxyCommand='ssh gw.realraum.at exec nc %h %p'")
+export CGO_ENABLED=0
 export GOOS=linux
 export GOARCH=arm
 go build "$@" -ldflags "-s" && rsync ${OPTIONS[@]} -v --delay-updates --progress ${PWD:t} realraum@$REMOTE_HOST:bin/
