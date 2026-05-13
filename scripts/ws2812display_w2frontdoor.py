@@ -1,7 +1,7 @@
 #!/usr/bin/python3
- # pip install paho-mqtt
- # pip install pyserial
- 
+# pip install paho-mqtt
+# pip install pyserial
+
 __author__ = "ruru"
 
 import serial
@@ -16,22 +16,22 @@ def decodeR3Message(topic, data):
     except Exception as e:
         return ("", {})
 
-def on_connect(client, userdata, flags, rc):
-    client.subscribe("realraum/w2frontdoor/lock")
+def on_connect(client, userdata, flags, reason_code, properties):
+    if reason_code.is_failure:
+        print(f"Failed to connect: {reason_code}")
+    else:
+        client.subscribe("realraum/w2frontdoor/lock")
 
 def on_message(client, userdata, msg):
     topic, jsondata = decodeR3Message(msg.topic, msg.payload)
     print(topic, jsondata)
 
-    if jsondata["Locked"]:
+    if jsondata.get("Locked"):
         ser.write(b'c')
     else:
         ser.write(b'o')
-        
-#    while(lock == 'open'):
-#        print("unlocked")
 
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 client.on_connect = on_connect
 client.on_message = on_message
 

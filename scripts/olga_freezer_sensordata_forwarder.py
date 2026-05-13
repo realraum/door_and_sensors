@@ -303,6 +303,11 @@ def onMQTTDisconnect(mqttc, userdata, rc):
         print("Clean disconnect.")
         sys.exit()
 
+def onMQTTConnect(mqttc, userdata, flags, reason_code, properties):
+    if reason_code.is_failure:
+        print(f"Failed to connect: {reason_code}")
+
+
 ############ Main Routine ############
 
 if __name__ == '__main__':
@@ -318,6 +323,7 @@ if __name__ == '__main__':
     # Start mqtt connection to publish / forward sensor data
     client = mqtt.Client()
     client.connect(uwscfg.mqtt_brokerhost, int(uwscfg.mqtt_brokerport), 60)
+    client.onconnect = onMQTTConnect
     client.on_disconnect = onMQTTDisconnect
 
     # listen for sensor data and forward them
