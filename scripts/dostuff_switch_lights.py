@@ -206,8 +206,9 @@ def onMqttMessage(client, userdata, msg):
             if didSunChangeRecently():
                 if isTheSunDown():
                     switchname(client,["cxleds","couchwhite","logo","laserball"],"on")
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/DeckenfluterLoTHRFenster"],"ON")
                     switchsonoff(client,["couchred"],"on")
+                    switchesphome(client,["loeteckenlicht"],"on")
                     switchWLED_MQTT(client, "deconflower", True)
                     switchWLED_MQTT(client, "kaltlichtschrank", True)
                     switchWLED_MQTT(client, "exitsign", True)
@@ -220,9 +221,9 @@ def onMqttMessage(client, userdata, msg):
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
                     switchWLED_MQTT(client, "exitsign", False)
                     switchname(client,["couchwhite","laserball","logo"],"off")
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1","w1/DeckenfluterLoTHRFenster","w1/UltraHellSackerl-AudioShelf","w1/UltraHellSackerl-Membershelf"],"OFF")
                     switchsonoff(client,["couchred"],"off")
-                    switchesphome(client,["subtable"],"off")
+                    switchesphome(client,["subtable","loeteckenlicht"],"off")
         elif topic.endswith("/presence") and "Present" in dictdata and "InSpace1" in dictdata:
             if msg.retain:
                 last_status = dictdata.copy()
@@ -239,7 +240,7 @@ def onMqttMessage(client, userdata, msg):
                     switchesphome(client,["mashacompressor"], True)
                     if isTheSunDown():
                         switchname(client,["floodtesla","couchwhite","laserball","logo"],"on")
-                        switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"ON")
+                        switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/DeckenfluterLoTHRFenster"],"ON")
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
                         switchesphome(client,["w1gastherme"],"on")
@@ -265,7 +266,7 @@ def onMqttMessage(client, userdata, msg):
                     switchWLED_IP(wled_lothr_quadrings_, False)
                     switchWLED_MQTT(client, "kaltlichtschrank", False)
                     switchWLED_MQTT(client, "exitsign", False)
-                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1"],"OFF")
+                    switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/OutletAuslageW1","w1/DeckenfluterLoTHRFenster","w1/UltraHellSackerl-AudioShelf","w1/UltraHellSackerl-Membershelf"],"OFF")
                     switchsonoff(client,["couchred","lothrboiler","olgaboiler","mashadecke"],"off")
                     switchesphome(client,["twang","mashacompressor"],"OFF")
                     switchesphome(client,["olgadecke","subtable","loeteckenlicht"],"off")
