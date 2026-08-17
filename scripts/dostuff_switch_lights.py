@@ -270,7 +270,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
-                    switchKAJPLATS_MQTT(client,["lothr_kajplats_g1","lothr_kajplats_g2","lothr_kajplats_g3","lothr_kajplats_g4","lothr_kajplats_g5","lothr_kajplats_g6"],'{"brightness":0,state":"OFF"}')
+                    switchKAJPLATS_MQTT(client,["lothr_kajplats_g1","lothr_kajplats_g2","lothr_kajplats_g3","lothr_kajplats_g4","lothr_kajplats_g5","lothr_kajplats_g6"],'{"state":"OFF"}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchWLED_MQTT(client, "deconflower", False)
                     switchWLED_MQTT(client, "copperkey", False)
