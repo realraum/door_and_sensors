@@ -484,7 +484,7 @@ func (nsi SpaceInfo) UpdateSpaceStatusNotKnown(status string) SpaceInfo {
 
 func NewSpaceInfo(space string, url string, logo string) SpaceInfo {
 	nsi := map[string]interface{}{
-		"api":     "0.13",
+		"api_compatibility": []string{"14", "15"},
 		"space":   space,
 		"url":     url,
 		"logo":    logo,
