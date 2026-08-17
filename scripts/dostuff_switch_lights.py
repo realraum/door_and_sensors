@@ -79,7 +79,10 @@ def switchWLED_IP(ip, action, preset=None, brightness=None):
         api_data["ps"] = preset
     if isinstance(brightness,int) and brightness >= 0 and brightness <= 255:
         api_data["bri"] = brightness
-    resp = urllib.request.urlopen(req, data=json.dumps(api_data).encode())
+    try:
+        resp = urllib.request.urlopen(req, data=json.dumps(api_data).encode())
+    except Exception as e:
+        print("ERROR switchWLED_IP:",e)
 
 def switchKAJPLATS_MQTT(client, namelist, data):
     if not isinstance(namelist,list):
