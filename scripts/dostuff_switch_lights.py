@@ -81,6 +81,12 @@ def switchWLED_IP(ip, action, preset=None, brightness=None):
         api_data["bri"] = brightness
     resp = urllib.request.urlopen(req, data=json.dumps(api_data).encode())
 
+def switchKAJPLATS_MQTT(client, namelist, data):
+    if not isinstance(namelist,list):
+        namelist = [namelist]
+    for n in namelist:
+        client.publish("zigbee2mqtt/w1/"+n+"/set",data, qos=2)
+
 def switchWLED_MQTT(client, name, action, preset=None, brightness=None):
     ## https://kno.wled.ge/interfaces/json-api/
     if isinstance(action,str):
@@ -205,7 +211,7 @@ def onMqttMessage(client, userdata, msg):
             # if people are present and the sun is down, switch on CX Lights
             if didSunChangeRecently():
                 if isTheSunDown():
-                    switchname(client,["cxleds","couchwhite","logo","laserball"],"on")
+                    switchname(client,["couchwhite","logo","laserball"],"on")
                     switchZigbeeOutlet(client,["w1/OutletBlueLEDBar","w1/DeckenfluterLoTHRFenster"],"ON")
                     switchsonoff(client,["couchred"],"on")
                     switchesphome(client,["loeteckenlicht"],"on")
@@ -235,7 +241,7 @@ def onMqttMessage(client, userdata, msg):
                     # someone just arrived
                     # power to tesla labortisch so people can switch on the individual lights (and switch off after everybody leaves)
                     # boiler needs power, so always off. to be switched on manuall when needed
-                    switchname(client,["cxleds","boilerolga"],"on")
+                    switchname(client,["boilerolga"],"on")
                     switchsonoff(client,["lothrboiler","olgaboiler"],"on")
                     switchesphome(client,["mashacompressor"], True)
                     if isTheSunDown():
@@ -244,7 +250,8 @@ def onMqttMessage(client, userdata, msg):
                         switchsonoff(client,["couchred"],"on")
                         switchesphome(client,["subtable"],"on")
                         switchesphome(client,["w1gastherme"],"on")
-                        client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling2","ceiling3","ceiling4"],"value":0.75,"fadeduration":6000}')
+                        client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling2","ceiling3","ceiling5"],"value":0.9,"fadeduration":6000}')
+                        switchKAJPLATS_MQTT(client,["lothr_kajplats_g1","lothr_kajplats_g2","lothr_kajplats_g3","lothr_kajplats_g4","lothr_kajplats_g5","lothr_kajplats_g6"],'{"brightness":220,"color_mode":"color_temp","color_temp":404,"state":"ON"}')
                         switchWLED_MQTT(client, "deconflower", True)
                         switchWLED_IP(wled_lothr_quadrings_, True)
                         switchWLED_MQTT(client, "kaltlichtschrank", True)
@@ -252,7 +259,7 @@ def onMqttMessage(client, userdata, msg):
                         # client.publish("action/ceiling1/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                         # client.publish("action/ceiling3/light",'{"r":400,"b":0,"ww":800,"cw":0,"g":0,"fade":{}}')
                     # doppelt hält besser, für die essentiellen dinge
-                    switchname(client,["boilerolga","cxleds"],"on")
+                    switchname(client,["boilerolga"],"on")
                 else:
                     # everybody left
                     if last_w2_locked_ == 0:
@@ -260,6 +267,7 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
+                    switchKAJPLATS_MQTT(client,["lothr_kajplats_g1","lothr_kajplats_g2","lothr_kajplats_g3","lothr_kajplats_g4","lothr_kajplats_g5","lothr_kajplats_g6"],'{"brightness":0,state":"OFF"}')
                     switchname(client,["abwasch","couchwhite","laserball","logo","all"],"off")
                     switchWLED_MQTT(client, "deconflower", False)
                     switchWLED_MQTT(client, "copperkey", False)
@@ -354,7 +362,7 @@ def onMqttMessage(client, userdata, msg):
             if isTheSunDown() and dictdata["Shut"] == False:
                 if topic.endswith("/backdoorcx/ajar"):
                     ## also switch CX light on and leave them on
-                    switchname(client,["cxleds"],"on")
+                    # switchname(client,["cxleds"],"on")
                     switchWLED_MQTT(client, "deconflower", True)
         elif topic == topic_tradfri_onoff_lothr:
             if not "action" in dictdata:
@@ -371,7 +379,7 @@ def onMqttMessage(client, userdata, msg):
                 client.publish("action/ceilingscripts/activatescript",json.dumps({"script":"wave","colourlist":[{"r":1000,"g":0,"b":0,"ww":0,"cw":0},{"r":800,"g":0,"b":100,"ww":0,"cw":0},{"r":0,"g":0,"b":300,"ww":0,"cw":0},{"r":0,"g":500,"b":100,"ww":0,"cw":0},{"r":0,"g":800,"b":0,"ww":0,"cw":0},{"r":800,"g":200,"b":0,"ww":0,"cw":0},], "fadeduration":5000}))
             elif "brightness_down" == dictdata["action"]:
                 ### longpress off has started
-                client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling2","ceiling3","ceiling4","ceiling5","ceiling6"],"value":0.7}')
+                client.publish("action/ceilingscripts/activatescript",'{"script":"redshift","participating":["ceiling1","ceiling2","ceiling3","ceiling5","ceiling6"],"value":0.7}')
             elif "brightness_stop" == dictdata["action"]:
                 ### longpress has stopped
                 pass
