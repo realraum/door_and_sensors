@@ -26,8 +26,6 @@ last_masha_no_more_movement_ = 1
 last_masha_no_more_movement2_ = 1
 last_masha_turned_light_off_by_script_ = 0
 masha_ceiling_light_timeout_seconds_ = 660.0
-retro_corner_outletplug_timeout_seconds_ = 60*100 # 1h40m
-last_w2_locked_ = 0
 keep_running_ = True
 time_schedule_sonoff_ = [] # | list[tuple[float,tuple[str,str]]]
 w1_frontdoor_locked = None
@@ -177,7 +175,7 @@ def runRegularEvents(client):
         next_run_pulsetime=time.time()+3600*12
 
 def onLoop(client):
-    global last_masha_turned_light_off_by_script_, last_w2_locked_
+    global last_masha_turned_light_off_by_script_
     ## run schedules events
     runScheduledEvents(client)
     runRegularEvents(client)
@@ -186,9 +184,6 @@ def onLoop(client):
         last_masha_turned_light_off_by_script_ = time.time()
         #print(last_masha_no_more_movement_)
         switchsonoff(client,["mashadecke"],"off")
-    if last_w2_locked_ > 0 and time.time() - last_w2_locked_ > retro_corner_outletplug_timeout_seconds_:
-        last_w2_locked_ = 0
-        switchsonoff(client,["retrocorner"],"off")
 
 
 def signal_handler(self, signal, frame):
@@ -197,7 +192,7 @@ def signal_handler(self, signal, frame):
     keep_running_=False
 
 def onMqttMessage(client, userdata, msg):
-    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_, last_w2_locked_, w1_frontdoor_locked, backdoorblue_locked
+    global last_status, unixts_panic_button, unixts_last_movement, unixts_last_presence, last_havesunlight_state_, sunlight_change_direction_counter_, last_masha_no_more_movement_, w1_frontdoor_locked, backdoorblue_locked
     try:
         (topic, dictdata) = decodeR3Message(msg.topic, msg.payload)
         #print("Got data: " + topic + ":"+ str(dictdata))
@@ -265,8 +260,6 @@ def onMqttMessage(client, userdata, msg):
                     switchname(client,["boilerolga"],"on")
                 else:
                     # everybody left
-                    if last_w2_locked_ == 0:
-                        last_w2_locked_ = time.time()  #everything locked, start retro-corner-off timer unless w2 was closed earlier
                     client.publish("action/ceilingscripts/activatescript",'{"script":"off"}')
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
                     client.publish("action/ducttape-ledstrip/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}') #ducttape light might not listen to ceilingAll
@@ -287,36 +280,35 @@ def onMqttMessage(client, userdata, msg):
                     client.publish("action/ceilingAll/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0}')
                     switchname(client,["boilerolga"],"off")
                     switchesphome(client,["w1gastherme"],"off")
-            elif last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
-                ## Presence InSpace1 changed while overall presence remains true
-                if dictdata["InSpace1"]:
-                    ## Someone came in through the front door
-                    switchsonoff(client,["couchred"],"on")
-                    switchesphome(client,["w1gastherme"],"on")
-                    switchWLED_MQTT(client, "deconflower", True)
-                    switchWLED_MQTT(client, "kaltlichtschrank", True)
-                    switchWLED_MQTT(client, "exitsign", True)
-                else:
-                    ## Everybody left and only people in W2 remain
-                    switchsonoff(client,["couchred"],"off")
-                    switchesphome(client,["subtable","loeteckenlicht"],"off")
-                    switchesphome(client,["w1gastherme"],"off")
-                    switchname(client,["basiclightAll"],"off")
-                    switchWLED_MQTT(client, "deconflower", False)
-                    switchWLED_MQTT(client, "kaltlichtschrank", False)
-                    switchWLED_MQTT(client, "exitsign", False)
-            elif last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
-                if dictdata["InSpace2"]:
-                    # switch on stuff in space2 if somebody there
-                    last_w2_locked_ = 0 ## 0 means don't switch stuff off
-                    switchesphome(client,["twang"],"ON")
-                    switchWLED_MQTT(client, "copperkey", True)
-                else:
-                    ## switch off stuff in space2 if nobody there
-                    last_w2_locked_ = time.time()  # w2 locked, start timer to switch of retro-corner
-                    switchesphome(client,["twang"],"OFF")
-                    client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
-                    switchWLED_MQTT(client, "copperkey", False)
+            else:
+                if last_status["InSpace1"] != dictdata["InSpace1"] and dictdata["Present"] == True:
+                    ## Presence InSpace1 changed while overall presence remains true
+                    if dictdata["InSpace1"]:
+                        ## Someone came in through the front door
+                        switchsonoff(client,["couchred"],"on")
+                        switchesphome(client,["w1gastherme"],"on")
+                        switchWLED_MQTT(client, "deconflower", True)
+                        switchWLED_MQTT(client, "kaltlichtschrank", True)
+                        switchWLED_MQTT(client, "exitsign", True)
+                    else:
+                        ## Everybody left and only people in W2 remain
+                        switchsonoff(client,["couchred"],"off")
+                        switchesphome(client,["subtable","loeteckenlicht"],"off")
+                        switchesphome(client,["w1gastherme"],"off")
+                        switchname(client,["basiclightAll"],"off")
+                        switchWLED_MQTT(client, "deconflower", False)
+                        switchWLED_MQTT(client, "kaltlichtschrank", False)
+                        switchWLED_MQTT(client, "exitsign", False)
+                if last_status["InSpace2"] != dictdata["InSpace2"] and dictdata["Present"] == True:
+                    if dictdata["InSpace2"]:
+                        # switch on stuff in space2 if somebody there
+                        switchesphome(client,["twang"],"ON")
+                        switchWLED_MQTT(client, "copperkey", True)
+                    else:
+                        ## switch off stuff in space2 if nobody there
+                        switchesphome(client,["twang"],"OFF")
+                        client.publish("action/funkbude/light",'{"r":0,"b":0,"ww":0,"cw":0,"g":0,"uv":0,"fade":{}}')
+                        switchWLED_MQTT(client, "copperkey", False)
             ### presence stuff that should happen on any presence update anyway
             if dictdata["Present"]:
                 # switch single-led green
