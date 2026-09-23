@@ -402,8 +402,8 @@ def onMqttMessage(client, userdata, msg):
         traceback.print_exc(file=sys.stdout)
         sys.exit(1)
 
-def onMQTTDisconnect(mqttc, userdata, rc):
-    if rc != 0:
+def onMQTTDisconnect(mqttc, userdata, disconnect_flags, rc, props):
+    if rc.is_failure:
         print("Unexpected disconnection.")
         while True:
             time.sleep(5)
@@ -422,8 +422,8 @@ if __name__ == "__main__":
     unixts_panic_button = None
     unixts_last_movement = 0
     unixts_last_presence = 0
-    client = mqtt.Client(client_id=os.path.basename(sys.argv[0]))
-    client.on_connect = lambda client, userdata, flags, rc: client.subscribe([
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=os.path.basename(sys.argv[0]))
+    client.on_connect = lambda client, userdata, flags, rc, props: client.subscribe([
         ("realraum/metaevt/presence", 1),
         ("realraum/metaevt/duskordawn", 1),
         ("realraum/pillar/boredoombuttonpressed", 1),
