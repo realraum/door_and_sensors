@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	spaceapidata.AddSpaceFeed("calendar", "https://status.realraum.at/ics/grical_realraum_only.ical", "ical")
+	spaceapidata.AddSpaceFeed("calendar", "https://status.realraum.at/ics/local_events.ics", "ical")
 	spaceapidata.AddSpaceFeed("blog", "https://wp.realraum.at/feed/", "rss")
 	spaceapidata.AddSpaceFeed("wiki", "https://doku.realraum.at/feed.php", "rss")
 	spaceapidata.SetSpaceContactIRC("irc://irc.oftc.net/#realraum", true).SetSpaceContactMailinglist("realraum@realraum.at", false).SetSpaceContactEmail("vorstand@realraum.at", true)
