@@ -366,9 +366,11 @@ def onMqttMessage(client, userdata, msg):
             if "on" == dictdata["action"]:
                 ### shortclick on
                 switchname(client,["floodtesla","ceiling6"],"on")
+                switchesphome(client,["loeteckenlicht"],"on")
             elif "off" == dictdata["action"]:
                 ### shortclick off
                 switchname(client,["floodtesla","ceiling6"],"off")
+                switchesphome(client,["loeteckenlicht"],"off")
             elif "brightness_up" == dictdata["action"]:
                 ### longpress on has started
                 client.publish("action/ceilingscripts/activatescript",json.dumps({"script":"wave","colourlist":[{"r":1000,"g":0,"b":0,"ww":0,"cw":0},{"r":800,"g":0,"b":100,"ww":0,"cw":0},{"r":0,"g":0,"b":300,"ww":0,"cw":0},{"r":0,"g":500,"b":100,"ww":0,"cw":0},{"r":0,"g":800,"b":0,"ww":0,"cw":0},{"r":800,"g":200,"b":0,"ww":0,"cw":0},], "fadeduration":5000}))
