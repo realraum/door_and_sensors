@@ -365,11 +365,16 @@ def onMqttMessage(client, userdata, msg):
 
             if "on" == dictdata["action"]:
                 ### shortclick on
-                switchname(client,["floodtesla","ceiling6"],"on")
+                switchname(client,["ceiling6"],"on")
+                switchZigbeeOutlet(client,["w1/UltraHellSackerl-AudioShelf"],"ON")
+                switchZigbeeOutlet(client,["w1/DeckenfluterLoTHRFenster"],"ON")
                 switchesphome(client,["loeteckenlicht"],"on")
             elif "off" == dictdata["action"]:
                 ### shortclick off
-                switchname(client,["floodtesla","ceiling6"],"off")
+                switchname(client,["ceiling6"],"off")
+                switchZigbeeOutlet(client,["w1/UltraHellSackerl-AudioShelf"],"OFF")
+                switchZigbeeOutlet(client,["w1/DeckenfluterLoTHRFenster"],"OFF")
+                switchesphome(client,["loeteckenlicht"],"on")
                 switchesphome(client,["loeteckenlicht"],"off")
             elif "brightness_up" == dictdata["action"]:
                 ### longpress on has started
