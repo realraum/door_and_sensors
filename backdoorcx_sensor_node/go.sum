@@ -4,6 +4,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20260513003905-c5b8e70ac02c h1:gGEzOCiCp0ouf/wjCHD7WfWEpUS8vug/tUuFMmkilsM=
 github.com/realraum/door_and_sensors/r3events v0.0.0-20260513003905-c5b8e70ac02c/go.mod h1:LlBc5wmh2m7AeKFiCTybYETECbAzw+CugTiiSfddvPA=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20261127120914-848a4eecc2f1 h1:xQ4kdEMsRsTtF0znCOkVsru8R5Hn0MCdZZolC/st99g=
+github.com/realraum/door_and_sensors/r3events v0.0.0-20261127120914-848a4eecc2f1/go.mod h1:t8rgE+OGnySKqIMztqPtIZokBNXw9BlcjM2bAeBbY+8=
 github.com/schleibinger/sio v0.0.0-20130717070631-2cc3e40bedc0 h1:+zqi+jqEVTqupUr2w6E0diz3TKNBzaD01D5i4+Pvqio=
 github.com/schleibinger/sio v0.0.0-20130717070631-2cc3e40bedc0/go.mod h1:e07TMiZ8iTjzDWnGXfDSMLJ3F07CV3IvQRMvp2W1Eus=
 golang.org/x/net v0.63.0 h1:HCoTmNh9EpD1PpK8gBNFY4gcTY4N+KQEO8ylfIKqFJ0=

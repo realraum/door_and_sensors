@@ -6,7 +6,7 @@ require (
 	github.com/btittelbach/astrotime v0.0.0-20160515101311-7ddba43aa26e
 	github.com/btittelbach/pubsub v1.2.0
 	github.com/eclipse/paho.mqtt.golang v1.5.2
-	github.com/realraum/door_and_sensors/r3events v0.0.0-20260512225641-2a7fbb86056f
+	github.com/realraum/door_and_sensors/r3events v0.0.0-20261127120914-848a4eecc2f1
 )
 
 require (
