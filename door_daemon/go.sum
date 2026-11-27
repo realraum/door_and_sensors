@@ -1,5 +1,5 @@
-github.com/eclipse/paho.mqtt.golang v1.5.0 h1:EH+bUVJNgttidWFkLLVKaQPGmkTUfQQqjOsyvMGvD6o=
-github.com/eclipse/paho.mqtt.golang v1.5.0/go.mod h1:du/2qNQVqJf/Sqs4MEL77kR8QTqANF7XU7Fk0aOTAgk=
+github.com/eclipse/paho.mqtt.golang v1.5.2 h1:4pcXsR3nR9gJuHCpBC8UF6rTehpIoHrYRm+hGOCq7ZM=
+github.com/eclipse/paho.mqtt.golang v1.5.2/go.mod h1:rDbBdvBJ0K2cDnnazZcu0/cu7y3bFiICNVUOUWHnOOg=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/hishboy/gocommons v0.0.0-20160108023425-89887b2ade6d h1:NE+XGwIkTgi/pIdEidbYhbUL/CeTLjDk00SwEVnrZzU=
@@ -13,9 +13,9 @@ github.com/realraum/door_and_sensors/r3events v0.0.0-20250529212417-5a68cd88b0db
 github.com/realraum/door_and_sensors/r3events v0.0.0-20250529212417-5a68cd88b0db/go.mod h1:WbJwo40SQm+km7sUGTeQE6rTZkhQhgsP3PomSkVzzBU=
 github.com/schleibinger/sio v0.0.0-20130717070631-2cc3e40bedc0 h1:+zqi+jqEVTqupUr2w6E0diz3TKNBzaD01D5i4+Pvqio=
 github.com/schleibinger/sio v0.0.0-20130717070631-2cc3e40bedc0/go.mod h1:e07TMiZ8iTjzDWnGXfDSMLJ3F07CV3IvQRMvp2W1Eus=
-golang.org/x/net v0.40.0 h1:79Xs7wF06Gbdcg4kdCCIQArK11Z1hr5POQ6+fIYHNuY=
-golang.org/x/net v0.40.0/go.mod h1:y0hY0exeL2Pku80/zKK7tpntoX23cqL3Oa6njdgRtds=
-golang.org/x/sync v0.14.0 h1:woo0S4Yywslg6hp4eUFjTVOyKt0RookbpAHG4c1HmhQ=
-golang.org/x/sync v0.14.0/go.mod h1:1dzgHSNfp02xaA81J2MS99Qcpr2w7fw1gpm99rleRqA=
+golang.org/x/net v0.63.0 h1:HCoTmNh9EpD1PpK8gBNFY4gcTY4N+KQEO8ylfIKqFJ0=
+golang.org/x/net v0.63.0/go.mod h1:15JLg3IX1bLjHK264EZQEbIpTiR/KVLuo9CTRWd0pig=
+golang.org/x/sync v0.25.0 h1:dJnifr0nMV8/SBnBvdo4eSGGnrc3O4FFx6IqvtLcmRs=
+golang.org/x/sync v0.25.0/go.mod h1:sUUOizhqBxiL6pEWpqNLUiaJn1ShEbZ6BBqskPbjZm0=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
